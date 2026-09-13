@@ -1,9 +1,8 @@
 ﻿using ImGuiNET;
 using System.Numerics;
 using Titled_Gui.Data.Entity;
-using static Titled_Gui.Data.Menu.Types.Colors;
-using static Titled_Gui.Data.Game.GameState;
 using Titled_Gui.Data.Menu.Types;
+using static Titled_Gui.Data.Game.GameState;
 
 namespace Titled_Gui.Modules.Visual
 {
@@ -25,8 +24,7 @@ namespace Titled_Gui.Modules.Visual
         public static Vector4 EnemyColor = new(1, 0, 0, 1);
         public static Colors TracerColors = new(TeamColor, EnemyColor);
         private const float HeadOffset = 50f;
-        private static Vector2 StartPos = new();
-        private static Vector2 EndPos = new();
+
 
         private static Vector4 GetTracerColor(Entity entity)
         {
@@ -38,28 +36,39 @@ namespace Titled_Gui.Modules.Visual
 
         public static void DrawTracers(Entity? entity, Renderer renderer)
         {
-            if (!EnableTracers || entity == null || entity.Health <= 0 || LocalPlayer == null || entity.PawnAddress == LocalPlayer.PawnAddress || (TeamCheck && entity.Team == LocalPlayer.Team) || (BoxESP.FlashCheck && LocalPlayer.IsFlashed) || entity?.Bones?.Count <= 0 || entity?.Position2D == new Vector2(-99, -99) || entity?.Bones == null) return;
+            if (!EnableTracers || entity == null || entity.Health <= 0 || LocalPlayer == null || entity.PawnAddress == LocalPlayer.PawnAddress || (TeamCheck && entity.Team == LocalPlayer.Team) || (BoxESP.FlashCheck && LocalPlayer.IsFlashed) || entity?.Bones?.Count <= 0 || entity?.Position2D == new Vector2(-99, -99) || entity?.Bones == null)
+                return;
 
+            Vector2 startPos = Vector2.Zero;
+            Vector2 endPos = Vector2.Zero;
             switch (CurrentStartPos)
             {
                 case 0:
-                    StartPos = new(renderer.ScreenSize.X / 2, renderer.ScreenSize.Y / 2);
+                    startPos = new(renderer.ScreenSize.X / 2, renderer.ScreenSize.Y / 2);
                     break;
                 case 1:
-                    StartPos = new(renderer.ScreenSize.X / 2, renderer.ScreenSize.Y);
+                    startPos = new(renderer.ScreenSize.X / 2, renderer.ScreenSize.Y);
                     break;
                 case 2:
-                    StartPos = new(renderer.ScreenSize.X / 2, -renderer.ScreenSize.Y);
+                    startPos = new(renderer.ScreenSize.X / 2, -renderer.ScreenSize.Y);
                     break;
             }
             switch (CurrentEndPos)
             {
-                case 0: EndPos = entity.Position2D; break;
-                case 1: EndPos = new(entity.Bones[(int)BoneESP.BoneIds.Head].Position2D.X, entity.Bones[(int)BoneESP.BoneIds.Head].Position2D.Y + HeadOffset); break;
+                case 0: endPos = entity.Position2D; break;
+                case 1: endPos = new(entity.Bones[(int)BoneESP.BoneIds.Head].Position2D.X, entity.Bones[(int)BoneESP.BoneIds.Head].Position2D.Y + HeadOffset); break;
             }
 
             Vector4 lineColor = GetTracerColor(entity);
-            renderer.DrawList.AddLine(StartPos, EndPos, ImGui.ColorConvertFloat4ToU32(lineColor), LineThickness); // add line for non rgb just liek Team color
+            DrawTracer(startPos, endPos, lineColor);
+        }
+
+        private static void DrawTracer(Vector2 startPosition, Vector2 endPosition, Vector4 color)
+        {
+            if (renderer == null)
+                return;
+
+            renderer.DrawList.AddLine(startPosition, endPosition, ImGui.ColorConvertFloat4ToU32(color), LineThickness);
         }
 
         public static void DrawTracerPreview(Vector2 position, float entityHeight)

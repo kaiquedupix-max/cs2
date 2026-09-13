@@ -1,4 +1,4 @@
-# Top Priority
+# Top Priority (Pretty easy, or important)
 - [] Smoke check.
 - [] Closest bone selection.
 - [] Movement Flags.
@@ -6,7 +6,7 @@
 - [] Bomb Carier ESP.
 - [] Ammo ESP.
 
-# Middle Ground
+# Middle Ground (Helpful, but not needed features)
 - [] Bhop Using Keyboard Input.
 - [] Hitmarker.
 - [] More C4 Info: Can be defused(yes, yes (with kit)), Being defused with progress.

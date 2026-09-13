@@ -124,6 +124,13 @@ internal class Sections
                 RenderIntCombo("Tracer End Position", "Tracers.EndPosition", ref Tracers.CurrentEndPos, Tracers.EndPositions.ToList(), Tracers.EndPositions.Length);
                 RenderFloatSlider("Tracer Thickness", "Tracers.Thickness", ref Tracers.LineThickness, 0.05f, 5f);
             }),
+              new("Chams", 2, () =>
+            {
+                RenderBoolSettingWith2ColorPickers("Chams", "Chams.Enabled", () => Chams.Enabled, v => Chams.Enabled = v, ref Chams.VisibleColors.TeamRGB, ref Chams.VisibleColors.EnemyRGB,  ref Chams.VisibleColors.TeamColor, ref Chams.VisibleColors.EnemyColor);
+                RenderBoolSetting("Team Check", "Chams.TeamCheck", () => Chams.TeamCheck, v => Chams.TeamCheck = v);
+                RenderIntCombo("Chams Style", "Chams.Style", ref Chams.StyleIndex, Chams.StyleNames.ToList(), Chams.StyleNames.Length);
+                //RenderBoolSetting("Pixel Perfect Depth", "Chams.PixelPerfect", () => Chams.PixelPerfect, v => Chams.PixelPerfect = v);
+            }),
             new("Bullet Tracers", 2, () =>
             {
                 RenderBoolSettingWith1ColorPicker("Enabled", "BulletTracers.Enabled", () => BulletTracers.Enabled, v => BulletTracers.Enabled = v, ref BulletTracers.TracerColors.PrimaryRGB, ref Tracers.TracerColors.PrimaryColor);
