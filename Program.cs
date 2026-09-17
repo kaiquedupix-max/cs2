@@ -10,6 +10,9 @@ using Mac1ota_Menu.Modules;
 using Mac1ota_Menu.Modules.Visual;
 
 string triPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
+
+if (!LoaderForm.ShowLoader())
+    return;
 try
 {
     GameState.renderer = new();
