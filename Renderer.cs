@@ -548,10 +548,12 @@ namespace Mac1ota_Menu
 
                             Sections.BeginSection("Perfis salvos", () =>
                             {
-                                foreach (var config in Configs.SavedConfigs.Keys)
+                                foreach (var config in Configs.SavedConfigs.Keys.OrderBy(x => x))
                                 {
+                                    ImGui.PushID(config);
                                     if (ImGui.Selectable(config, Configs.SelectedConfig == config))
                                         Configs.SelectedConfig = config;
+                                    ImGui.PopID();
                                 }
                             }, new Vector2(wiodthy, 200));
 
@@ -565,17 +567,13 @@ namespace Mac1ota_Menu
 
                                 if (ImGui.Button("Salvar perfil", new Vector2(-1, 30)))
                                 {
-                                    if (!Configs.SavedConfigs.ContainsKey(Configs.SelectedConfig))
+                                    string configName = Configs.SelectedConfig.Trim();
+                                    if (!string.IsNullOrWhiteSpace(configName))
                                     {
-                                        Configs.SaveConfig(Configs.SelectedConfig);
-                                        Configs.SavedConfigs.TryAdd(Configs.SelectedConfig, false);
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Config already exsists, overwriting.");
-                                        Configs.SavedConfigs.Remove(Configs.SelectedConfig, out bool value);
-                                        Configs.SaveConfig(Configs.SelectedConfig);
-                                        Configs.SavedConfigs.TryAdd(Configs.SelectedConfig, false);
+                                        Configs.SaveConfig(configName);
+                                        Configs.SelectedConfig = configName.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+                                            ? configName
+                                            : configName + ".json";
                                     }
                                 }
 
@@ -594,7 +592,10 @@ namespace Mac1ota_Menu
                                         if (string.IsNullOrEmpty(Configs.SelectedConfig) || !Configs.SavedConfigs.ContainsKey(Configs.SelectedConfig))
                                             return;
 
-                                        string filePath = Path.Combine(Configs.ConfigDirPath, Configs.SelectedConfig);
+                                        string configName = Configs.SelectedConfig.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+                                            ? Configs.SelectedConfig
+                                            : Configs.SelectedConfig + ".json";
+                                        string filePath = Path.Combine(Configs.ConfigDirPath, configName);
                                         Console.WriteLine(filePath);
                                         if (!File.Exists(filePath))
                                             return;
