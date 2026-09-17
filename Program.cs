@@ -40,19 +40,25 @@ try
     await Task.Delay(200);
     await OffsetGetter.UpdateOffsetsAsync();
 
-    while (GameState.memory != null && !OffsetGetter.Updated)
-    {
-        if (GameState.CS2Open())
-        {
-            Process[] cs2 = GameState.GetCS2Process();
-            Renderer.CS2ProcessId = cs2.FirstOrDefault()?.Id ?? 0;
-            Process[] overlay = Process.GetProcessesByName("Mac1ota Menu");
-            Renderer.OverlayProcessId = overlay.FirstOrDefault()?.Id ?? 0;
+    const int offsetValidationTimeoutSeconds = 15;
+    DateTime offsetValidationDeadline = DateTime.UtcNow.AddSeconds(offsetValidationTimeoutSeconds);
 
-            LoaderForm.SetStartupProgress(65, "Validando offsets...");
-            await OffsetGetter.CheckIfOffsetsAreValid();
-        }
-        await Task.Delay(500);
+    while (GameState.memory != null && !OffsetGetter.Updated && DateTime.UtcNow < offsetValidationDeadline)
+    {
+        if (!GameState.CS2Open())
+            break;
+
+        Process[] cs2 = GameState.GetCS2Process();
+        Renderer.CS2ProcessId = cs2.FirstOrDefault()?.Id ?? 0;
+        Process[] overlay = Process.GetProcessesByName("Mac1ota Menu");
+        Renderer.OverlayProcessId = overlay.FirstOrDefault()?.Id ?? 0;
+
+        int secondsLeft = Math.Max(0, (int)Math.Ceiling((offsetValidationDeadline - DateTime.UtcNow).TotalSeconds));
+        LoaderForm.SetStartupProgress(65, $"Validando offsets... ({secondsLeft}s)");
+        await OffsetGetter.CheckIfOffsetsAreValid();
+
+        if (!OffsetGetter.Updated)
+            await Task.Delay(500);
     }
 
     if (!OffsetGetter.Updated)
