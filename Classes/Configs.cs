@@ -18,8 +18,8 @@ namespace Mac1ota_Menu.Classes
     {
         public static string MenuName = "Mac1ota Menu";
         public static string Version = "2.3.9";
-        public static string Author = "https://github.com/xfi0";
-        public static string Link = "https://github.com/xfi0";
+        public static string Author = "Maciota";
+        public static string Link = "";
         public static string menuDocumentsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External");
 
         public static string ConfigName = "";
