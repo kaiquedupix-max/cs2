@@ -11,7 +11,7 @@ using Mac1ota_Menu.Modules.Visual;
 
 string triPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
 
-if (!LoaderForm.ShowLoader())
+if (!LoaderForm.ShowLogin())
     return;
 try
 {
@@ -31,8 +31,12 @@ try
         Thread.Sleep(1000);
     }
 
+    LoaderForm.ShowStartup();
+    LoaderForm.SetStartupProgress(20, "Conectando ao CS2...");
+
     GameState.memory = new("cs2");
     GameState.client = GameState.memory.GetModuleBase("client.dll");
+    LoaderForm.SetStartupProgress(40, "Carregando offsets...");
     await Task.Delay(200);
     await OffsetGetter.UpdateOffsetsAsync();
 
@@ -45,11 +49,21 @@ try
             Process[] overlay = Process.GetProcessesByName("Mac1ota Menu");
             Renderer.OverlayProcessId = overlay.FirstOrDefault()?.Id ?? 0;
 
+            LoaderForm.SetStartupProgress(65, "Validando offsets...");
             await OffsetGetter.CheckIfOffsetsAreValid();
         }
         await Task.Delay(500);
     }
 
+    if (!OffsetGetter.Updated)
+    {
+        LoaderForm.SetStartupOffline("OFFLINE - não foi possível carregar os offsets. Tente abrir novamente.");
+        while (LoaderForm.StartupVisible)
+            await Task.Delay(100);
+        return;
+    }
+
+    LoaderForm.SetStartupProgress(85, "Aplicando offsets...");
     OffsetGetter.ApplySecondarySources();
     Thread mapDumperThread = new(() =>
     {
@@ -100,8 +114,12 @@ try
     };
     entityUpdateThread.Start();
 
+    LoaderForm.SetStartupProgress(95, "Iniciando serviços...");
     ThreadService.StartAllThreadServices();
     Mac1ota_Menu.Classes.DiscordRPC.DiscordRPC.Update();
+    LoaderForm.SetStartupProgress(100, "Mac1ota Menu iniciado.");
+    await Task.Delay(350);
+    LoaderForm.CloseStartup();
     while (true)
     {
         Thread.Sleep(20);
