@@ -27,6 +27,7 @@ namespace Mac1ota_Menu
 
         public static bool DrawWindow = false;
         public static bool EnableWatermark = true;
+        public static bool ShowHotkeys = true;
         public static bool IsTextFontNormalLoaded => !TextFontNormal.Equals(default(ImFontPtr));
         public static bool IsTextFont24Loaded => !TextFont24.Equals(default(ImFontPtr));
         public static bool IsTextFont48Loaded => !TextFont48.Equals(default(ImFontPtr));
@@ -227,7 +228,8 @@ namespace Mac1ota_Menu
                 RenderESPOverlay();
                 RenderMainWindow();
                 RenderWaterMark();
-                Keybind.RenderKeybindMenu();
+                if (ShowHotkeys)
+                    Keybind.RenderKeybindMenu();
                 SpectatorList.DrawMenu();
                 BombTimerOverlay.TimeOverlay();
                 //Library.UpdateNotifications(io.DeltaTime);
@@ -505,7 +507,6 @@ namespace Mac1ota_Menu
                         case 0:
                         case 1:
                         case 2:
-                        case 4:
                             ImGui.Dummy(new Vector2(0, 4));
                             float availW = ImGui.GetContentRegionAvail().X;
                             float sectionW = (availW - ImGui.GetStyle().ItemSpacing.X) / 2f - 4f;
@@ -538,6 +539,16 @@ namespace Mac1ota_Menu
                             ImGui.SetCursorPosY(Math.Max(leftColBottom, rightColBottom));
                             // Submit an item after moving the cursor so ImGui records the layout extent.
                             ImGui.Dummy(Vector2.Zero);
+                            break;
+
+                        case 4: // ajustes
+                            ImGui.Dummy(new Vector2(0, 4));
+                            float settingsWidth = Math.Min(430f, ImGui.GetContentRegionAvail().X - 8f);
+                            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4f);
+                            Sections.BeginSection("Interface", () =>
+                            {
+                                ImGui.Checkbox("Exibir atalhos / hotkeys", ref ShowHotkeys);
+                            }, new Vector2(settingsWidth, 0));
                             break;
 
                         case 3: // config
