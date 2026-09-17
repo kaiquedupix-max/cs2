@@ -13,6 +13,8 @@ namespace Mac1ota_Menu.Classes
         private readonly Label _status = new();
         private readonly System.Windows.Forms.Timer _timer = new();
         private int _value;
+        private static LoaderForm? _startupForm;
+        public static bool StartupVisible => _startupForm != null && !_startupForm.IsDisposed;
 
         public LoaderForm()
         {
@@ -103,12 +105,64 @@ namespace Mac1ota_Menu.Classes
             _timer.Start();
         }
 
-        public static bool ShowLoader()
+        public static bool ShowLogin()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             using var form = new LoaderForm();
             return form.ShowDialog() == DialogResult.OK;
+        }
+
+        public static void ShowStartup()
+        {
+            var ready = new ManualResetEventSlim(false);
+            var thread = new Thread(() =>
+            {
+                _startupForm = new LoaderForm();
+                _startupForm._username.Visible = false;
+                _startupForm._password.Visible = false;
+                _startupForm._enter.Visible = false;
+                _startupForm._status.Location = new Point(70, 180);
+                _startupForm._progress.Location = new Point(70, 215);
+                _startupForm._status.Text = "Iniciando Mac1ota Menu...";
+                ready.Set();
+                Application.Run(_startupForm);
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.IsBackground = true;
+            thread.Start();
+            ready.Wait();
+        }
+
+        public static void SetStartupProgress(int value, string message)
+        {
+            var form = _startupForm;
+            if (form == null || form.IsDisposed) return;
+            form.BeginInvoke(() =>
+            {
+                form._progress.Value = Math.Clamp(value, 0, 100);
+                form._status.ForeColor = Color.FromArgb(150, 165, 168);
+                form._status.Text = message;
+            });
+        }
+
+        public static void SetStartupOffline(string message)
+        {
+            var form = _startupForm;
+            if (form == null || form.IsDisposed) return;
+            form.BeginInvoke(() =>
+            {
+                form._progress.Value = 0;
+                form._status.ForeColor = Color.FromArgb(235, 90, 90);
+                form._status.Text = message;
+            });
+        }
+
+        public static void CloseStartup()
+        {
+            var form = _startupForm;
+            if (form == null || form.IsDisposed) return;
+            form.BeginInvoke(form.Close);
         }
     }
 }
