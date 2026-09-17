@@ -1,8 +1,8 @@
-﻿using ImGuiNET;
-using static Titled_Gui.Classes.UploadHelper;
-using static Titled_Gui.ImGUI.Widgets.Misc;
+using ImGuiNET;
+using static Mac1ota_Menu.Classes.UploadHelper;
+using static Mac1ota_Menu.ImGUI.Widgets.Misc;
 
-namespace Titled_Gui.ImGUI.Widgets
+namespace Mac1ota_Menu.ImGUI.Widgets
 {
     internal class Combos
     {
@@ -61,13 +61,13 @@ namespace Titled_Gui.ImGUI.Widgets
                             ImGui.SetItemDefaultFocus();
                     }
 
-                    if (ImGui.Selectable("[Upload New Sound]"))
+                    if (ImGui.Selectable("[Adicionar som]"))
                     {
                         var thread = new Thread(() =>
                         {
                             using OpenFileDialog openFile = new();
-                            openFile.Filter = "Audio files (*.wav)|*.wav|*.mp3|*.mp3|(*.ogg)|*.ogg|All files (*.*)|*.*";
-                            openFile.Title = "Select a sound file";
+                            openFile.Filter = "Arquivos de áudio (*.wav;*.mp3;*.ogg)|*.wav;*.mp3;*.ogg|Todos os arquivos (*.*)|*.*";
+                            openFile.Title = "Selecione um arquivo de áudio";
 
                             if (openFile.ShowDialog() == DialogResult.OK)
                             {

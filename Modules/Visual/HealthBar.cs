@@ -1,15 +1,15 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using Microsoft.VisualBasic.Logging;
 using System.Net.WebSockets;
 using System.Numerics;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
-using TextRenderer = Titled_Gui.Classes.Rendering.TextRenderer;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
+using TextRenderer = Mac1ota_Menu.Classes.Rendering.TextRenderer;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     public class HealthBar : IModule
     {

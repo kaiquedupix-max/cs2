@@ -1,14 +1,14 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Classes.Rendering.ChamsRenderer;
-using Titled_Gui.Classes.VPK.Types;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Classes.Rendering.ChamsRenderer;
+using Mac1ota_Menu.Classes.VPK.Types;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class Chams : ChamsRendererBase, IModule
     {
@@ -34,7 +34,7 @@ namespace Titled_Gui.Modules.Visual
 
         public static int StyleIndex = 1;
         public static string[] StyleNames = [
-            "Flat", "Textured", "Metallic", "Wireframe", "CS2 Glow", "LSD", "Plasma"
+            "Plano", "Texturizado", "Metálico", "Aramado", "Brilho CS2", "LSD", "Plasma"
         ];
         public static int[] StyleMap = [1, 2, 3, 4, 5, 6, 7];
         public static bool PixelPerfect = false;

@@ -1,12 +1,12 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Game.C4;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Game.C4;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class C4ESP : IModule
     {

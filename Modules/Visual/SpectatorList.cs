@@ -1,9 +1,9 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class SpectatorList : IModule
     {
@@ -18,8 +18,8 @@ namespace Titled_Gui.Modules.Visual
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(16, 16));
             ImGui.SetNextWindowSize(_windowSize);
             ImGui.SetNextWindowPos(_defaultWindowPos, ImGuiCond.FirstUseEver);
-            ImGui.Begin("Spectator List", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
-            ImGui.Text("Spectator List");
+            ImGui.Begin("Espectadores", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
+            ImGui.Text("Espectadores");
             DrawAllPlayers();
             ImGui.PopStyleVar(1);
             ImGui.End();

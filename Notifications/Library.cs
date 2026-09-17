@@ -1,10 +1,10 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Drawing.Imaging;
 using System.Numerics;
-using Titled_Gui.Data.Game;
-using static Titled_Gui.Notifications.Library;
+using Mac1ota_Menu.Data.Game;
+using static Mac1ota_Menu.Notifications.Library;
 
-namespace Titled_Gui.Notifications
+namespace Mac1ota_Menu.Notifications
 {
     internal class Library
     {

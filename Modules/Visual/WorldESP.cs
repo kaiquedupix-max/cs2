@@ -1,14 +1,14 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Classes.Rendering.ChamsRenderer;
-using Titled_Gui.Classes.VPK.Types;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Classes.Rendering.ChamsRenderer;
+using Mac1ota_Menu.Classes.VPK.Types;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class WorldESP : IModule
     {
@@ -75,7 +75,7 @@ namespace Titled_Gui.Modules.Visual
                     continue;
 
                 float[] viewMatrix = GameState.memory.ReadMatrix(GameState.client + Offsets.dwViewMatrix);
-                var position2D = Titled_Gui.Classes.Math.MathUtils.WorldToScreen(viewMatrix, worldEntity.Position);
+                var position2D = Mac1ota_Menu.Classes.Math.MathUtils.WorldToScreen(viewMatrix, worldEntity.Position);
                 if (position2D == new Vector2(-99, -99))
                     continue;
 
@@ -129,7 +129,7 @@ namespace Titled_Gui.Modules.Visual
                 Draw3DBoxESP(corners2D, preConvertedColor, false, thickness);
 
             if (DrawText)
-                GameState.renderer.DrawList.AddText(position2D, ImGui.ColorConvertFloat4ToU32(HostageTextColor), "Hostage");
+                GameState.renderer.DrawList.AddText(position2D, ImGui.ColorConvertFloat4ToU32(HostageTextColor), "Refém");
         }
 
         private static void DrawProjectileESP(WorldEntity worldEntity, Vector2 position2D, float[] viewMatrix)
@@ -199,7 +199,7 @@ namespace Titled_Gui.Modules.Visual
             if (DrawText)
                 GameState.renderer.DrawList.AddText(position2D,
                     ImGui.ColorConvertFloat4ToU32(ChickenTextColor),
-                    "Chicken");
+                    "Galinha");
         }
 
         private static Vector4 GetMolotovColor(bool fill)

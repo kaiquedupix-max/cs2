@@ -1,13 +1,13 @@
-﻿using ClickableTransparentOverlay.Win32;
+using ClickableTransparentOverlay.Win32;
 using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Modules.Visual;
-using static Titled_Gui.Data.Game.GameState;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Modules.Visual;
+using static Mac1ota_Menu.Data.Game.GameState;
 
-namespace Titled_Gui.Modules.Combat
+namespace Mac1ota_Menu.Modules.Combat
 {
     public class Aimbot : Classes.ThreadService, IModule
     {
@@ -29,7 +29,7 @@ namespace Titled_Gui.Modules.Combat
         public static int CurrentBone = 0;
         public static int CurrentBoneIndex = 2;
         public static int CurrentAimMethod = 0;
-        public static string[] Bones = ["Head", "Neck", "Right Shoulder", "Left Shoulder", "Waist", "Random"];
+        public static string[] Bones = ["Cabeça", "Pescoço", "Ombro direito", "Ombro esquerdo", "Cintura", "Aleatório"];
         private static Vector2 _currentBone2D = Vector2.Zero;
         private static Vector2 _remainder = Vector2.Zero;
         private static Random _random = new();

@@ -1,6 +1,6 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 
-namespace Titled_Gui.ImGUI.Widgets
+namespace Mac1ota_Menu.ImGUI.Widgets
 {
     internal class Button
     {

@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace Titled_Gui.Classes.VPK.Types
+namespace Mac1ota_Menu.Classes.VPK.Types
 {
     public struct SkinnedMeshData
     {

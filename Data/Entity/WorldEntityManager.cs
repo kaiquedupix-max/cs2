@@ -1,12 +1,12 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Classes.Memory;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Classes.Memory;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Data.Entity
+namespace Mac1ota_Menu.Data.Entity
 {
     public class WorldEntityManager : ThreadService
     {

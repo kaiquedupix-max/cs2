@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -6,7 +6,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Titled_Gui.Classes.Memory
+namespace Mac1ota_Menu.Classes.Memory
 {
     public class Memory
     {

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace Titled_Gui.Data.Entity.Types
+namespace Mac1ota_Menu.Data.Entity.Types
 {
     public class Bone
     {

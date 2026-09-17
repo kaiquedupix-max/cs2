@@ -1,12 +1,12 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Classes.Rendering
+namespace Mac1ota_Menu.Classes.Rendering
 {
     internal class ShapeRenderer
     {

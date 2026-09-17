@@ -1,7 +1,7 @@
-﻿using Titled_Gui.Classes;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Legit
+namespace Mac1ota_Menu.Modules.Legit
 {
     internal class JumpHack : IModule
     {

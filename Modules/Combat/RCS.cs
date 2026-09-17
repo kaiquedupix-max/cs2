@@ -1,9 +1,9 @@
-﻿using System.Numerics;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Data.Game;
+using System.Numerics;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Combat
+namespace Mac1ota_Menu.Modules.Combat
 {
     public class RCS : Classes.ThreadService, IModule
     {

@@ -2,7 +2,7 @@ using Microsoft.Win32;
 using SteamDatabase.ValvePak;
 using ValveResourceFormat.IO;
 
-namespace Titled_Gui.Classes.VPK
+namespace Mac1ota_Menu.Classes.VPK
 {
     public static class CS2Utils // stuff for finding cs2 path and vpk paths
     {

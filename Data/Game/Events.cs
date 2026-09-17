@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Titled_Gui.Data.Game
+namespace Mac1ota_Menu.Data.Game
 {
     internal class Events
     {

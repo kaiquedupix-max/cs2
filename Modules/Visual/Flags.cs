@@ -1,11 +1,11 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class Flags : IModule
     {
@@ -32,7 +32,7 @@ namespace Titled_Gui.Modules.Visual
             if (ScopedEnabled)
                 ScopedFlag(entity, rect);
             else
-                enabledFlags.Remove("Scoped");
+                enabledFlags.Remove("Usando luneta");
 
             if (FlashEnabled)
                 FlashedFlag(entity, rect);
@@ -55,12 +55,12 @@ namespace Titled_Gui.Modules.Visual
 
             Vector4 color = GetFlagColor(entity);
 
-            if (!enabledFlags.ContainsKey("Scoped"))
-                enabledFlags.TryAdd("Scoped", enabledFlags.Count + 1);
+            if (!enabledFlags.ContainsKey("Usando luneta"))
+                enabledFlags.TryAdd("Usando luneta", enabledFlags.Count + 1);
 
-            enabledFlags.TryGetValue("Scoped", out int offsetY);
+            enabledFlags.TryGetValue("Usando luneta", out int offsetY);
 
-            string scopedText = entity.IsScoped ? "Scoped" : "Not Scoped";
+            string scopedText = entity.IsScoped ? "Usando luneta" : "Sem luneta";
             Vector2 textPos = new(boxRect.TopRight.X + _flagPaddingX, boxRect.TopRight.Y + (offsetY * _flagLineHeight));
             GameState.renderer.DrawList.AddText(Renderer.TextFontNormal, _baseFontSize, textPos, ImGui.ColorConvertFloat4ToU32(color), scopedText);
         }
@@ -77,7 +77,7 @@ namespace Titled_Gui.Modules.Visual
 
             enabledFlags.TryGetValue("Flash", out int offsetY);
 
-            string flashText = entity.FlashDuration > 0.1 ? $"Flashed {MathF.Round(entity.FlashDuration, 2)}" : $"Not Flashed";
+            string flashText = entity.FlashDuration > 0.1 ? $"Cego por {MathF.Round(entity.FlashDuration, 2)}" : $"Sem cegueira";
             Vector2 textPos = new(boxRect.TopRight.X + _flagPaddingX, boxRect.TopRight.Y + (offsetY * _flagLineHeight));
             GameState.renderer.DrawList.AddText(Renderer.TextFontNormal, _baseFontSize, textPos, ImGui.ColorConvertFloat4ToU32(color), flashText);
         }

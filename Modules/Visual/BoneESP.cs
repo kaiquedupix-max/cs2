@@ -1,12 +1,12 @@
 using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     public class BoneESP : IModule
     {
@@ -20,7 +20,7 @@ namespace Titled_Gui.Modules.Visual
         public static Colors VisibleColors = new(_visibleBoneColorTeam, _visibleBoneColorEnemy, null, null, false, false, false, false);
         public static Colors OccludedColors = new(_occludedBoneColorTeam, _occludedBoneColorEnemy, null, null, false, false, false, false);
         public static float GlowAmount = 0f;
-        public static string[] Types = ["Straight", "Bezier"];
+        public static string[] Types = ["Reto", "Bezier"];
         public static int CurrentType = 0;
         public static bool visibilityCheck = true;
         public static bool RGB = false;
@@ -34,12 +34,12 @@ namespace Titled_Gui.Modules.Visual
                 (Get("Pelvis"),       Get("Stomach")),
                 (Get("Stomach"),      Get("LowerChest")),
                 (Get("LowerChest"),   Get("UpperChest")),
-                (Get("UpperChest"),   Get("Neck")),
-                (Get("Neck"),         Get("Head")),
-                (Get("Neck"),         Get("LeftShoulder")),
+                (Get("UpperChest"),   Get("Pescoço")),
+                (Get("Pescoço"),         Get("Cabeça")),
+                (Get("Pescoço"),         Get("LeftShoulder")),
                 (Get("LeftShoulder"), Get("LeftElbow")),
                 (Get("LeftElbow"),    Get("LeftHand")),
-                (Get("Neck"),         Get("RightShoulder")),
+                (Get("Pescoço"),         Get("RightShoulder")),
                 (Get("RightShoulder"),Get("RightElbow")),
                 (Get("RightElbow"),   Get("RightHand")),
                 (Get("Pelvis"),       Get("LeftThigh")),

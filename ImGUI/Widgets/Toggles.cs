@@ -1,10 +1,10 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes;
-using static Titled_Gui.ImGUI.Widgets.ColorPickers;
-using static Titled_Gui.ImGUI.Widgets.Misc;
+using Mac1ota_Menu.Classes;
+using static Mac1ota_Menu.ImGUI.Widgets.ColorPickers;
+using static Mac1ota_Menu.ImGUI.Widgets.Misc;
 
-namespace Titled_Gui.ImGUI.Widgets
+namespace Mac1ota_Menu.ImGUI.Widgets
 {
     internal class Toggles
     {
@@ -19,7 +19,7 @@ namespace Titled_Gui.ImGUI.Widgets
         private static Dictionary<string, Func<bool>> _getters = new();
         private static Dictionary<string, Action<bool>> _setters = new();
 
-        private static List<string> _toggleLabels = new() { "Toggle", "Hold" };
+        private static List<string> _toggleLabels = new() { "Alternar", "Segurar" };
 
         public static void RegisterToggle(string label, Func<bool> getter, Action<bool> setter)
         {
@@ -243,7 +243,7 @@ namespace Titled_Gui.ImGUI.Widgets
 
             if (ImGui.BeginPopupModal(popupId, ref tempref, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.Text("WARNING\nThis feature uses WPM and or may be detected.\n Use at your own risk.");
+                ImGui.Text("AVISO\nEste recurso escreve na memória e pode ser detectado.\nUse por sua conta e risco.");
                 ImGui.Separator();
 
                 if (ImGui.Button("OK", new Vector2(120, 0)))

@@ -1,6 +1,6 @@
-﻿using static Titled_Gui.Data.Game.GameState;
+using static Mac1ota_Menu.Data.Game.GameState;
 
-namespace Titled_Gui.Data.Game
+namespace Mac1ota_Menu.Data.Game
 {
     internal class ActionTrackingServices // i dont think this is right add the threaded service when this needs to be used, removed for cpu useage sake
     {

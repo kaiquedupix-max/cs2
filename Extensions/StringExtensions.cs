@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Titled_Gui.Extensions
+namespace Mac1ota_Menu.Extensions
 {
     public static class StringExtensions
     {

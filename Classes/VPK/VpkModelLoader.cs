@@ -1,15 +1,15 @@
 using SteamDatabase.ValvePak;
 using System.Buffers.Binary;
 using System.Numerics;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Classes.VPK.Types;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Classes.VPK.Types;
 using ValveResourceFormat;
 using ValveResourceFormat.Blocks;
 using ValveResourceFormat.ResourceTypes;
 using ValveResourceFormat.ResourceTypes.ModelAnimation;
 using Bone = ValveResourceFormat.ResourceTypes.ModelAnimation.Bone;
 
-namespace Titled_Gui.Classes.VPK
+namespace Mac1ota_Menu.Classes.VPK
 {
     public static class VpkModelLoader
     {

@@ -1,9 +1,9 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     internal class OffsetGetter
     {
@@ -382,7 +382,7 @@ namespace Titled_Gui.Classes
         private static void UpdateOffsetsClass()
         {
             // grab the static Offsets class
-            Type offsetsType = typeof(Titled_Gui.Data.Game.Offsets);
+            Type offsetsType = typeof(Mac1ota_Menu.Data.Game.Offsets);
             FieldInfo[] fields = offsetsType.GetFields(BindingFlags.Public | BindingFlags.Static);
 
             int updatedCount = 0;

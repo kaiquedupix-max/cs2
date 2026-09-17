@@ -1,7 +1,7 @@
-﻿using ImGuiNET;
-using static Titled_Gui.ImGUI.Widgets.Misc;
+using ImGuiNET;
+using static Mac1ota_Menu.ImGUI.Widgets.Misc;
 
-namespace Titled_Gui.ImGUI.Widgets
+namespace Mac1ota_Menu.ImGUI.Widgets
 {
     internal class Sliders
     {

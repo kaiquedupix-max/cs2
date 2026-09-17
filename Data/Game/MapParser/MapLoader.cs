@@ -1,18 +1,18 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using Titled_Gui.Classes.Math;
-using static Titled_Gui.Data.Game.VRF.Types;
+using Mac1ota_Menu.Classes.Math;
+using static Mac1ota_Menu.Data.Game.VRF.Types;
 using Vector3 = System.Numerics.Vector3;
 
-namespace Titled_Gui.Data.Game.MapParser
+namespace Mac1ota_Menu.Data.Game.MapParser
 {
     public class MapLoader // https://github.com/AtomicBool/cs2-map-parser  THIS TOOK 40 MINS TO CONVERT FROM CPP TO C#
     {
         public string PreviousMapName = "";
-        public string _trisPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Titled", "CS2", "External", "Map Data", "tri");
+        public string _trisPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
 
         #region Misc Helpers
         public bool RayIntersectsKDTree(KDNode? node, Vector3 origin, Vector3 end, out Vector3 intersectPoint)
@@ -193,7 +193,7 @@ namespace Titled_Gui.Data.Game.MapParser
             byte[] tri = File.ReadAllBytes(Path.Combine(_trisPath, mapName) + ".tri");
             if (!LoadTri(tri, mapName))
             {
-                Console.WriteLine("Failed to load .tri: " + "Titled_Gui.Game.MapParser.PreExtractedMapData.tri." + mapName + ".tri");
+                Console.WriteLine("Failed to load .tri: " + "Mac1ota_Menu.Game.MapParser.PreExtractedMapData.tri." + mapName + ".tri");
                 return false;
             }
 

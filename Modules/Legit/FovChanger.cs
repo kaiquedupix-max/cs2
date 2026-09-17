@@ -1,6 +1,6 @@
-﻿using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Legit
+namespace Mac1ota_Menu.Modules.Legit
 {
     public class FovChanger : Classes.ThreadService, IModule // hella detected
     {

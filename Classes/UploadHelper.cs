@@ -1,13 +1,13 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     internal class UploadHelper
     {
         public static void SaveUpload(string fileName, string newPath)
         {
-            string folder = Path.Combine(Configs.titledDocumentsFolder, "Uploads");
+            string folder = Path.Combine(Configs.menuDocumentsFolder, "Uploads");
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -43,7 +43,7 @@ namespace Titled_Gui.Classes
 
                 string fileNameWithJson = fileName.Contains(".json") ? fileName : fileName + ".json";
                 
-                string folder = Path.Combine(Configs.titledDocumentsFolder, "Uploads");
+                string folder = Path.Combine(Configs.menuDocumentsFolder, "Uploads");
                 string filePath = Path.Combine(folder, fileNameWithJson);
 
                 if (!Directory.Exists(folder))

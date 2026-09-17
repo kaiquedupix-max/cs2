@@ -1,6 +1,6 @@
-﻿using System.Numerics;
+using System.Numerics;
 
-namespace Titled_Gui.Data.Menu.Types
+namespace Mac1ota_Menu.Data.Menu.Types
 {
     public class Colors(Vector4? teamColor = null, Vector4? enemyColor = null, Vector4? primaryColor = null, Vector4? secondaryColor = null, bool primaryRGB = false, bool secondaryRGB = false, bool teamRGB = false, bool enemyRGB = false) // only use enemy and team for visuals, and primary and secondary for other things like menu colors. theyre the same, just easier to read.
     {

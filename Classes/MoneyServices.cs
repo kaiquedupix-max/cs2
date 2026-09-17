@@ -1,7 +1,7 @@
-﻿using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     internal class MoneyServices
     //: ThreadService

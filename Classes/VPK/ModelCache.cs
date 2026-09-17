@@ -1,7 +1,7 @@
-using Titled_Gui.Classes.VPK.Types;
+using Mac1ota_Menu.Classes.VPK.Types;
 using Vortice.Direct3D11;
 
-namespace Titled_Gui.Classes.VPK
+namespace Mac1ota_Menu.Classes.VPK
 {
     public sealed class ModelCache(ID3D11Device device) : IDisposable
     {

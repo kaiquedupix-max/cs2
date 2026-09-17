@@ -1,10 +1,10 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Menu.Types;
-using static Titled_Gui.Data.Game.GameState;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Menu.Types;
+using static Mac1ota_Menu.Data.Game.GameState;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     public class Tracers : IModule
     {
@@ -13,11 +13,11 @@ namespace Titled_Gui.Modules.Visual
         public static float LineThickness = 1f;
         public static List<string> StartPositions = new()
         {
-            "Middle",
-            "Bottom",
-            "Top"
+            "Centro",
+            "Base",
+            "Topo"
         };
-        public static string[] EndPositions = ["Bottom", "Top"];
+        public static string[] EndPositions = ["Base", "Topo"];
         public static int CurrentStartPos = 0;
         public static int CurrentEndPos = 0;
         public static Vector4 TeamColor = new(0, 1, 0, 1);

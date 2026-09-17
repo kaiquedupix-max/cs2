@@ -1,8 +1,8 @@
-﻿using NAudio.Wave;
+using NAudio.Wave;
 using System.Reflection;
 using Vortice.Win32;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     internal class PlaySound
     {
@@ -47,13 +47,13 @@ namespace Titled_Gui.Classes
 
                 Assembly asm = Assembly.GetExecutingAssembly();
 
-                Stream stream = asm.GetManifestResourceStream("Titled_Gui.Resources.sounds." + folder + name) ?? throw new Exception("Sound was not found: " + name);
+                Stream stream = asm.GetManifestResourceStream("Mac1ota_Menu.Resources.sounds." + folder + name) ?? throw new Exception("Sound was not found: " + name);
 
                 byte[] sound = new byte[stream.Length];
                 stream.ReadExactly(sound);
 
-                string cachePath = Path.Combine(Configs.titledDocumentsFolder, "Cache", "Sounds");
-                string filePath = Path.Combine(Configs.titledDocumentsFolder, "Cache", "Sounds", name);
+                string cachePath = Path.Combine(Configs.menuDocumentsFolder, "Cache", "Sounds");
+                string filePath = Path.Combine(Configs.menuDocumentsFolder, "Cache", "Sounds", name);
 
                 if (!Directory.Exists(cachePath))
                     Directory.CreateDirectory(cachePath);

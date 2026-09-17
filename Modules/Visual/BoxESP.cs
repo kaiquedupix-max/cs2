@@ -1,13 +1,13 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
-using Entity = Titled_Gui.Data.Entity.Entity;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
+using Entity = Mac1ota_Menu.Data.Entity.Entity;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     public class BoxESP : IModule
     {
@@ -15,7 +15,7 @@ namespace Titled_Gui.Modules.Visual
         public static bool EnableESP = false;
         public static bool FillBox = true;
         public static string[] Shapes =
-            ["2D Box", "3D Box", "Edges", "Pyramid", "Star", "Hexagon", "Rhombus", "Pentagram", "Pentagon"];
+            ["Caixa 2D", "Caixa 3D", "Cantos", "Pirâmide", "Estrela", "Hexágono", "Losango", "Pentagrama", "Pentágono"];
 
         public static int CurrentShape = 0;
         public static bool InnerOutline = false;

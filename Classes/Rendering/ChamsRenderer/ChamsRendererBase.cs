@@ -8,12 +8,12 @@ using Vortice.Direct3D;
 using Vortice.Direct3D11;
 using Vortice.DXGI;
 using Vortice.Mathematics;
-using Titled_Gui.Classes.VPK.Types;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Classes.VPK;
+using Mac1ota_Menu.Classes.VPK.Types;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Classes.VPK;
 
-namespace Titled_Gui.Classes.Rendering.ChamsRenderer
+namespace Mac1ota_Menu.Classes.Rendering.ChamsRenderer
 {
     public readonly record struct ChamsMeshDraw(IReadOnlyList<Bone> Bones, GpuMesh Mesh, Vector4 VisibleColor, Vector4 OccludedColor);
 

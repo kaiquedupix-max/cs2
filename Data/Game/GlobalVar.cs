@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Titled_Gui.Data.Game
+namespace Mac1ota_Menu.Data.Game
 {
     internal class GlobalVar
     {

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Titled_Gui.Data.Game.MapParser
+namespace Mac1ota_Menu.Data.Game.MapParser
 {
     public class KV3Parser
     {

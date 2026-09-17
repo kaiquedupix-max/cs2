@@ -1,8 +1,8 @@
-﻿using Titled_Gui.Classes;
-using Titled_Gui.Data.Game;
-using static Titled_Gui.Data.Game.GameState;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Data.Game;
+using static Mac1ota_Menu.Data.Game.GameState;
 
-namespace Titled_Gui.Modules.Legit
+namespace Mac1ota_Menu.Modules.Legit
 {
     public class Bhop : Classes.ThreadService, IModule // TODO make it use the jump action, i tried wouldnt work well
     {

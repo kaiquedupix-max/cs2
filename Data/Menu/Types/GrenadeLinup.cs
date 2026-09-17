@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace Titled_Gui.Data.Menu.Types
+namespace Mac1ota_Menu.Data.Menu.Types
 {
     public class GrenadeLinup
     {

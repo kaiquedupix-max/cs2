@@ -1,9 +1,9 @@
-﻿using System.Diagnostics;
-using Titled_Gui.Classes;
-using Titled_Gui.Data.Game;
-using static Titled_Gui.Classes.User32;
+using System.Diagnostics;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Data.Game;
+using static Mac1ota_Menu.Classes.User32;
 
-namespace Titled_Gui.Modules.Combat
+namespace Mac1ota_Menu.Modules.Combat
 {
     public class TriggerBot : Classes.ThreadService, IModule
     {

@@ -1,6 +1,6 @@
 using Vortice.Direct3D11;
 
-namespace Titled_Gui.Classes.VPK.Types
+namespace Mac1ota_Menu.Classes.VPK.Types
 {
     public struct GpuMesh
     {

@@ -1,13 +1,13 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using NAudio.Gui;
 using System.Numerics;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class ArmorBar : IModule
     {
@@ -57,7 +57,7 @@ namespace Titled_Gui.Modules.Visual
 
         public static void DrawArmorBarPreview(Vector2 position, float entityHeight)
         {
-            float armorPercent = Titled_Gui.Classes.Rendering.TextRenderer.AnimateFloat("HealthBar", 0.8f); // health bar because they should be in sync.
+            float armorPercent = Mac1ota_Menu.Classes.Rendering.TextRenderer.AnimateFloat("HealthBar", 0.8f); // health bar because they should be in sync.
             float offset = 4;
 
             Vector2 top = position + new Vector2(entityHeight / 3f + offset, -entityHeight / 2);

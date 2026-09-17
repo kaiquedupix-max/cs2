@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Titled_Gui.Classes.VPK.Types
+namespace Mac1ota_Menu.Classes.VPK.Types
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct SkinnedVertex

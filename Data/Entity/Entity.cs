@@ -1,10 +1,10 @@
-﻿using System.Numerics;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu;
-using Titled_Gui.Modules.Visual;
+using System.Numerics;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu;
+using Mac1ota_Menu.Modules.Visual;
 
-namespace Titled_Gui.Data.Entity
+namespace Mac1ota_Menu.Data.Entity
 {
     public class Entity
     {

@@ -1,9 +1,9 @@
-﻿using DiscordRPC;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Extensions;
+using DiscordRPC;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Extensions;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
-namespace Titled_Gui.Classes.DiscordRPC
+namespace Mac1ota_Menu.Classes.DiscordRPC
 {
     internal class DiscordRPC
     {
@@ -24,8 +24,8 @@ namespace Titled_Gui.Classes.DiscordRPC
             Client.Initialize();
             _buttons.Add(new()
             {
-                Label = "Download",
-                Url = "https://github.com/xfi0/Titled-Gui-CS2/releases/latest/download/Titled.exe"
+                Label = "Créditos originais",
+                Url = "https://github.com/xfi0"
             });
 
             Events.GameEvents.OnMapChanged += GameEvents_UpdateDetails;
@@ -47,7 +47,7 @@ namespace Titled_Gui.Classes.DiscordRPC
 
             Client.SetPresence(new()
             {
-                Details = currentMap != "" ? "Using Titled on - " + currentMap : "In lobby",
+                Details = currentMap != "" ? "Usando Mac1ota Menu em - " + currentMap : "No lobby",
                 Buttons = [.. _buttons],
                 State = state,
 
@@ -64,9 +64,9 @@ namespace Titled_Gui.Classes.DiscordRPC
                 return null;
 
             if (GameState.LocalPlayer.Health <= 0)
-                return "Dead";
+                return "Morto";
             else
-                return "Alive";
+                return "Vivo";
         }
 
         private static void GameEvents_UpdateDetails(string obj)

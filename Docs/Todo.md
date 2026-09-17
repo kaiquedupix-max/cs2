@@ -1,20 +1,23 @@
-# Top Priority (Pretty easy, or important)
-- [] Smoke check.
-- [] Closest bone selection.
-- [] Movement Flags.
-- [] Money ESP.
-- [] Bomb Carier ESP.
-- [] Ammo ESP.
+# Prioridade alta
 
-# Middle Ground (Helpful, but not needed features)
-- [] Bhop Using Keyboard Input.
-- [] Hitmarker.
-- [] More C4 Info: Can be defused(yes, yes (with kit)), Being defused with progress.
-- [] Visualize recoil.
-- [] Discord RPC.
-- [] Crosshairs.
+- [ ] Verificar fumaça.
+- [ ] Selecionar o osso mais próximo.
+- [ ] Indicadores de movimento.
+- [ ] Exibir dinheiro.
+- [ ] Identificar quem carrega a bomba.
+- [ ] Exibir munição.
 
-# Lowest (Hard to implement, or sorta pointless)
-- [] Grenade Trajectory.
-- [] Move watermark.
-- [] Trails.
+# Prioridade média
+
+- [ ] Pulo automático por entrada do teclado.
+- [ ] Marcador de acerto.
+- [ ] Mais informações da C4: possibilidade de desarme, kit e progresso.
+- [ ] Visualizar recuo.
+- [ ] Integração com Discord.
+- [ ] Miras personalizadas.
+
+# Prioridade baixa
+
+- [ ] Trajetória das granadas.
+- [ ] Mover marca d'água.
+- [ ] Rastros.

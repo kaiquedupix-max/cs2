@@ -1,9 +1,9 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Legit
+namespace Mac1ota_Menu.Modules.Legit
 {
     internal class HitStuff : Classes.ThreadService, IModule // could use some settings
     {

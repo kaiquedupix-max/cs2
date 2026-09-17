@@ -1,6 +1,6 @@
-﻿using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     public class NoFlash : Classes.ThreadService, IModule
     {

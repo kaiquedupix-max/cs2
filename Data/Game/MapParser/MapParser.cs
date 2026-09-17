@@ -1,18 +1,18 @@
-﻿using SteamDatabase.ValvePak;
+using SteamDatabase.ValvePak;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Titled_Gui.Classes.VPK;
+using Mac1ota_Menu.Classes.VPK;
 using ValveResourceFormat;
 using ValveResourceFormat.ResourceTypes;
 using ValveResourceFormat.ResourceTypes.RubikonPhysics;
 using ValveResourceFormat.ResourceTypes.RubikonPhysics.Shapes;
 using ValveResourceFormat.Serialization.KeyValues;
-using static Titled_Gui.Data.Game.VRF.Types;
+using static Mac1ota_Menu.Data.Game.VRF.Types;
 
-namespace Titled_Gui.Data.Game.MapParser
+namespace Mac1ota_Menu.Data.Game.MapParser
 {
     internal class MapParser
     {
@@ -43,7 +43,7 @@ namespace Titled_Gui.Data.Game.MapParser
                     return;
                 }
 
-                string triOutputDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Titled", "CS2", "External", "Map Data", "tri");
+                string triOutputDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
                 Directory.CreateDirectory(triOutputDir);
 
                 var officialVpks = GetOfficialVpks(cs2Path);

@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     internal class User32 // what is SYSLIB1054 pls help
     {

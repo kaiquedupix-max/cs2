@@ -1,11 +1,11 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using Titled_Gui.Classes;
+using Mac1ota_Menu.Classes;
 
-namespace Titled_Gui.ImGUI.Widgets
+namespace Mac1ota_Menu.ImGUI.Widgets
 {
     public class Keybind
     {
@@ -79,7 +79,7 @@ namespace Titled_Gui.ImGUI.Widgets
 
             Bind bind = GetBind(keyId, moduleState);
 
-            if (ImGui.Button(bind.choosing ? "Press Any Key..." : (key == (int)Keys.None ? "None" : Enum.GetName(typeof(Keys), key) ?? key.ToString()), new Vector2(100, 0)))
+            if (ImGui.Button(bind.choosing ? "Tecla..." : (key == (int)Keys.None ? "Nenhum" : Enum.GetName(typeof(Keys), key) ?? key.ToString()), new Vector2(100, 0)))
                 SetBind(keyId, b => { b.choosing = true; return b; }, moduleState);
 
             ImGui.SameLine();
@@ -114,7 +114,7 @@ namespace Titled_Gui.ImGUI.Widgets
 
             Bind bind = GetBind(keyId, moduleState);
 
-            string keyName = bind.choosing ? "Press Any Key..." : (key == ImGuiKey.None ? "None" : key.ToString());
+            string keyName = bind.choosing ? "Pressione uma tecla..." : (key == ImGuiKey.None ? "Nenhum" : key.ToString());
 
             if (ImGui.Button(keyName, new Vector2(100, 0)))
                 SetBind(keyId, b => { b.choosing = true; return b; }, moduleState);
@@ -144,7 +144,7 @@ namespace Titled_Gui.ImGUI.Widgets
 
         public static void RenderKeybindMenu()
         {
-            ImGui.Begin("Keybinds");
+            ImGui.Begin("Atalhos");
             float padding = 5;
             for (int i = 0; i < KeyBinds.Count; i++)
             {
@@ -155,7 +155,7 @@ namespace Titled_Gui.ImGUI.Widgets
                     bind.enabled = bind.moduleState.Invoke();
                     KeyBinds[i] = bind;
                 }
-                ImGui.Text(bind.name.Replace("Keybind", "") + " [" + (bind.enabled ? "ON" : "OFF") + "]");
+                ImGui.Text(bind.name.Replace("Keybind", "") + " [" + (bind.enabled ? "ATIVO" : "INATIVO") + "]");
             }
             ImGui.End();
         }

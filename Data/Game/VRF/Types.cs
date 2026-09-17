@@ -1,7 +1,7 @@
-﻿using System.DirectoryServices.ActiveDirectory;
+using System.DirectoryServices.ActiveDirectory;
 using System.Numerics;
 
-namespace Titled_Gui.Data.Game.VRF
+namespace Mac1ota_Menu.Data.Game.VRF
 {
     public class Types
     {

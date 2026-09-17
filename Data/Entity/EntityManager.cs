@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using System.Numerics;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using static Titled_Gui.Data.Game.GameState;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using static Mac1ota_Menu.Data.Game.GameState;
 
-namespace Titled_Gui.Data.Entity
+namespace Mac1ota_Menu.Data.Entity
 {
     public class EntityManager
     {

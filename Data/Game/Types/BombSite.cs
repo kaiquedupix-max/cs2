@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Titled_Gui.Data.Game.Types
+namespace Mac1ota_Menu.Data.Game.Types
 {
     public enum BombSite
     {

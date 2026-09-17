@@ -1,7 +1,7 @@
-﻿using System.Numerics;
-using Titled_Gui.Data.Game.Types;
+using System.Numerics;
+using Mac1ota_Menu.Data.Game.Types;
 
-namespace Titled_Gui.Data.Game.C4
+namespace Mac1ota_Menu.Data.Game.C4
 {
     public class C4
     {

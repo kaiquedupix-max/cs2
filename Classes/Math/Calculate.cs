@@ -1,12 +1,12 @@
-﻿using System.Numerics;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Entity.Types;
-using Titled_Gui.Data.Game;
-using static Titled_Gui.Modules.Visual.BoneESP;
-using Bone = Titled_Gui.Data.Entity.Types.Bone;
-using Entity = Titled_Gui.Data.Entity.Entity;
+using System.Numerics;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Entity.Types;
+using Mac1ota_Menu.Data.Game;
+using static Mac1ota_Menu.Modules.Visual.BoneESP;
+using Bone = Mac1ota_Menu.Data.Entity.Types.Bone;
+using Entity = Mac1ota_Menu.Data.Entity.Entity;
 
-namespace Titled_Gui.Classes.Math
+namespace Mac1ota_Menu.Classes.Math
 {
     public static class Calculate
     {

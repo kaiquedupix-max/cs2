@@ -1,6 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     public abstract class ThreadService : IDisposable
     {

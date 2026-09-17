@@ -1,12 +1,12 @@
-﻿using K4os.Compression.LZ4.Internal;
+using K4os.Compression.LZ4.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Memory;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Memory;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class NoScope : ThreadService
     {

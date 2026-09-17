@@ -1,10 +1,10 @@
-﻿using System.Numerics;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Game.MapParser;
-using Titled_Gui.Modules.Visual;
+using System.Numerics;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Game.MapParser;
+using Mac1ota_Menu.Modules.Visual;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     public class VisibilityCheck : ThreadService
     {

@@ -1,20 +1,20 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using Newtonsoft.Json;
 using System.Numerics;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Menu.Types;
-using static Titled_Gui.Data.Game.Events;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Menu.Types;
+using static Mac1ota_Menu.Data.Game.Events;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class GernadeLineup : IModule
     {
         public static bool Enabled = false;
         public static bool AlwaysShow = false;
-        public static List<string> TypesList = ["Still", "Running", "Jump", "Run Jump"];
+        public static List<string> TypesList = ["Parado", "Correndo", "Pulando", "Corrida e pulo"];
         public static Vector4 PositionColorInside = new(1f, 0f, 0f, 1f);
         public static Vector4 PositionColorOutside = new(0f, 1f, 0f, 1f);
         public static Vector4 AngleColor = new(1f, 0.5f, 0f, 1f);
@@ -49,7 +49,7 @@ namespace Titled_Gui.Modules.Visual
             if (string.IsNullOrEmpty(lastMap))
                 return;
 
-            string directory = Path.Combine(Configs.titledDocumentsFolder, "lineups", lastMap.Replace(".vpk", ""));
+            string directory = Path.Combine(Configs.menuDocumentsFolder, "lineups", lastMap.Replace(".vpk", ""));
             if (!Directory.Exists(directory))
                 return;
 
@@ -168,7 +168,7 @@ namespace Titled_Gui.Modules.Visual
                 CircleDirection = forward,
             };
 
-            string dir = Path.Combine(Configs.titledDocumentsFolder, "lineups", lineup.MapName.Replace(".vpk", ""));
+            string dir = Path.Combine(Configs.menuDocumentsFolder, "lineups", lineup.MapName.Replace(".vpk", ""));
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 

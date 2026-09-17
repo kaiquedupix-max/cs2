@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game.Types;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game.Types;
 
-namespace Titled_Gui.Data.Game.C4
+namespace Mac1ota_Menu.Data.Game.C4
 {
     internal class C4Info : ThreadService
     {

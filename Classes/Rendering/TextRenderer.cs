@@ -1,10 +1,10 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace Titled_Gui.Classes.Rendering
+namespace Mac1ota_Menu.Classes.Rendering
 {
     internal class TextRenderer
     {

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Classes.Math
+namespace Mac1ota_Menu.Classes.Math
 {
     internal class MathUtils
     {

@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using Titled_Gui.Classes.Memory;
-using Titled_Gui.Data.Entity;
+using Mac1ota_Menu.Classes.Memory;
+using Mac1ota_Menu.Data.Entity;
 
-namespace Titled_Gui.Data.Game
+namespace Mac1ota_Menu.Data.Game
 {
     public static class GameState
     {

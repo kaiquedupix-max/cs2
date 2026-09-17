@@ -1,6 +1,6 @@
-﻿using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class ThirdPerson : Classes.ThreadService, IModule // THIS WILL GET YOU BANNED USE AT YOUR OWN RISK https://www.unknowncheats.me/forum/counter-strike-2-a/710298-third-person-external.html
     {

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Titled_Gui.ImGUI.Animations
+namespace Mac1ota_Menu.ImGUI.Animations
 {
     internal class Animations
     {

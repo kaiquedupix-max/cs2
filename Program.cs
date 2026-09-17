@@ -1,22 +1,22 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Diagnostics;
 using System.Reflection;
-using Titled_Gui;
-using Titled_Gui.Classes;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Game.MapParser;
-using Titled_Gui.Modules;
-using Titled_Gui.Modules.Visual;
+using Mac1ota_Menu;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Game.MapParser;
+using Mac1ota_Menu.Modules;
+using Mac1ota_Menu.Modules.Visual;
 
-string triPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Titled", "CS2", "External", "Map Data", "tri");
+string triPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
 try
 {
     GameState.renderer = new();
     EntityManager entityManager = new();
     ImGui.CreateContext();
     Renderer.LoadFonts();
-    Titled_Gui.Classes.DiscordRPC.DiscordRPC.Initialize();
+    Mac1ota_Menu.Classes.DiscordRPC.DiscordRPC.Initialize();
     await GameState.renderer.Start();
     GernadeLineup.Initialize();
 
@@ -24,7 +24,7 @@ try
     List<Entity>? entities = [];
     while (!GameState.CS2Open())
     {
-        Console.WriteLine("CS2 Not Found...");
+        Console.WriteLine("CS2 não encontrado...");
         Thread.Sleep(1000);
     }
 
@@ -39,7 +39,7 @@ try
         {
             Process[] cs2 = GameState.GetCS2Process();
             Renderer.CS2ProcessId = cs2.FirstOrDefault()?.Id ?? 0;
-            Process[] overlay = Process.GetProcessesByName("Titled GUI");
+            Process[] overlay = Process.GetProcessesByName("Mac1ota Menu");
             Renderer.OverlayProcessId = overlay.FirstOrDefault()?.Id ?? 0;
 
             await OffsetGetter.CheckIfOffsetsAreValid();
@@ -54,11 +54,11 @@ try
         string sentinelPath = Path.Combine(triPath, ".complete");
         if (File.Exists(sentinelPath))
         {
-            Console.WriteLine("Tris already exist.");
+            Console.WriteLine("Dados triangulares já existem.");
             return;
         }
 
-        Console.WriteLine("Map data has not been dumped, dumping.");
+        Console.WriteLine("Extraindo os dados do mapa.");
         MapParser.Main();
         File.WriteAllText(sentinelPath, DateTime.UtcNow.ToString());
     });
@@ -87,7 +87,7 @@ try
              }
              catch (Exception e)
              {
-                 Console.WriteLine("Exception At Entity Update Thread" + e.StackTrace);
+                 Console.WriteLine("Erro na atualização das entidades: " + e.StackTrace);
              }
          }
      })
@@ -98,7 +98,7 @@ try
     entityUpdateThread.Start();
 
     ThreadService.StartAllThreadServices();
-    Titled_Gui.Classes.DiscordRPC.DiscordRPC.Update();
+    Mac1ota_Menu.Classes.DiscordRPC.DiscordRPC.Update();
     while (true)
     {
         Thread.Sleep(20);
@@ -106,10 +106,10 @@ try
 }
 catch (IndexOutOfRangeException)
 {
-    Console.WriteLine("IndexOutOfRangeException, Please Make Sure Your Game Is Running.");
+    Console.WriteLine("Índice fora dos limites. Verifique se o jogo está aberto.");
 }
 catch (Exception e)
 {
-    Console.WriteLine("Main function Exception: " + e.Message);
+    Console.WriteLine("Erro na função principal: " + e.Message);
 }
 

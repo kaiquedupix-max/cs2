@@ -1,8 +1,8 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
-using static Titled_Gui.ImGUI.Widgets.Misc;
+using static Mac1ota_Menu.ImGUI.Widgets.Misc;
 
-namespace Titled_Gui.ImGUI.Widgets
+namespace Mac1ota_Menu.ImGUI.Widgets
 {
     internal class ColorPickers
     {

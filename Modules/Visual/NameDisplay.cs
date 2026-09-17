@@ -1,10 +1,10 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System.Numerics;
 using System.Xml.Linq;
-using Titled_Gui.Data.Entity;
-using Titled_Gui.Data.Game;
+using Mac1ota_Menu.Data.Entity;
+using Mac1ota_Menu.Data.Game;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class NameDisplay : IModule
     {

@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
@@ -6,27 +6,27 @@ using System.Numerics;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.Json.Nodes;
-using Titled_Gui.Modules;
-using Titled_Gui.Modules.Combat;
-using Titled_Gui.Modules.Legit;
-using Titled_Gui.Modules.Visual;
+using Mac1ota_Menu.Modules;
+using Mac1ota_Menu.Modules.Combat;
+using Mac1ota_Menu.Modules.Legit;
+using Mac1ota_Menu.Modules.Visual;
 using static ValveResourceFormat.Blocks.ResourceIntrospectionManifest.ResourceDiskStruct;
 
-namespace Titled_Gui.Classes
+namespace Mac1ota_Menu.Classes
 {
     internal class Configs : Classes.ThreadService
     {
-        public static string MenuName = "Titled";
+        public static string MenuName = "Mac1ota Menu";
         public static string Version = "2.3.9";
         public static string Author = "https://github.com/xfi0";
-        public static string Link = "https://github.com/xfi0/Titled-Gui-CS2";
-        public static string titledDocumentsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Titled", "CS2", "External");
+        public static string Link = "https://github.com/xfi0";
+        public static string menuDocumentsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External");
 
         public static string ConfigName = "";
         public static ConcurrentDictionary<string, bool> SavedConfigs = new();
         public static string SelectedConfig = "";
 
-        public static readonly string ConfigDirPath = Path.Combine(titledDocumentsFolder, "Configs");
+        public static readonly string ConfigDirPath = Path.Combine(menuDocumentsFolder, "Configs");
         public static string JsonString = "";
         private static string PreLegacyVersion = "2.3.5"; // anything before is legacy
 

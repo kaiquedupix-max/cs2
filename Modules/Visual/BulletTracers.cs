@@ -1,16 +1,16 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using Titled_Gui.Classes;
-using Titled_Gui.Classes.Math;
-using Titled_Gui.Classes.Rendering;
-using Titled_Gui.Data.Game;
-using Titled_Gui.Data.Game.MapParser;
-using Titled_Gui.Data.Menu.Types;
+using Mac1ota_Menu.Classes;
+using Mac1ota_Menu.Classes.Math;
+using Mac1ota_Menu.Classes.Rendering;
+using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Data.Game.MapParser;
+using Mac1ota_Menu.Data.Menu.Types;
 
-namespace Titled_Gui.Modules.Visual
+namespace Mac1ota_Menu.Modules.Visual
 {
     internal class BulletTracers : ThreadService
     {
