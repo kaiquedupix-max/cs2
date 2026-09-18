@@ -31,7 +31,13 @@ app.use(express.json({ limit: "64kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public"), {
-  maxAge: process.env.NODE_ENV === "production" ? "1h" : 0,
+  maxAge: 0,
+  etag: true,
+  setHeaders(res) {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  },
 }));
 
 function sha256(text) {
