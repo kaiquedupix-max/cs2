@@ -101,7 +101,6 @@ namespace Mac1ota_Menu.Classes
 
             BuildBackground();
             BuildHeader();
-            BuildProfile();
             BuildProductPanel();
             BuildWindowButtons();
 
