@@ -205,6 +205,12 @@ if (!LoaderForm.ShowLogin())
     return;
 }
 
+if (!ProductSelectionForm.ShowSelection())
+{
+    ClientPortalApi.Clear();
+    return;
+}
+
 try
 {
     LoaderForm.ShowStartup();
