@@ -38,3 +38,7 @@
 .release-file-cell{display:grid;gap:4px;min-width:180px}.release-file-cell span{color:#dce5e1}.release-file-cell small{color:#50635b;font-size:8px}
 @media(max-width:900px){.download-panel{grid-template-columns:90px 1fr}.download-actions{grid-column:1/-1}.download-icon-wrap{width:90px;height:90px}.download-icon-wrap img{width:58px;height:58px}}
 @media(max-width:620px){.download-panel{grid-template-columns:1fr}.download-icon-wrap{width:76px;height:76px}.download-icon-wrap img{width:50px;height:50px}.download-meta{display:grid;gap:8px}}
+
+.auto-version-note{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #1b4638;background:#0a1b15;border-radius:10px;padding:12px 14px;margin-bottom:4px}
+.auto-version-note span{font-size:8px;letter-spacing:.15em;color:#5f7d72;font-weight:800}
+.auto-version-note b{font-size:12px;color:#35e3ad}
