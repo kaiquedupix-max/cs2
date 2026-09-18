@@ -233,7 +233,12 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
   const notes = document.getElementById("releaseNotes").value.trim();
 
   if (!file) {
-    alert("Selecione o arquivo do loader.");
+    alert("Selecione o pacote .zip do loader.");
+    return;
+  }
+
+  if (!file.name.toLowerCase().endsWith(".zip")) {
+    alert("Para o auto-update funcionar corretamente, envie a pasta completa do loader em um arquivo .zip.");
     return;
   }
 
