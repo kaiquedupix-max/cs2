@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -2041,6 +2042,55 @@ namespace Mac1ota_Menu.Classes
                 int drawY =
                     (Height - drawHeight) / 2;
 
+                using var imageAttributes =
+                    new ImageAttributes();
+
+                imageAttributes.SetColorMatrix(
+                    new ColorMatrix(
+                        new[]
+                        {
+                            new[]
+                            {
+                                0.95f,
+                                0.18f,
+                                0.10f,
+                                0f,
+                                0f
+                            },
+                            new[]
+                            {
+                                0.10f,
+                                0.10f,
+                                0.04f,
+                                0f,
+                                0f
+                            },
+                            new[]
+                            {
+                                0.06f,
+                                0.03f,
+                                0.03f,
+                                0f,
+                                0f
+                            },
+                            new[]
+                            {
+                                0f,
+                                0f,
+                                0f,
+                                1f,
+                                0f
+                            },
+                            new[]
+                            {
+                                0f,
+                                0f,
+                                0f,
+                                0f,
+                                1f
+                            }
+                        }));
+
                 e.Graphics.DrawImage(
                     _artwork,
 
@@ -2048,7 +2098,14 @@ namespace Mac1ota_Menu.Classes
                         drawX,
                         drawY,
                         drawWidth,
-                        drawHeight));
+                        drawHeight),
+
+                    0,
+                    0,
+                    _artwork.Width,
+                    _artwork.Height,
+                    GraphicsUnit.Pixel,
+                    imageAttributes);
             }
 
             using (var redWash =
@@ -2155,6 +2212,38 @@ namespace Mac1ota_Menu.Classes
                     Height - 230,
                     Width,
                     230);
+            }
+
+            using (var emberPen =
+                   new Pen(
+                       Color.FromArgb(
+                           175,
+                           255,
+                           69,
+                           39),
+                       1.6f))
+            {
+                Point[] embers =
+                {
+                    new Point(423, 88),
+                    new Point(518, 142),
+                    new Point(351, 221),
+                    new Point(572, 306),
+                    new Point(447, 461),
+                    new Point(603, 525),
+                    new Point(535, 684),
+                    new Point(712, 734)
+                };
+
+                foreach (Point ember in embers)
+                {
+                    e.Graphics.DrawLine(
+                        emberPen,
+                        ember.X,
+                        ember.Y,
+                        ember.X + 7,
+                        ember.Y - 11);
+                }
             }
 
             using (var top =
