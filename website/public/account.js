@@ -120,7 +120,64 @@ function renderAccount(data) {
   document.getElementById("simulateBuyBtn").textContent = product.hasAccess
     ? "Adicionar +30 dias de teste"
     : "Ativar compra de teste";
+
+  loadRelease(product.hasAccess);
 }
+
+function formatBytes(bytes) {
+  const value = Number(bytes || 0);
+  if (value < 1024) return value + " B";
+  if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
+  return (value / 1024 / 1024).toFixed(1) + " MB";
+}
+
+async function loadRelease(hasAccess) {
+  const button = document.getElementById("downloadLoaderBtn");
+  const description = document.getElementById("downloadDescription");
+  const version = document.getElementById("downloadVersion");
+  const size = document.getElementById("downloadSize");
+  const date = document.getElementById("downloadDate");
+  const hash = document.getElementById("downloadHash");
+
+  button.classList.add("disabled");
+  button.setAttribute("aria-disabled", "true");
+  button.href = "#";
+  version.textContent = "—";
+  size.textContent = "—";
+  date.textContent = "—";
+  hash.textContent = "SHA-256 —";
+
+  if (!hasAccess) {
+    description.textContent = "Tenha um acesso ativo para liberar o download da versão mais recente.";
+    return;
+  }
+
+  description.textContent = "Consultando a versão mais recente...";
+
+  try {
+    const data = await api("/api/account/release");
+    const release = data.release;
+
+    version.textContent = "v" + release.version;
+    size.textContent = formatBytes(release.fileSize);
+    date.textContent = new Date(release.uploadedAt).toLocaleString("pt-BR");
+    hash.textContent = "SHA-256 " + release.sha256.slice(0, 16) + "…";
+    description.textContent = release.notes || "Versão mais recente disponível para sua conta.";
+
+    button.href = release.downloadUrl;
+    button.classList.remove("disabled");
+    button.removeAttribute("aria-disabled");
+  } catch (error) {
+    description.textContent = error.message || "Nenhuma versão disponível no momento.";
+  }
+}
+
+document.getElementById("downloadLoaderBtn")?.addEventListener("click", (event) => {
+  const button = event.currentTarget;
+  if (button.classList.contains("disabled")) {
+    event.preventDefault();
+  }
+});
 
 async function boot() {
   if (location.hash === "#register") showTab("register");
