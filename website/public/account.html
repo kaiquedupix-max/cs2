@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#050907">
+  <title>Minha conta · legitbaratinho.xyz</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="account-body">
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="noise"></div>
+  <div class="orb orb-one"></div>
+
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="/"><span class="brand-mark">L</span><span class="brand-copy"><b>legitbaratinho</b><small>.xyz</small></span></a>
+      <a class="button button-small button-outline" href="/">Voltar ao site</a>
+    </div>
+  </header>
+
+  <main class="account-shell shell">
+    <section id="authView" class="auth-layout">
+      <div class="auth-copy reveal">
+        <div class="hero-badge"><span class="pulse-dot"></span> SUA CONTA LEGIT</div>
+        <h1>Uma conta.<br><span>Site + loader.</span></h1>
+        <p>Cadastre-se uma vez e use as mesmas credenciais para acessar seu produto no aplicativo.</p>
+        <div class="auth-points">
+          <div><b>01</b><span>Crie sua conta</span></div>
+          <div><b>02</b><span>Ative o acesso de teste</span></div>
+          <div><b>03</b><span>Entre no loader</span></div>
+        </div>
+      </div>
+
+      <div class="auth-card reveal delay-1">
+        <div class="auth-tabs">
+          <button id="loginTab" class="active">Entrar</button>
+          <button id="registerTab">Criar conta</button>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <div><small>ACESSAR CONTA</small><h2>Bem-vindo de volta.</h2></div>
+          <label>Usuário ou e-mail<input id="loginIdentifier" autocomplete="username" required></label>
+          <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+          <button class="button button-primary full" type="submit">Entrar na minha conta</button>
+        </form>
+
+        <form id="registerForm" class="auth-form hidden">
+          <div><small>NOVA CONTA</small><h2>Crie seu acesso.</h2></div>
+          <label>Usuário<input id="registerUsername" autocomplete="username" maxlength="28" required></label>
+          <label>E-mail<input id="registerEmail" type="email" autocomplete="email" required></label>
+          <label>Senha<input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+          <button class="button button-primary full" type="submit">Criar minha conta</button>
+        </form>
+
+        <p id="authError" class="form-message error"></p>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="user-dashboard hidden">
+      <div class="account-top">
+        <div><div class="eyebrow">MINHA CONTA</div><h1 id="helloUser">Olá.</h1></div>
+        <button id="logoutBtn" class="button button-outline">Sair</button>
+      </div>
+
+      <div class="account-metrics">
+        <article><small>MEMBRO DESDE</small><strong id="memberSince">—</strong></article>
+        <article><small>PLANO ATUAL</small><strong id="planName">Sem acesso</strong></article>
+        <article><small>DIAS RESTANTES</small><strong id="daysRemaining">0</strong></article>
+        <article><small>STATUS</small><strong id="accountStatus">—</strong></article>
+      </div>
+
+      <div class="account-grid">
+        <article class="account-product-card">
+          <div class="software-art compact"><span>CS</span></div>
+          <div class="account-product-copy">
+            <div class="software-tags"><span>SEU PRODUTO</span></div>
+            <h2>Counter-Strike 2</h2>
+            <p id="productDescription">Você ainda não possui acesso ativo.</p>
+            <div class="subscription-line">
+              <span>Expiração</span>
+              <b id="expiresAt">—</b>
+            </div>
+          </div>
+          <div class="account-product-action">
+            <span id="accessBadge" class="access-badge inactive">SEM ACESSO</span>
+            <button id="simulateBuyBtn" class="button button-primary">Ativar compra de teste</button>
+          </div>
+        </article>
+
+        <article class="account-side-card">
+          <div class="eyebrow">LOGIN NO LOADER</div>
+          <h3>Use esta mesma conta.</h3>
+          <p>Abra o loader e entre com seu usuário ou e-mail e a senha cadastrada aqui.</p>
+          <div class="credential-box">
+            <small>USUÁRIO</small>
+            <b id="profileUsername">—</b>
+          </div>
+          <div class="credential-box">
+            <small>E-MAIL</small>
+            <b id="profileEmail">—</b>
+          </div>
+        </article>
+      </div>
+
+      <div id="purchaseNotice" class="purchase-notice hidden"></div>
+    </section>
+  </main>
+
+  <script src="/account.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
