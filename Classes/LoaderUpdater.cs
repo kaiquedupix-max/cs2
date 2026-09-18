@@ -461,11 +461,11 @@ namespace Mac1ota_Menu.Classes
         private static string QuoteArgument(
             string value)
         {
-            return """ +
+            return "\"" +
                    value.Replace(
-                       """,
-                       "\"") +
-                   """;
+                       "\"",
+                       "\\\"") +
+                   "\"";
         }
 
         private static void TryDelete(
