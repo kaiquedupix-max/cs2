@@ -65,6 +65,7 @@ namespace Mac1ota_Menu.Classes
 
         private readonly Label _loginTitle = new();
         private readonly Label _loginSubtitle = new();
+        private readonly Label _versionLabel = new();
 
         private readonly System.Windows.Forms.Timer _timer = new();
 
@@ -124,8 +125,36 @@ namespace Mac1ota_Menu.Classes
 
                     if (!IsStartupInstance())
                     {
+                        _enter.Enabled =
+                            false;
+
+                        _status.Text =
+                            "Verificando atualizações...";
+
                         await RefreshRemoteStatusAsync(
                             false);
+
+                        LoaderUpdater.LoaderReleaseInfo? latest =
+                            await LoaderUpdater.CheckLatestAsync();
+
+                        _versionLabel.Text =
+                            "v" +
+                            LoaderUpdater.CurrentVersion;
+
+                        if (latest != null &&
+                            LoaderUpdater.UpdateAvailable)
+                        {
+                            _status.ForeColor =
+                                Accent;
+
+                            _status.Text =
+                                "Atualização v" +
+                                latest.Version +
+                                " disponível — entre para atualizar.";
+                        }
+
+                        _enter.Enabled =
+                            true;
 
                         _remoteStatusTimer.Start();
                     }
@@ -198,42 +227,35 @@ namespace Mac1ota_Menu.Classes
         private void BuildHeader()
         {
             var logo =
-                new Label
+                new BrandIconControl
                 {
-                    Parent = _background,
-
-                    Text = "L",
-
-                    Font = FontOf(
-                        24f,
-                        FontStyle.Bold),
-
-                    ForeColor =
-                        Accent,
-
-                    BackColor =
-                        Color.Transparent,
-
-                    AutoSize =
-                        true,
+                    Parent =
+                        _background,
 
                     Location =
                         new Point(
-                            28,
-                            20)
+                            23,
+                            17),
+
+                    Size =
+                        new Size(
+                            42,
+                            42)
                 };
 
             var product =
                 new Label
                 {
-                    Parent = _background,
+                    Parent =
+                        _background,
 
                     Text =
                         "legitbaratinho.xyz",
 
-                    Font = FontOf(
-                        10.5f,
-                        FontStyle.Bold),
+                    Font =
+                        FontOf(
+                            10.5f,
+                            FontStyle.Bold),
 
                     ForeColor =
                         TextPrimary,
@@ -246,43 +268,47 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            75,
-                            31)
+                            78,
+                            27)
                 };
 
-            var version =
-                new Label
-                {
-                    Parent = _background,
+            _versionLabel.Parent =
+                _background;
 
-                    Text =
-                        "v1.0.0",
+            _versionLabel.Text =
+                "v" +
+                LoaderUpdater.CurrentVersion;
 
-                    Font = FontOf(
-                        8f,
-                        FontStyle.Regular),
+            _versionLabel.Font =
+                FontOf(
+                    8f,
+                    FontStyle.Regular);
 
-                    ForeColor =
-                        Color.FromArgb(
-                            95,
-                            111,
-                            116),
+            _versionLabel.ForeColor =
+                Color.FromArgb(
+                    95,
+                    111,
+                    116);
 
-                    BackColor =
-                        Color.Transparent,
+            _versionLabel.BackColor =
+                Color.Transparent;
 
-                    AutoSize =
-                        true,
+            _versionLabel.AutoSize =
+                true;
 
-                    Location =
-                        new Point(
-                            183,
-                            34)
-                };
+            _versionLabel.Location =
+                new Point(
+                    184,
+                    30);
 
-            EnableDrag(logo);
-            EnableDrag(product);
-            EnableDrag(version);
+            EnableDrag(
+                logo);
+
+            EnableDrag(
+                product);
+
+            EnableDrag(
+                _versionLabel);
         }
 
         // ============================================================
@@ -1398,10 +1424,60 @@ namespace Mac1ota_Menu.Classes
                 Accent;
 
             _status.Text =
+                "Conta conectada. Verificando versão...";
+
+            (bool updateSuccess, bool restarting, string updateMessage) =
+                await LoaderUpdater.EnsureLatestAfterLoginAsync();
+
+            if (!updateSuccess)
+            {
+                _username.Enabled =
+                    true;
+
+                _password.Enabled =
+                    true;
+
+                _enter.Enabled =
+                    true;
+
+                _status.ForeColor =
+                    Color.FromArgb(
+                        235,
+                        86,
+                        86);
+
+                _status.Text =
+                    updateMessage;
+
+                _remoteStatusTimer.Start();
+
+                return;
+            }
+
+            if (restarting)
+            {
+                _status.ForeColor =
+                    Accent;
+
+                _status.Text =
+                    updateMessage;
+
+                await Task.Delay(
+                    450);
+
+                Application.Exit();
+
+                Environment.Exit(
+                    0);
+
+                return;
+            }
+
+            _status.Text =
                 "Conta conectada. Abrindo produtos...";
 
             await Task.Delay(
-                300);
+                250);
 
             DialogResult =
                 DialogResult.OK;
