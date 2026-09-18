@@ -293,7 +293,7 @@ catch (IndexOutOfRangeException)
     System.Windows.Forms
         .MessageBox
         .Show(
-            "Não foi possível iniciar o Brasa Project.gg.\nVerifique se o CS2 está aberto.",
+            "Não foi possível iniciar o legitbaratinho.xyz.\nVerifique se o CS2 está aberto.",
 
             "legitbaratinho.xyz",
 
@@ -311,7 +311,7 @@ catch (Exception e)
     System.Windows.Forms
         .MessageBox
         .Show(
-            "Erro ao iniciar o Brasa Project.gg:\n\n" +
+            "Erro ao iniciar o legitbaratinho.xyz:\n\n" +
             e.Message,
 
             "legitbaratinho.xyz",
