@@ -57,6 +57,10 @@ namespace Mac1ota_Menu.Classes
 
         public const int INPUT_KEYBOARD = 1;
         public const int INPUT_MOUSE = 0;
+
+        public const uint WDA_NONE = 0x00000000;
+        public const uint WDA_MONITOR = 0x00000001;
+        public const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
         public const uint MOUSEEVENTF_MOVE = 0x0001;
         public const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
         public const uint MOUSEEVENTF_LEFTUP = 0x0004;

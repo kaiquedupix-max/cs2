@@ -67,6 +67,13 @@ namespace Mac1ota_Menu.Classes
                     ["Author"] = Author,
                     ["Link"] = Link,
                 },
+
+                ["Interface"] = new JObject()
+                {
+                    ["ShowHotkeys"] = Renderer.ShowHotkeys,
+                    ["EnableWatermark"] = Renderer.EnableWatermark,
+                    ["StreamMode"] = Renderer.StreamMode,
+                },
             };
 
             foreach (var (className, (catagory, fields)) in catagories)
@@ -123,6 +130,24 @@ namespace Mac1ota_Menu.Classes
                 Console.WriteLine($"Error loading config: {ex.Message}");
                 return;
             }
+            if (configData["Interface"] is JObject interfaceData)
+            {
+                Renderer.ShowHotkeys =
+                    interfaceData["ShowHotkeys"]
+                        ?.ToObject<bool>() ??
+                    Renderer.ShowHotkeys;
+
+                Renderer.EnableWatermark =
+                    interfaceData["EnableWatermark"]
+                        ?.ToObject<bool>() ??
+                    Renderer.EnableWatermark;
+
+                Renderer.StreamMode =
+                    interfaceData["StreamMode"]
+                        ?.ToObject<bool>() ??
+                    Renderer.StreamMode;
+            }
+
             string? version = "0.0";
             if (configData["0"]?["Version"] != null)
                 version = configData["0"]?["Version"]?.ToString();

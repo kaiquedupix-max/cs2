@@ -30,6 +30,10 @@ namespace Mac1ota_Menu
         public static bool DrawWindow = false;
         public static bool EnableWatermark = true;
         public static bool ShowHotkeys = true;
+        public static bool StreamMode = false;
+
+        private bool? _lastStreamModeState;
+        private IntPtr _lastStreamModeWindow = IntPtr.Zero;
         public static bool IsTextFontNormalLoaded => !TextFontNormal.Equals(default(ImFontPtr));
         public static bool IsTextFont24Loaded => !TextFont24.Equals(default(ImFontPtr));
         public static bool IsTextFont48Loaded => !TextFont48.Equals(default(ImFontPtr));
@@ -227,6 +231,8 @@ namespace Mac1ota_Menu
             {
                 this.VSync = EnableVsync;
 
+                ApplyStreamMode();
+
                 RenderESPOverlay();
                 RenderMainWindow();
                 RenderWaterMark();
@@ -243,6 +249,56 @@ namespace Mac1ota_Menu
             }
         }
 
+
+        private void ApplyStreamMode()
+        {
+            using Process currentProcess =
+                Process.GetCurrentProcess();
+
+            currentProcess.Refresh();
+
+            IntPtr windowHandle =
+                currentProcess.MainWindowHandle;
+
+            if (windowHandle ==
+                IntPtr.Zero)
+            {
+                return;
+            }
+
+            if (_lastStreamModeState ==
+                    StreamMode &&
+                _lastStreamModeWindow ==
+                    windowHandle)
+            {
+                return;
+            }
+
+            uint affinity =
+                StreamMode
+                    ? User32.WDA_EXCLUDEFROMCAPTURE
+                    : User32.WDA_NONE;
+
+            bool applied =
+                User32.SetWindowDisplayAffinity(
+                    windowHandle,
+                    affinity);
+
+            if (!applied &&
+                StreamMode)
+            {
+                // Compatibilidade com versões antigas do Windows.
+                User32.SetWindowDisplayAffinity(
+                    windowHandle,
+                    User32.WDA_MONITOR);
+            }
+
+            _lastStreamModeState =
+                StreamMode;
+
+            _lastStreamModeWindow =
+                windowHandle;
+        }
 
         public void RenderWaterMark()
         {
@@ -550,6 +606,13 @@ namespace Mac1ota_Menu
                             Sections.BeginSection("Interface", () =>
                             {
                                 ImGui.Checkbox("Exibir atalhos / hotkeys", ref ShowHotkeys);
+                                ImGui.Checkbox("Exibir watermark", ref EnableWatermark);
+                                ImGui.Checkbox("Stream mode", ref StreamMode);
+
+                                if (StreamMode)
+                                {
+                                    ImGui.TextDisabled("Overlay oculto de capturas compatíveis.");
+                                }
                             }, new Vector2(settingsWidth, 0));
                             break;
 
