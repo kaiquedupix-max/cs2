@@ -18,3 +18,23 @@
 .clients-table td{vertical-align:middle}
 .clients-table button:disabled{opacity:.35;cursor:not-allowed}
 @media(max-width:760px){.admin-client-toolbar{align-items:stretch;flex-direction:column}.admin-client-toolbar input{max-width:none}.client-actions{min-width:220px}}
+
+/* Brand icon + authenticated loader distribution */
+.brand-icon{width:35px;height:35px;display:block;filter:drop-shadow(0 0 14px #22dca844)}
+.button.disabled,.button[aria-disabled="true"]{opacity:.42;pointer-events:none;cursor:not-allowed;box-shadow:none}
+.download-panel{display:grid;grid-template-columns:110px 1fr 230px;gap:24px;align-items:center;border:1px solid #1a382e;background:linear-gradient(145deg,#09130f,#07100d);border-radius:16px;padding:24px;box-shadow:0 30px 80px #0005}
+.download-icon-wrap{width:110px;height:110px;border-radius:20px;display:grid;place-items:center;background:radial-gradient(circle at 30% 20%,#164e3b,#0a1612 62%,#060b09);border:1px solid #1f4b3b}
+.download-icon-wrap img{width:72px;height:72px}
+.download-copy h2{margin:7px 0 8px;font-size:25px}.download-copy p{margin:0;color:#71857d;font-size:12px;line-height:1.6}
+.download-meta{display:flex;flex-wrap:wrap;gap:16px;margin-top:18px;color:#5f746c;font-size:9px}.download-meta b{color:#c8d3cf}
+.download-actions{display:grid;gap:10px;justify-items:stretch}.download-actions small{color:#4f625a;font-size:8px;text-align:center;word-break:break-all}
+.release-card .admin-muted{color:#6f837b;font-size:11px;line-height:1.55;margin:-5px 0 18px}
+.admin-card textarea{width:100%;min-height:88px;resize:vertical;border:1px solid #1a332a;background:#050a08;color:white;border-radius:9px;padding:12px;outline:none;font:inherit}
+.admin-card textarea:focus{border-color:#2bc999;box-shadow:0 0 0 3px #20c99110}
+.admin-card input[type="file"]{padding:10px}
+.current-release{display:grid;gap:5px;margin-top:18px;padding:16px;border:1px solid #1c3b31;border-radius:11px;background:#091611}
+.current-release small{color:#557069;font-size:8px;letter-spacing:.14em}.current-release strong{font-size:18px;color:#38e2ad}.current-release span{font-size:9px;color:#687c74;line-height:1.5}
+.upload-state{margin-top:14px}.upload-state-head{display:flex;justify-content:space-between;color:#8aa098;font-size:10px;margin-bottom:8px}.upload-progress{height:6px;background:#101c18;border-radius:999px;overflow:hidden}.upload-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#0eb680,#35e5ad);transition:width .15s}.upload-state.upload-error .upload-state-head{color:#ff7d86}.upload-state.upload-error .upload-progress i{background:#ff626d}
+.release-file-cell{display:grid;gap:4px;min-width:180px}.release-file-cell span{color:#dce5e1}.release-file-cell small{color:#50635b;font-size:8px}
+@media(max-width:900px){.download-panel{grid-template-columns:90px 1fr}.download-actions{grid-column:1/-1}.download-icon-wrap{width:90px;height:90px}.download-icon-wrap img{width:58px;height:58px}}
+@media(max-width:620px){.download-panel{grid-template-columns:1fr}.download-icon-wrap{width:76px;height:76px}.download-icon-wrap img{width:50px;height:50px}.download-meta{display:grid;gap:8px}}
