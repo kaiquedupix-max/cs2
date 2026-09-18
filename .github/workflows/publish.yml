@@ -28,7 +28,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Publish
-        run: dotnet publish "Mac1ota Menu.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -p:AssemblyName="Mac1ota Menu" -o publish
+        run: dotnet publish "Mac1ota Menu.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -p:AssemblyName="Brasa Project.gg" -o publish
 
       - name: Upload Release
         uses: softprops/action-gh-release@v2

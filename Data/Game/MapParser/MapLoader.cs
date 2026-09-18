@@ -12,7 +12,7 @@ namespace Mac1ota_Menu.Data.Game.MapParser
     public class MapLoader // https://github.com/AtomicBool/cs2-map-parser  THIS TOOK 40 MINS TO CONVERT FROM CPP TO C#
     {
         public string PreviousMapName = "";
-        public string _trisPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
+        public string _trisPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Brasa Project.gg", "CS2", "External", "Map Data", "tri");
 
         #region Misc Helpers
         public bool RayIntersectsKDTree(KDNode? node, Vector3 origin, Vector3 end, out Vector3 intersectPoint)

@@ -47,7 +47,7 @@ namespace Mac1ota_Menu.Classes.DiscordRPC
 
             Client.SetPresence(new()
             {
-                Details = currentMap != "" ? "Usando Mac1ota Menu em - " + currentMap : "No lobby",
+                Details = currentMap != "" ? "Usando Brasa Project.gg em - " + currentMap : "No lobby",
                 Buttons = [.. _buttons],
                 State = state,
 

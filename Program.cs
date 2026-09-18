@@ -17,7 +17,7 @@ string triPath =
         Environment.GetFolderPath(
             Environment.SpecialFolder.MyDocuments),
 
-        "Mac1ota Menu",
+        "Brasa Project.gg",
         "CS2",
         "External",
         "Map Data",
@@ -132,7 +132,7 @@ try
 
         Process[] overlay =
             Process.GetProcessesByName(
-                "Mac1ota Menu");
+                "Brasa Project.gg");
 
         Renderer.OverlayProcessId =
             overlay
@@ -293,9 +293,9 @@ catch (IndexOutOfRangeException)
     System.Windows.Forms
         .MessageBox
         .Show(
-            "Não foi possível iniciar o Mac1ota Menu.\nVerifique se o CS2 está aberto.",
+            "Não foi possível iniciar o Brasa Project.gg.\nVerifique se o CS2 está aberto.",
 
-            "Mac1ota Menu",
+            "Brasa Project.gg",
 
             System.Windows.Forms
                 .MessageBoxButtons.OK,
@@ -311,10 +311,10 @@ catch (Exception e)
     System.Windows.Forms
         .MessageBox
         .Show(
-            "Erro ao iniciar o Mac1ota Menu:\n\n" +
+            "Erro ao iniciar o Brasa Project.gg:\n\n" +
             e.Message,
 
-            "Mac1ota Menu",
+            "Brasa Project.gg",
 
             System.Windows.Forms
                 .MessageBoxButtons.OK,

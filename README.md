@@ -1,4 +1,4 @@
-# Mac1ota Menu
+# Brasa Project.gg
 
 Interface em português para o projeto de sobreposição do CS2, escrita em C# com ImGui. O menu usa um tema escuro com detalhes verdes e reúne as opções em Geral, Mira, Visuais, Perfis e Ajustes.
 
@@ -17,7 +17,7 @@ Para gerar o executável:
 dotnet publish "Mac1ota Menu.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
 ```
 
-O executável se chama `Mac1ota Menu.exe`.
+O executável se chama `Brasa Project.gg.exe`.
 
 ## Usar o menu
 
@@ -27,4 +27,4 @@ Os dados ficam em `Documentos\Mac1ota Menu\CS2\External`. Para reutilizar dados 
 
 ## Créditos e licença
 
-Autores originais: [xfi0](https://github.com/xfi0) / domok. Personalização da interface: Mac1ota Menu. O projeto é gratuito e mantém a licença GPL-3.0 disponível em [LICENSE](LICENSE).
+Autores originais: [xfi0](https://github.com/xfi0) / domok. Personalização da interface: Brasa Project.gg. O projeto é gratuito e mantém a licença GPL-3.0 disponível em [LICENSE](LICENSE).

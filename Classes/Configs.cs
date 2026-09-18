@@ -16,11 +16,11 @@ namespace Mac1ota_Menu.Classes
 {
     internal class Configs : Classes.ThreadService
     {
-        public static string MenuName = "Mac1ota Menu";
+        public static string MenuName = "Brasa Project.gg";
         public static string Version = "2.3.9";
         public static string Author = "Maciota";
         public static string Link = "";
-        public static string menuDocumentsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External");
+        public static string menuDocumentsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Brasa Project.gg", "CS2", "External");
 
         public static string ConfigName = "";
         public static ConcurrentDictionary<string, bool> SavedConfigs = new();

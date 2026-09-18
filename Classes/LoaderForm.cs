@@ -59,7 +59,7 @@ namespace Mac1ota_Menu.Classes
         {
             SuspendLayout();
 
-            Text = "Mac1ota Menu";
+            Text = "Brasa Project.gg";
 
             ClientSize = new Size(
                 1300,
@@ -182,7 +182,7 @@ namespace Mac1ota_Menu.Classes
                     Parent = _background,
 
                     Text =
-                        "Mac1ota Menu",
+                        "Brasa Project.gg",
 
                     Font = FontOf(
                         10.5f,
@@ -258,7 +258,7 @@ namespace Mac1ota_Menu.Classes
                         _background,
 
                     Text =
-                        "M E N U",
+                        "P R O J E C T . G G",
 
                     Font =
                         FontOf(
@@ -387,7 +387,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     Parent = parent,
 
-                    Text = "MAC",
+                    Text = "BRA",
 
                     Font = font,
 
@@ -406,7 +406,7 @@ namespace Mac1ota_Menu.Classes
 
             int macWidth =
                 TextRenderer.MeasureText(
-                    "MAC",
+                    "BRA",
                     font).Width - 6;
 
             var ten =
@@ -414,7 +414,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     Parent = parent,
 
-                    Text = "10",
+                    Text = "SA",
 
                     Font = font,
 
@@ -437,7 +437,7 @@ namespace Mac1ota_Menu.Classes
 
             int tenWidth =
                 TextRenderer.MeasureText(
-                    "10",
+                    "SA",
                     font).Width - 6;
 
             var ta =
@@ -445,7 +445,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     Parent = parent,
 
-                    Text = "TA",
+                    Text = "",
 
                     Font = font,
 
@@ -689,7 +689,7 @@ namespace Mac1ota_Menu.Classes
                 _loginPanel;
 
             _loginTitle.Text =
-                "MAC1OTA MENU";
+                "BRASA PROJECT.GG";
 
             _loginTitle.Font =
                 FontOf(
@@ -1471,7 +1471,7 @@ namespace Mac1ota_Menu.Classes
                     "Não foi possível abrir o loader.\n\n" +
                     ex.Message,
 
-                    "Mac1ota Menu",
+                    "Brasa Project.gg",
 
                     MessageBoxButtons.OK,
 

@@ -43,7 +43,7 @@ namespace Mac1ota_Menu.Data.Game.MapParser
                     return;
                 }
 
-                string triOutputDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Mac1ota Menu", "CS2", "External", "Map Data", "tri");
+                string triOutputDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Brasa Project.gg", "CS2", "External", "Map Data", "tri");
                 Directory.CreateDirectory(triOutputDir);
 
                 var officialVpks = GetOfficialVpks(cs2Path);
