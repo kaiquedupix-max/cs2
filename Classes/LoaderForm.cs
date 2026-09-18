@@ -36,6 +36,11 @@ namespace Mac1ota_Menu.Classes
         private readonly GlowButton _enter = new();
         private readonly NeonCheckBox _remember = new();
 
+        private readonly NeonCheckBox _productCs2 = new();
+        private readonly NeonCheckBox _productRust = new();
+        private readonly NeonCheckBox _productFreeFire = new();
+        private readonly NeonCheckBox _productFortnite = new();
+
         private readonly Button _showPassword = new();
 
         private readonly Label _status = new();
@@ -48,6 +53,7 @@ namespace Mac1ota_Menu.Classes
 
         private int _value;
         private bool _waitingForCs2;
+        private bool _selectingProduct;
 
         private static LoaderForm? _startupForm;
 
@@ -898,6 +904,8 @@ namespace Mac1ota_Menu.Classes
                         TextSecondary;
                 };
 
+            BuildProductSelector();
+
             _enter.Parent =
                 _loginPanel;
 
@@ -919,7 +927,15 @@ namespace Mac1ota_Menu.Classes
 
             _enter.Click +=
                 (_, _) =>
-                BeginLoading();
+                {
+                    if (_selectingProduct)
+                    {
+                        StartSelectedProduct();
+                        return;
+                    }
+
+                    ShowProductSelection();
+                };
 
             _status.Parent =
                 _loginPanel;
@@ -997,6 +1013,283 @@ namespace Mac1ota_Menu.Classes
                 "Sempre online",
                 442,
                 542);
+        }
+
+        private void BuildProductSelector()
+        {
+            ConfigureProductOption(
+                _productCs2,
+                "Counter-Strike 2   •   ONLINE",
+                178,
+                true);
+
+            ConfigureProductOption(
+                _productRust,
+                "Rust   •   EM BREVE",
+                224,
+                false);
+
+            ConfigureProductOption(
+                _productFreeFire,
+                "Free Fire   •   EM BREVE",
+                270,
+                false);
+
+            ConfigureProductOption(
+                _productFortnite,
+                "Fortnite   •   EM BREVE",
+                316,
+                false);
+
+            _productCs2.Click +=
+                (_, _) =>
+                {
+                    _status.ForeColor =
+                        _productCs2.Checked
+                            ? Accent
+                            : TextSecondary;
+
+                    _status.Text =
+                        _productCs2.Checked
+                            ? "Counter-Strike 2 selecionado."
+                            : "Selecione um produto para continuar.";
+                };
+        }
+
+        private void ConfigureProductOption(
+            NeonCheckBox option,
+            string text,
+            int y,
+            bool available)
+        {
+            option.Parent =
+                _loginPanel;
+
+            option.Text =
+                text;
+
+            option.Location =
+                new Point(
+                    55,
+                    y);
+
+            option.Size =
+                new Size(
+                    484,
+                    36);
+
+            option.Font =
+                FontOf(
+                    10f,
+                    FontStyle.Bold);
+
+            option.ForeColor =
+                available
+                    ? TextPrimary
+                    : TextSecondary;
+
+            option.Enabled =
+                available;
+
+            option.Visible =
+                false;
+        }
+
+        private void SetProductOptionsVisible(
+            bool visible)
+        {
+            _productCs2.Visible =
+                visible;
+
+            _productRust.Visible =
+                visible;
+
+            _productFreeFire.Visible =
+                visible;
+
+            _productFortnite.Visible =
+                visible;
+        }
+
+        private void SetForgotPasswordVisible(
+            bool visible)
+        {
+            foreach (Control control in
+                     _loginPanel.Controls)
+            {
+                if (control is Label label &&
+                    label.Text ==
+                    "Esqueci minha senha?")
+                {
+                    label.Visible =
+                        visible;
+
+                    return;
+                }
+            }
+        }
+
+        private void ShowProductSelection()
+        {
+            _timer.Stop();
+
+            _selectingProduct =
+                true;
+
+            _username.Visible =
+                false;
+
+            _password.Visible =
+                false;
+
+            _showPassword.Visible =
+                false;
+
+            _remember.Visible =
+                false;
+
+            SetForgotPasswordVisible(
+                false);
+
+            _productCs2.Checked =
+                false;
+
+            SetProductOptionsVisible(
+                true);
+
+            _loginTitle.Text =
+                "ESCOLHA O SEU PRODUTO";
+
+            _loginTitle.Font =
+                FontOf(
+                    20f,
+                    FontStyle.Bold);
+
+            _loginTitle.Location =
+                new Point(
+                    112,
+                    84);
+
+            _loginSubtitle.Text =
+                "Selecione um produto para continuar";
+
+            _loginSubtitle.Location =
+                new Point(
+                    176,
+                    128);
+
+            _enter.Text =
+                "Continuar     →";
+
+            _enter.Visible =
+                true;
+
+            _enter.Enabled =
+                true;
+
+            _status.ForeColor =
+                TextSecondary;
+
+            _status.Text =
+                "CS2 está online. Os outros produtos chegam em breve.";
+
+            _progress.Visible =
+                false;
+        }
+
+        private void StartSelectedProduct()
+        {
+            if (!_productCs2.Checked)
+            {
+                _status.ForeColor =
+                    Color.FromArgb(
+                        235,
+                        86,
+                        86);
+
+                _status.Text =
+                    "Selecione o Counter-Strike 2 para continuar.";
+
+                return;
+            }
+
+            BeginLoading();
+        }
+
+        private void PrepareLoadingLayout()
+        {
+            _selectingProduct =
+                false;
+
+            _username.Visible =
+                false;
+
+            _password.Visible =
+                false;
+
+            _showPassword.Visible =
+                false;
+
+            _remember.Visible =
+                false;
+
+            SetForgotPasswordVisible(
+                false);
+
+            SetProductOptionsVisible(
+                false);
+
+            _enter.Visible =
+                false;
+
+            _loginTitle.Text =
+                "INICIALIZANDO";
+
+            _loginTitle.Font =
+                FontOf(
+                    28f,
+                    FontStyle.Bold);
+
+            _loginTitle.Location =
+                new Point(
+                    172,
+                    189);
+
+            _loginSubtitle.Text =
+                "Preparando Brasa Project.gg";
+
+            _loginSubtitle.Location =
+                new Point(
+                    184,
+                    240);
+
+            _status.Location =
+                new Point(
+                    45,
+                    328);
+
+            _status.Size =
+                new Size(
+                    504,
+                    40);
+
+            _status.Font =
+                FontOf(
+                    10.5f,
+                    FontStyle.Regular);
+
+            _progress.Visible =
+                true;
+
+            _progress.Location =
+                new Point(
+                    45,
+                    391);
+
+            _progress.Size =
+                new Size(
+                    504,
+                    9);
         }
 
         private void AddFeature(
@@ -1214,20 +1507,7 @@ namespace Mac1ota_Menu.Classes
 
         private void BeginLoading()
         {
-            _username.Enabled =
-                false;
-
-            _password.Enabled =
-                false;
-
-            _showPassword.Enabled =
-                false;
-
-            _remember.Enabled =
-                false;
-
-            _enter.Enabled =
-                false;
+            PrepareLoadingLayout();
 
             _value =
                 0;
@@ -1382,67 +1662,13 @@ namespace Mac1ota_Menu.Classes
         {
             _timer.Stop();
 
-            _username.Visible =
-                false;
-
-            _password.Visible =
-                false;
-
-            _showPassword.Visible =
-                false;
-
-            _remember.Visible =
-                false;
-
-            _enter.Visible =
-                false;
-
-            _loginTitle.Text =
-                "INICIALIZANDO";
-
-            _loginTitle.Location =
-                new Point(
-                    172,
-                    189);
-
-            _loginSubtitle.Text =
-                "Preparando Mac1ota Menu";
-
-            _loginSubtitle.Location =
-                new Point(
-                    200,
-                    240);
-
-            _status.Location =
-                new Point(
-                    45,
-                    328);
-
-            _status.Size =
-                new Size(
-                    504,
-                    40);
-
-            _status.Font =
-                FontOf(
-                    10.5f,
-                    FontStyle.Regular);
-
-            _status.Text =
-                "Atualizando dados...";
-
-            _progress.Location =
-                new Point(
-                    45,
-                    391);
-
-            _progress.Size =
-                new Size(
-                    504,
-                    9);
+            PrepareLoadingLayout();
 
             _progress.Value =
                 5;
+
+            _status.Text =
+                "Atualizando dados...";
         }
 
         // ============================================================
