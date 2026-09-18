@@ -23,28 +23,222 @@ string triPath =
         "Map Data",
         "tri");
 
-async Task<bool> ConnectToCs2Async(
+async Task ConnectToCs2Async(
     bool updateStartup)
 {
     while (true)
     {
-        bool connected =
-        await ConnectToCs2Async(
-            true);
-
-    if (!connected)
-    {
-        LoaderForm.SetStartupOffline(
-            "OFFLINE - não foi possível conectar ao CS2. Tentando novamente ao reiniciar.");
-
-        while (LoaderForm.StartupVisible)
+        while (!GameState.CS2Open())
         {
+            GameState.ResetConnection();
+
+            if (updateStartup)
+            {
+                LoaderForm.SetStartupProgress(
+                    100,
+                    "Aguardando CS2...");
+            }
+
             await Task.Delay(
-                100);
+                500);
         }
 
-        return;
+        Process? cs2Process =
+            GameState
+                .GetCS2Process()
+                .FirstOrDefault();
+
+        if (cs2Process == null)
+        {
+            await Task.Delay(
+                250);
+
+            continue;
+        }
+
+        try
+        {
+            Renderer.CS2ProcessId =
+                cs2Process.Id;
+
+            Renderer.OverlayProcessId =
+                Environment.ProcessId;
+
+            if (updateStartup)
+            {
+                LoaderForm.SetStartupProgress(
+                    20,
+                    "Conectando ao CS2...");
+            }
+
+            GameState.memory =
+                new("cs2");
+
+            GameState.client =
+                IntPtr.Zero;
+
+            DateTime moduleDeadline =
+                DateTime.UtcNow
+                    .AddSeconds(
+                        30);
+
+            while (
+                DateTime.UtcNow <
+                    moduleDeadline)
+            {
+                if (cs2Process.HasExited)
+                {
+                    break;
+                }
+
+                GameState.client =
+                    GameState.memory
+                        .GetModuleBase(
+                            "client.dll");
+
+                if (GameState.client !=
+                    IntPtr.Zero)
+                {
+                    break;
+                }
+
+                if (updateStartup)
+                {
+                    LoaderForm.SetStartupProgress(
+                        25,
+                        "Aguardando client.dll...");
+                }
+
+                await Task.Delay(
+                    250);
+
+                cs2Process.Refresh();
+            }
+
+            if (GameState.client ==
+                    IntPtr.Zero ||
+                cs2Process.HasExited)
+            {
+                GameState.ResetConnection();
+
+                await Task.Delay(
+                    500);
+
+                continue;
+            }
+
+            if (updateStartup)
+            {
+                LoaderForm.SetStartupProgress(
+                    40,
+                    "Atualizando dados...");
+            }
+
+            OffsetGetter.Updated =
+                false;
+
+            await OffsetGetter
+                .UpdateOffsetsAsync();
+
+            DateTime validationDeadline =
+                DateTime.UtcNow
+                    .AddSeconds(
+                        20);
+
+            while (
+                DateTime.UtcNow <
+                    validationDeadline)
+            {
+                if (!GameState.IsConnectedToCS2())
+                {
+                    break;
+                }
+
+                if (updateStartup)
+                {
+                    LoaderForm.SetStartupProgress(
+                        65,
+                        "Validando EntityList...");
+                }
+
+                await OffsetGetter
+                    .CheckIfOffsetsAreValid();
+
+                IntPtr entityList =
+                    GameState.memory!
+                        .ReadPointer(
+                            GameState.client +
+                            Offsets.dwEntityList);
+
+                if (entityList !=
+                    IntPtr.Zero)
+                {
+                    GameState.EntityList =
+                        entityList;
+
+                    return;
+                }
+
+                OffsetGetter.Updated =
+                    false;
+
+                await Task.Delay(
+                    500);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(
+                "[CS2 CONNECT] " +
+                ex.Message);
+        }
+
+        GameState.ResetConnection();
+
+        await Task.Delay(
+            500);
     }
+}
+
+if (!LoaderForm.ShowLogin())
+{
+    return;
+}
+
+try
+{
+    LoaderForm.ShowStartup();
+
+    LoaderForm.SetStartupProgress(
+        5,
+        "Inicializando interface...");
+
+    GameState.renderer =
+        new();
+
+    ImGui.CreateContext();
+
+    Renderer.LoadFonts();
+
+    Mac1ota_Menu
+        .Classes
+        .DiscordRPC
+        .DiscordRPC
+        .Initialize();
+
+    LoaderForm.SetStartupProgress(
+        12,
+        "Preparando ambiente...");
+
+    await GameState.renderer.Start();
+
+    GernadeLineup.Initialize();
+
+    List<Entity> entities =
+        [];
+
+    await ConnectToCs2Async(
+        true);
 
     LoaderForm.SetStartupProgress(
         82,
@@ -91,7 +285,7 @@ async Task<bool> ConnectToCs2Async(
     Thread entityUpdateThread =
         new(() =>
         {
-            int consecutiveEmptyEntityLists =
+            int consecutiveInvalidEntityLists =
                 0;
 
             while (true)
@@ -100,9 +294,10 @@ async Task<bool> ConnectToCs2Async(
                 {
                     if (!GameState.IsConnectedToCS2())
                     {
-                        entities = [];
+                        entities =
+                            [];
 
-                        GameState.renderer
+                        GameState.renderer!
                             .UpdateEntities(
                                 entities);
 
@@ -114,7 +309,7 @@ async Task<bool> ConnectToCs2Async(
                             .GetAwaiter()
                             .GetResult();
 
-                        consecutiveEmptyEntityLists =
+                        consecutiveInvalidEntityLists =
                             0;
 
                         Thread.Sleep(
@@ -130,15 +325,15 @@ async Task<bool> ConnectToCs2Async(
                     if (GameState.EntityList ==
                         IntPtr.Zero)
                     {
-                        consecutiveEmptyEntityLists++;
+                        consecutiveInvalidEntityLists++;
                     }
                     else
                     {
-                        consecutiveEmptyEntityLists =
+                        consecutiveInvalidEntityLists =
                             0;
                     }
 
-                    if (consecutiveEmptyEntityLists >
+                    if (consecutiveInvalidEntityLists >=
                         250)
                     {
                         Console.WriteLine(
@@ -146,13 +341,13 @@ async Task<bool> ConnectToCs2Async(
 
                         GameState.ResetConnection();
 
-                        consecutiveEmptyEntityLists =
+                        consecutiveInvalidEntityLists =
                             0;
 
                         continue;
                     }
 
-                    GameState.renderer
+                    GameState.renderer!
                         .UpdateEntities(
                             entities);
 
