@@ -31,14 +31,33 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore
-      run: dotnet restore ".\Mac1ota Menu.csproj"
+      run: dotnet restore ".\Mac1ota Menu.csproj" -r win-x64
 
     - name: Build
-      run: dotnet build ".\Mac1ota Menu.csproj" --no-restore -c Debug -p:Platform=x64
+      run: dotnet build ".\Mac1ota Menu.csproj" --no-restore -c Release -p:Platform=x64 -r win-x64
 
-    - name: Upload build artifact
+    - name: Publish single-file
+      run: dotnet publish ".\Mac1ota Menu.csproj" --no-restore -c Release -r win-x64 -p:Platform=x64 -o ".\publish"
+
+    - name: Verify single-file output
+      shell: pwsh
+      run: |
+        $exe = Get-ChildItem ".\publish" -Filter "*.exe"
+        if ($exe.Count -ne 1) {
+          throw "Esperado exatamente 1 executável no publish; encontrado: $($exe.Count)"
+        }
+
+        $extra = Get-ChildItem ".\publish" -File | Where-Object { $_.Extension -ne ".exe" }
+        if ($extra.Count -gt 0) {
+          Write-Host "Arquivos adicionais encontrados:"
+          $extra | ForEach-Object { Write-Host $_.Name }
+          throw "O publish não está totalmente single-file."
+        }
+
+        Write-Host "Single-file OK: $($exe[0].Name) / $([math]::Round($exe[0].Length / 1MB, 2)) MB"
+
+    - name: Upload single-file artifact
       uses: actions/upload-artifact@v4
       with:
-        name: legitbaratinho-debug
-        path: |
-          bin/x64/Debug/net10.0-windows7.0/
+        name: legitbaratinho-single-file
+        path: .\publish\*.exe
