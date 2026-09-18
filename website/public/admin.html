@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07100e">
+  <title>Admin · legitbaratinho.xyz</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="admin-body">
+  <div class="glow glow-a"></div>
+  <main class="admin-shell">
+    <a class="brand" href="/"><span class="mark">L</span><span>legitbaratinho.xyz</span></a>
+
+    <section id="loginBox" class="admin-card login-card">
+      <div class="section-label">ADMINISTRAÇÃO</div>
+      <h1>Entrar</h1>
+      <p>Use a senha configurada no Railway.</p>
+      <form id="loginForm">
+        <label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
+        <button class="button primary full" type="submit">Entrar</button>
+      </form>
+      <p id="loginError" class="error"></p>
+    </section>
+
+    <section id="dashboard" class="admin-dashboard hidden">
+      <div class="admin-top">
+        <div><div class="section-label">PAINEL</div><h1>Controle do produto</h1></div>
+        <button id="logoutBtn" class="button ghost">Sair</button>
+      </div>
+
+      <div class="admin-grid">
+        <article class="admin-card">
+          <h2>Status global</h2>
+          <form id="statusForm">
+            <label>Status
+              <select id="statusSelect">
+                <option value="online">Online</option>
+                <option value="maintenance">Manutenção</option>
+                <option value="offline">Offline</option>
+              </select>
+            </label>
+            <label>Mensagem<input id="statusMessage" maxlength="220"></label>
+            <button class="button primary full" type="submit">Atualizar status</button>
+          </form>
+        </article>
+
+        <article class="admin-card">
+          <h2>Gerar licença</h2>
+          <form id="keyForm">
+            <label>Plano<input id="plan" value="standard" maxlength="40"></label>
+            <label>Duração em dias<input id="days" type="number" min="1" value="30"></label>
+            <label>Nota<input id="note" maxlength="180" placeholder="Cliente / pedido / observação"></label>
+            <button class="button primary full" type="submit">Gerar key</button>
+          </form>
+          <div id="newKeyBox" class="new-key hidden"></div>
+        </article>
+      </div>
+
+      <article class="admin-card">
+        <div class="table-title"><h2>Licenças</h2><button id="refreshBtn" class="button ghost small">Atualizar</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Key</th><th>Plano</th><th>Expira</th><th>Nota</th><th>Status</th><th></th></tr></thead>
+            <tbody id="licensesBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>
