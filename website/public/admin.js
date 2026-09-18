@@ -237,8 +237,8 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
     return;
   }
 
-  if (!file.name.toLowerCase().endsWith(".zip")) {
-    alert("Para o auto-update funcionar corretamente, envie a pasta completa do loader em um arquivo .zip.");
+  if (!file.name.toLowerCase().endsWith(".exe")) {
+    alert("Envie o executável single-file .exe gerado pelo publish.");
     return;
   }
 
