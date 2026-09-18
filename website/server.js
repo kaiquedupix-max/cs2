@@ -110,11 +110,28 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-function requireUser(req, res, next) {
+async function requireUser(req, res, next) {
   const session = verifySession(req.cookies?.[USER_COOKIE]);
   if (!session?.userId || session?.kind !== "web") {
     return res.status(401).json({ error: "unauthorized" });
   }
+
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const result = await pool.query(
+    "SELECT disabled_at FROM users WHERE id = $1 LIMIT 1",
+    [Number(session.userId)]
+  );
+
+  const user = result.rows[0];
+  if (!user || user.disabled_at) {
+    res.clearCookie(USER_COOKIE);
+    return res.status(403).json({
+      error: "account_banned",
+      message: "Esta conta está bloqueada.",
+    });
+  }
+
   req.userId = Number(session.userId);
   next();
 }
@@ -642,7 +659,6 @@ app.post("/api/admin/clients/:id/add-days", requireAdmin, async (req, res) => {
      VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' days')::interval, NULL)
      ON CONFLICT (user_id, product_code)
      DO UPDATE SET
-       plan = EXCLUDED.plan,
        expires_at = GREATEST(COALESCE(user_products.expires_at, NOW()), NOW()) + ($4 || ' days')::interval,
        revoked_at = NULL`,
     [userId, PRODUCT_CODE, plan, String(days)]
