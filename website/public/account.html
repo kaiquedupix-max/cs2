@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#050907">
   <title>Minha conta · legitbaratinho.xyz</title>
-  <link rel="stylesheet" href="/styles.css?v=20260918-0457">
+  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0525">
+  <link rel="stylesheet" href="/styles.css?v=20260918-0525">
 </head>
 <body class="account-body">
   <div class="cursor-glow" id="cursorGlow"></div>
@@ -14,7 +15,7 @@
 
   <header class="topbar">
     <div class="shell nav">
-      <a class="brand" href="/"><span class="brand-mark">L</span><span class="brand-copy"><b>legitbaratinho</b><small>.xyz</small></span></a>
+      <a class="brand" href="/"><img class="brand-icon" src="/brand-icon.svg?v=20260918-0525" alt=""><span class="brand-copy"><b>legitbaratinho</b><small>.xyz</small></span></a>
       <a class="button button-small button-outline" href="/">Voltar ao site</a>
     </div>
   </header>
@@ -103,11 +104,31 @@
         </article>
       </div>
 
+      <article id="downloadPanel" class="download-panel">
+        <div class="download-icon-wrap">
+          <img src="/brand-icon.svg?v=20260918-0525" alt="">
+        </div>
+        <div class="download-copy">
+          <div class="eyebrow">DOWNLOAD</div>
+          <h2>Loader legitbaratinho.xyz</h2>
+          <p id="downloadDescription">Tenha um acesso ativo para liberar o download da versão mais recente.</p>
+          <div class="download-meta">
+            <span>Versão <b id="downloadVersion">—</b></span>
+            <span>Tamanho <b id="downloadSize">—</b></span>
+            <span>Publicado <b id="downloadDate">—</b></span>
+          </div>
+        </div>
+        <div class="download-actions">
+          <a id="downloadLoaderBtn" class="button button-primary disabled" href="#" aria-disabled="true">Baixar loader ↓</a>
+          <small id="downloadHash">SHA-256 —</small>
+        </div>
+      </article>
+
       <div id="purchaseNotice" class="purchase-notice hidden"></div>
     </section>
   </main>
 
-  <script src="/account.js?v=20260918-0457"></script>
-  <script src="/app.js?v=20260918-0457"></script>
+  <script src="/account.js?v=20260918-0525"></script>
+  <script src="/app.js?v=20260918-0525"></script>
 </body>
 </html>
