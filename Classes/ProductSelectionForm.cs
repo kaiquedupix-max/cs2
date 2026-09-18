@@ -889,29 +889,12 @@ namespace Mac1ota_Menu.Classes
             if (status ==
                 "maintenance")
             {
-                DialogResult choice =
-                    MessageBox.Show(
-                        "O produto está em manutenção.\n\n" +
-                        (
-                            string.IsNullOrWhiteSpace(
-                                account.Status.Message)
-                                ? string.Empty
-                                : account.Status.Message +
-                                  "\n\n"
-                        ) +
-                        "Caso continue, o uso é por sua conta e risco.\n\n" +
-                        "Deseja iniciar mesmo assim?",
+                bool confirmed =
+                    MaintenanceWarningForm.Confirm(
+                        this,
+                        account.Status.Message);
 
-                        "legitbaratinho.xyz — Manutenção",
-
-                        MessageBoxButtons.YesNo,
-
-                        MessageBoxIcon.Warning,
-
-                        MessageBoxDefaultButton.Button2);
-
-                if (choice !=
-                    DialogResult.Yes)
+                if (!confirmed)
                 {
                     RenderAccount(
                         account);
