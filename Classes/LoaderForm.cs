@@ -83,7 +83,7 @@ namespace Mac1ota_Menu.Classes
             _timer.Interval = 20;
             _timer.Tick += (_, _) =>
             {
-                _value = Math.Min(100, _value + 8);
+                _value = System.Math.Min(100, _value + 8);
                 _progress.Value = _value;
                 _status.Text = $"Preparando... {_value}%";
                 if (_value < 100) return;
@@ -160,7 +160,7 @@ namespace Mac1ota_Menu.Classes
             {
                 form.BeginInvoke((MethodInvoker)(() =>
                 {
-                    form._progress.Value = Math.Clamp(value, 0, 100);
+                    form._progress.Value = System.Math.Clamp(value, 0, 100);
                     form._status.ForeColor = Color.FromArgb(150, 165, 168);
                     form._status.Text = message;
                 }));
