@@ -119,14 +119,58 @@ function requireUser(req, res, next) {
   next();
 }
 
-function requireClient(req, res, next) {
+async function requireClient(req, res, next) {
   const header = String(req.headers.authorization || "");
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
   const session = verifySession(token);
+
   if (!session?.userId || session?.kind !== "loader") {
     return res.status(401).json({ error: "unauthorized" });
   }
+
+  const hwid = String(req.headers["x-device-id"] || "").trim();
+  if (!/^[a-f0-9]{64}$/i.test(hwid)) {
+    return res.status(401).json({
+      error: "device_required",
+      message: "Identificação do computador ausente.",
+    });
+  }
+
+  const hwidHash = sha256(hwid);
+  if (!session.hwidHash || !safeEqual(session.hwidHash, hwidHash)) {
+    return res.status(403).json({
+      error: "device_mismatch",
+      message: "Esta sessão pertence a outro computador.",
+    });
+  }
+
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const result = await pool.query(
+    `SELECT disabled_at, hwid_hash
+     FROM users
+     WHERE id = $1
+     LIMIT 1`,
+    [Number(session.userId)]
+  );
+
+  const user = result.rows[0];
+  if (!user || user.disabled_at) {
+    return res.status(403).json({
+      error: "account_banned",
+      message: "Esta conta está bloqueada.",
+    });
+  }
+
+  if (!user.hwid_hash || !safeEqual(user.hwid_hash, hwidHash)) {
+    return res.status(403).json({
+      error: "device_mismatch",
+      message: "Esta conta está vinculada a outro computador.",
+    });
+  }
+
   req.userId = Number(session.userId);
+  req.hwidHash = hwidHash;
   next();
 }
 
@@ -157,7 +201,8 @@ async function initDb() {
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      disabled_at TIMESTAMPTZ NULL
+      disabled_at TIMESTAMPTZ NULL,
+      hwid_hash TEXT NULL
     );
 
     CREATE TABLE IF NOT EXISTS user_products (
@@ -170,6 +215,9 @@ async function initDb() {
       revoked_at TIMESTAMPTZ NULL,
       UNIQUE(user_id, product_code)
     );
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS hwid_hash TEXT NULL;
 
     CREATE INDEX IF NOT EXISTS idx_users_username_lower ON users(LOWER(username));
     CREATE INDEX IF NOT EXISTS idx_users_email_lower ON users(LOWER(email));
@@ -424,12 +472,19 @@ app.post("/api/client/login", async (req, res) => {
 
   const identifier = String(req.body?.identifier || "").trim();
   const password = String(req.body?.password || "");
+  const hwid = String(req.body?.hwid || "").trim();
+
+  if (!/^[a-f0-9]{64}$/i.test(hwid)) {
+    return res.status(400).json({
+      error: "invalid_device",
+      message: "Não foi possível identificar este computador.",
+    });
+  }
 
   const result = await pool.query(
-    `SELECT id, password_hash
+    `SELECT id, password_hash, disabled_at, hwid_hash
      FROM users
-     WHERE disabled_at IS NULL
-       AND (LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1))
+     WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1)
      LIMIT 1`,
     [identifier]
   );
@@ -442,10 +497,34 @@ app.post("/api/client/login", async (req, res) => {
     });
   }
 
+  if (user.disabled_at) {
+    return res.status(403).json({
+      error: "account_banned",
+      message: "Sua conta está bloqueada. Entre em contato com o suporte.",
+    });
+  }
+
+  const hwidHash = sha256(hwid);
+
+  if (user.hwid_hash && !safeEqual(user.hwid_hash, hwidHash)) {
+    return res.status(403).json({
+      error: "hwid_mismatch",
+      message: "Esta conta já está vinculada a outro computador. Solicite um reset de HWID.",
+    });
+  }
+
+  if (!user.hwid_hash) {
+    await pool.query(
+      "UPDATE users SET hwid_hash = $1 WHERE id = $2 AND hwid_hash IS NULL",
+      [hwidHash, user.id]
+    );
+  }
+
   const userId = Number(user.id);
   const token = signSession({
     kind: "loader",
     userId,
+    hwidHash,
     exp: Date.now() + CLIENT_SESSION_MS,
   });
 
@@ -496,6 +575,101 @@ app.post("/api/admin/logout", (_req, res) => {
 
 app.get("/api/admin/me", requireAdmin, (_req, res) => {
   res.json({ authenticated: true });
+});
+
+app.get("/api/admin/clients", requireAdmin, async (_req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const result = await pool.query(`
+    SELECT
+      u.id,
+      u.username,
+      u.email,
+      u.created_at,
+      u.disabled_at,
+      (u.hwid_hash IS NOT NULL) AS hwid_bound,
+      p.plan,
+      p.expires_at,
+      p.revoked_at
+    FROM users u
+    LEFT JOIN user_products p
+      ON p.user_id = u.id
+      AND p.product_code = $1
+    ORDER BY u.id DESC
+    LIMIT 500
+  `, [PRODUCT_CODE]);
+
+  const now = Date.now();
+  const clients = result.rows.map((row) => {
+    const expires = row.expires_at ? new Date(row.expires_at).getTime() : 0;
+    const active = Boolean(row.expires_at) && !row.revoked_at && expires > now;
+    return {
+      id: Number(row.id),
+      username: row.username,
+      email: row.email,
+      createdAt: row.created_at,
+      banned: Boolean(row.disabled_at),
+      hwidBound: Boolean(row.hwid_bound),
+      plan: active ? row.plan : null,
+      expiresAt: row.expires_at,
+      daysRemaining: active ? Math.max(1, Math.ceil((expires - now) / 86400000)) : 0,
+      hasAccess: active,
+    };
+  });
+
+  res.json({ clients });
+});
+
+app.post("/api/admin/clients/:id/add-days", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const userId = Number(req.params.id);
+  const days = Math.trunc(Number(req.body?.days || 0));
+  const plan = String(req.body?.plan || "admin").slice(0, 40);
+
+  if (!Number.isInteger(userId) || userId <= 0 || !Number.isInteger(days) || days < 1 || days > 3650) {
+    return res.status(400).json({
+      error: "invalid_days",
+      message: "Informe uma quantidade entre 1 e 3650 dias.",
+    });
+  }
+
+  const exists = await pool.query("SELECT 1 FROM users WHERE id = $1 LIMIT 1", [userId]);
+  if (!exists.rows[0]) return res.status(404).json({ error: "client_not_found" });
+
+  await pool.query(
+    `INSERT INTO user_products(user_id, product_code, plan, purchased_at, expires_at, revoked_at)
+     VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' days')::interval, NULL)
+     ON CONFLICT (user_id, product_code)
+     DO UPDATE SET
+       plan = EXCLUDED.plan,
+       expires_at = GREATEST(COALESCE(user_products.expires_at, NOW()), NOW()) + ($4 || ' days')::interval,
+       revoked_at = NULL`,
+    [userId, PRODUCT_CODE, plan, String(days)]
+  );
+
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/clients/:id/ban", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  const userId = Number(req.params.id);
+  await pool.query("UPDATE users SET disabled_at = NOW() WHERE id = $1", [userId]);
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/clients/:id/unban", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  const userId = Number(req.params.id);
+  await pool.query("UPDATE users SET disabled_at = NULL WHERE id = $1", [userId]);
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/clients/:id/reset-hwid", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  const userId = Number(req.params.id);
+  await pool.query("UPDATE users SET hwid_hash = NULL WHERE id = $1", [userId]);
+  res.json({ ok: true });
 });
 
 app.get("/api/admin/licenses", requireAdmin, async (_req, res) => {
