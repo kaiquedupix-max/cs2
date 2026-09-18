@@ -2167,8 +2167,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.ResizeRedraw,
                 true);
 
-            BackColor =
-                Color.Transparent;
         }
 
         protected override void OnPaintBackground(
@@ -2729,8 +2727,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.ResizeRedraw,
                 true);
 
-            BackColor =
-                Color.Transparent;
         }
 
         protected override void OnPaintBackground(
