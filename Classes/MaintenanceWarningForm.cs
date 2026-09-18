@@ -325,14 +325,17 @@ namespace Mac1ota_Menu.Classes
                     Size =
                         new Size(
                             302,
-                            43),
-
-                    DialogResult =
-                        DialogResult.Yes
+                            43)
                 };
 
-            AcceptButton =
-                proceed;
+            proceed.Click +=
+                (_, _) =>
+                {
+                    DialogResult =
+                        DialogResult.Yes;
+
+                    Close();
+                };
 
             CancelButton =
                 cancel;
