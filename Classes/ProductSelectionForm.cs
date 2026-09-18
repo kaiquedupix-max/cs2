@@ -125,23 +125,9 @@ namespace Mac1ota_Menu.Classes
             _background.Dock =
                 DockStyle.Fill;
 
-            string imagePath =
-                Path.Combine(
-                    AppContext.BaseDirectory,
-                    "Resources",
+            _background.Artwork =
+                EmbeddedAssets.LoadBitmap(
                     "LoaderBackground.png");
-
-            if (File.Exists(
-                    imagePath))
-            {
-                using var image =
-                    Image.FromFile(
-                        imagePath);
-
-                _background.Artwork =
-                    new Bitmap(
-                        image);
-            }
 
             Controls.Add(
                 _background);
