@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#07100e">
   <title>Admin · legitbaratinho.xyz</title>
-  <link rel="stylesheet" href="/styles.css?v=20260918-0457">
+  <link rel="stylesheet" href="/styles.css?v=20260918-0510">
 </head>
 <body class="admin-body">
   <div class="glow glow-a"></div>
@@ -57,6 +57,35 @@
         </article>
       </div>
 
+      <article class="admin-card admin-clients-card">
+        <div class="table-title">
+          <div>
+            <div class="section-label">CLIENTES</div>
+            <h2>Gerenciar clientes</h2>
+          </div>
+          <button id="refreshClientsBtn" class="button ghost small">Atualizar</button>
+        </div>
+        <div class="admin-client-toolbar">
+          <input id="clientSearch" placeholder="Buscar por usuário ou e-mail">
+          <span id="clientsSummary">0 clientes</span>
+        </div>
+        <div class="table-wrap">
+          <table class="clients-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Plano</th>
+                <th>Dias</th>
+                <th>HWID</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+          </table>
+        </div>
+      </article>
+
       <article class="admin-card">
         <div class="table-title"><h2>Licenças</h2><button id="refreshBtn" class="button ghost small">Atualizar</button></div>
         <div class="table-wrap">
@@ -68,6 +97,6 @@
       </article>
     </section>
   </main>
-  <script src="/admin.js?v=20260918-0457"></script>
+  <script src="/admin.js?v=20260918-0510"></script>
 </body>
 </html>
