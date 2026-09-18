@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -18,13 +18,12 @@ namespace Mac1ota_Menu.Classes
 
                 Timeout =
                     TimeSpan.FromSeconds(
-                        15)
+                        20)
             };
 
-        private static readonly string VersionFile =
-            Path.Combine(
-                AppContext.BaseDirectory,
-                "loader.version");
+        private static readonly Lazy<string> CurrentBinaryHash =
+            new(
+                ComputeCurrentBinarySha256);
 
         public static LoaderReleaseInfo? Latest { get; private set; }
 
@@ -32,36 +31,33 @@ namespace Mac1ota_Menu.Classes
         {
             get
             {
-                try
+                if (Latest != null &&
+                    IsCurrentBinary(
+                        Latest.Sha256))
                 {
-                    if (File.Exists(
-                            VersionFile))
-                    {
-                        string value =
-                            File.ReadAllText(
-                                    VersionFile)
-                                .Trim();
-
-                        if (!string.IsNullOrWhiteSpace(
-                                value))
-                        {
-                            return value;
-                        }
-                    }
-                }
-                catch
-                {
+                    return Latest.Version;
                 }
 
-                return "1.0";
+                Version? assemblyVersion =
+                    Assembly.GetExecutingAssembly()
+                        .GetName()
+                        .Version;
+
+                if (assemblyVersion == null)
+                {
+                    return "1.0";
+                }
+
+                return assemblyVersion.Major +
+                       "." +
+                       assemblyVersion.Minor;
             }
         }
 
         public static bool UpdateAvailable =>
             Latest != null &&
-            IsNewer(
-                Latest.Version,
-                CurrentVersion);
+            !IsCurrentBinary(
+                Latest.Sha256);
 
         public static async Task<LoaderReleaseInfo?> CheckLatestAsync()
         {
@@ -97,9 +93,8 @@ namespace Mac1ota_Menu.Classes
                 );
             }
 
-            if (!IsNewer(
-                    latest.Version,
-                    CurrentVersion))
+            if (IsCurrentBinary(
+                    latest.Sha256))
             {
                 return (
                     true,
@@ -131,9 +126,8 @@ namespace Mac1ota_Menu.Classes
                 );
             }
 
-            if (!IsNewer(
-                    latest.Version,
-                    CurrentVersion))
+            if (IsCurrentBinary(
+                    latest.Sha256))
             {
                 return (
                     true,
@@ -155,6 +149,17 @@ namespace Mac1ota_Menu.Classes
                 Func<string, Task<(bool Success, string Message)>> downloader,
                 bool allowDeferred)
         {
+            if (!latest.FileName.EndsWith(
+                    ".exe",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return (
+                    false,
+                    false,
+                    "A versão publicada não é um executável single-file. Publique novamente o .exe pelo painel."
+                );
+            }
+
             string tempRoot =
                 Path.Combine(
                     Path.GetTempPath(),
@@ -166,15 +171,10 @@ namespace Mac1ota_Menu.Classes
             Directory.CreateDirectory(
                 tempRoot);
 
-            string extension =
-                Path.GetExtension(
-                    latest.FileName);
-
             string downloadPath =
                 Path.Combine(
                     tempRoot,
-                    "release" +
-                    extension);
+                    "legitbaratinho.xyz.new.exe");
 
             (bool downloadSuccess, string downloadMessage) =
                 await downloader(
@@ -192,7 +192,7 @@ namespace Mac1ota_Menu.Classes
                         false,
                         "Atualização v" +
                         latest.Version +
-                        " disponível — faça login para atualizar."
+                        " disponível — faça login para autorizar."
                     );
                 }
 
@@ -224,35 +224,10 @@ namespace Mac1ota_Menu.Classes
                     throw new InvalidOperationException(
                         "Executável atual não encontrado.");
 
-                string baseDirectory =
-                    AppContext.BaseDirectory
-                        .TrimEnd(
-                            Path.DirectorySeparatorChar);
-
-                string sourcePath =
-                    downloadPath;
-
-                bool isZip =
-                    extension.Equals(
-                        ".zip",
-                        StringComparison.OrdinalIgnoreCase);
-
-                if (isZip)
-                {
-                    string extractDirectory =
-                        Path.Combine(
-                            tempRoot,
-                            "extracted");
-
-                    ZipFile.ExtractToDirectory(
-                        downloadPath,
-                        extractDirectory,
-                        true);
-
-                    sourcePath =
-                        ResolvePackageRoot(
-                            extractDirectory);
-                }
+                string workingDirectory =
+                    Path.GetDirectoryName(
+                        currentExe) ??
+                    AppContext.BaseDirectory;
 
                 string scriptPath =
                     Path.Combine(
@@ -267,12 +242,10 @@ namespace Mac1ota_Menu.Classes
                     BuildUpdateScript(
                         Environment.ProcessId,
                         currentExe,
-                        baseDirectory,
-                        sourcePath,
+                        workingDirectory,
+                        downloadPath,
                         tempRoot,
-                        scriptPath,
-                        latest.Version,
-                        isZip);
+                        scriptPath);
 
                 File.WriteAllText(
                     scriptPath,
@@ -298,7 +271,7 @@ namespace Mac1ota_Menu.Classes
                             true,
 
                         WorkingDirectory =
-                            baseDirectory
+                            workingDirectory
                     });
 
                 return (
@@ -380,60 +353,44 @@ namespace Mac1ota_Menu.Classes
             }
         }
 
-        private static string ResolvePackageRoot(
-            string extractedDirectory)
+        private static bool IsCurrentBinary(
+            string expectedSha256)
         {
-            string[] files =
-                Directory.GetFiles(
-                    extractedDirectory);
-
-            string[] directories =
-                Directory.GetDirectories(
-                    extractedDirectory);
-
-            if (files.Length == 0 &&
-                directories.Length == 1)
-            {
-                return directories[0];
-            }
-
-            return extractedDirectory;
+            return string.Equals(
+                CurrentBinaryHash.Value,
+                expectedSha256?.Trim(),
+                StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsNewer(
-            string remote,
-            string local)
+        private static string ComputeCurrentBinarySha256()
         {
-            if (!TryParseVersion(
-                    remote,
-                    out Version? remoteVersion) ||
-                !TryParseVersion(
-                    local,
-                    out Version? localVersion))
+            try
             {
-                return !string.Equals(
-                    remote,
-                    local,
-                    StringComparison.OrdinalIgnoreCase);
+                string? currentExe =
+                    Environment.ProcessPath;
+
+                if (string.IsNullOrWhiteSpace(
+                        currentExe) ||
+                    !File.Exists(
+                        currentExe))
+                {
+                    return string.Empty;
+                }
+
+                using FileStream stream =
+                    File.OpenRead(
+                        currentExe);
+
+                return Convert
+                    .ToHexString(
+                        SHA256.HashData(
+                            stream))
+                    .ToLowerInvariant();
             }
-
-            return remoteVersion >
-                   localVersion;
-        }
-
-        private static bool TryParseVersion(
-            string value,
-            out Version? version)
-        {
-            string normalized =
-                value.Trim()
-                    .TrimStart(
-                        'v',
-                        'V');
-
-            return Version.TryParse(
-                normalized,
-                out version);
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         private static bool VerifySha256(
@@ -467,24 +424,22 @@ namespace Mac1ota_Menu.Classes
         private static string BuildUpdateScript(
             int processId,
             string currentExe,
-            string baseDirectory,
-            string sourcePath,
+            string workingDirectory,
+            string downloadedExe,
             string tempRoot,
-            string scriptPath,
-            string version,
-            bool isZip)
+            string scriptPath)
         {
             string psExe =
                 Ps(
                     currentExe);
 
-            string psBase =
+            string psWorking =
                 Ps(
-                    baseDirectory);
+                    workingDirectory);
 
-            string psSource =
+            string psDownloaded =
                 Ps(
-                    sourcePath);
+                    downloadedExe);
 
             string psTemp =
                 Ps(
@@ -493,14 +448,6 @@ namespace Mac1ota_Menu.Classes
             string psScript =
                 Ps(
                     scriptPath);
-
-            string psVersionFile =
-                Ps(
-                    VersionFile);
-
-            string psVersion =
-                Ps(
-                    version);
 
             var sb =
                 new StringBuilder();
@@ -514,43 +461,24 @@ namespace Mac1ota_Menu.Classes
                 " -ErrorAction SilentlyContinue } catch {}");
 
             sb.AppendLine(
-                "Start-Sleep -Milliseconds 500");
-
-            if (isZip)
-            {
-                sb.AppendLine(
-                    "Copy-Item -Path '" +
-                    psSource +
-                    "\\*' -Destination '" +
-                    psBase +
-                    "' -Recurse -Force");
-            }
-            else
-            {
-                sb.AppendLine(
-                    "Copy-Item -LiteralPath '" +
-                    psSource +
-                    "' -Destination '" +
-                    psExe +
-                    "' -Force");
-            }
+                "Start-Sleep -Milliseconds 650");
 
             sb.AppendLine(
-                "Set-Content -LiteralPath '" +
-                psVersionFile +
-                "' -Value '" +
-                psVersion +
-                "' -Encoding ASCII");
+                "Copy-Item -LiteralPath '" +
+                psDownloaded +
+                "' -Destination '" +
+                psExe +
+                "' -Force");
 
             sb.AppendLine(
                 "Start-Process -FilePath '" +
                 psExe +
                 "' -WorkingDirectory '" +
-                psBase +
+                psWorking +
                 "'");
 
             sb.AppendLine(
-                "Start-Sleep -Milliseconds 300");
+                "Start-Sleep -Milliseconds 350");
 
             sb.AppendLine(
                 "Remove-Item -LiteralPath '" +
