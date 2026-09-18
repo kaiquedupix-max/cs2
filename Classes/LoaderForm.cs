@@ -136,7 +136,7 @@ namespace Mac1ota_Menu.Classes
                 Path.Combine(
                     AppContext.BaseDirectory,
                     "Resources",
-                    "LoaderBackground.png");
+                    "LoaderBackground.jpg");
 
             if (File.Exists(imagePath))
             {
@@ -968,6 +968,22 @@ namespace Mac1ota_Menu.Classes
                 414,
                 false);
 
+            _productCs2.IconImage =
+                LoadProductIcon(
+                    "cs2.jpg");
+
+            _productRust.IconImage =
+                LoadProductIcon(
+                    "rust.jpg");
+
+            _productFreeFire.IconImage =
+                LoadProductIcon(
+                    "freefire.jpg");
+
+            _productFortnite.IconImage =
+                LoadProductIcon(
+                    "fortnite.jpg");
+
             _productCs2.Click +=
                 (_, _) =>
                 {
@@ -980,6 +996,29 @@ namespace Mac1ota_Menu.Classes
                     _status.Text =
                         "Counter-Strike 2 selecionado.";
                 };
+        }
+
+        private static Image? LoadProductIcon(
+            string fileName)
+        {
+            string path =
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Resources",
+                    "GameIcons",
+                    fileName);
+
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            using var image =
+                Image.FromFile(
+                    path);
+
+            return new Bitmap(
+                image);
         }
 
         private void ConfigureProductOption(
@@ -2595,6 +2634,25 @@ namespace Mac1ota_Menu.Classes
                 55,
                 43);
 
+        private Image? _iconImage;
+
+        [DesignerSerializationVisibility(
+            DesignerSerializationVisibility.Hidden)]
+        public Image? IconImage
+        {
+            get =>
+                _iconImage;
+
+            set
+            {
+                _iconImage?.Dispose();
+                _iconImage =
+                    value;
+
+                Invalidate();
+            }
+        }
+
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
         public bool Available
@@ -2783,9 +2841,27 @@ namespace Mac1ota_Menu.Classes
                 iconBrush,
                 iconPath);
 
-            DrawProductIcon(
-                e.Graphics,
-                iconRect);
+            if (_iconImage != null)
+            {
+                GraphicsState state =
+                    e.Graphics.Save();
+
+                e.Graphics.SetClip(
+                    iconPath);
+
+                e.Graphics.DrawImage(
+                    _iconImage,
+                    iconRect);
+
+                e.Graphics.Restore(
+                    state);
+            }
+            else
+            {
+                DrawProductIcon(
+                    e.Graphics,
+                    iconRect);
+            }
 
             TextRenderer.DrawText(
                 e.Graphics,
@@ -2930,6 +3006,19 @@ namespace Mac1ota_Menu.Classes
                     18,
                     15);
             }
+        }
+
+        protected override void Dispose(
+            bool disposing)
+        {
+            if (disposing)
+            {
+                _iconImage?.Dispose();
+                _iconImage = null;
+            }
+
+            base.Dispose(
+                disposing);
         }
 
         private void DrawProductIcon(
