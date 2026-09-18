@@ -329,6 +329,31 @@ async function activeLoaderReleaseMeta() {
   return result.rows[0] || null;
 }
 
+async function nextLoaderVersion() {
+  if (!pool) return "1.0";
+
+  const result = await pool.query(
+    `SELECT version
+     FROM loader_releases
+     ORDER BY id DESC
+     LIMIT 1`
+  );
+
+  const current = String(result.rows[0]?.version || "").trim();
+  const match = /^(\d+)\.(\d+)$/.exec(current);
+
+  if (!match) return "1.0";
+
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+
+  if (!Number.isInteger(major) || !Number.isInteger(minor)) {
+    return "1.0";
+  }
+
+  return major + "." + (minor + 1);
+}
+
 function sanitizeFileName(value) {
   const raw = String(value || "legitbaratinho-loader.zip").trim();
   const clean = raw.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
@@ -536,6 +561,33 @@ app.post("/api/account/purchase-simulated", requireUser, async (req, res) => {
   });
 });
 
+app.get("/api/loader/latest", async (_req, res) => {
+  try {
+    const release = await activeLoaderReleaseMeta();
+
+    if (!release) {
+      return res.status(404).json({
+        error: "release_unavailable",
+        message: "Nenhuma versão publicada.",
+      });
+    }
+
+    res.json({
+      version: release.version,
+      fileName: release.file_name,
+      fileSize: Number(release.file_size),
+      sha256: release.sha256,
+      notes: release.notes,
+      uploadedAt: release.uploaded_at,
+    });
+  } catch {
+    res.status(503).json({
+      error: "release_unavailable",
+      message: "Não foi possível consultar atualizações.",
+    });
+  }
+});
+
 app.get("/api/account/release", requireUser, async (req, res) => {
   if (!await activeProductAccess(req.userId)) {
     return res.status(403).json({
@@ -667,6 +719,64 @@ app.get("/api/client/me", requireClient, async (req, res) => {
   res.json(snapshot);
 });
 
+app.get("/api/client/release", requireClient, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).json({
+      error: "access_required",
+      message: "Acesso ativo necessário para atualizar o loader.",
+    });
+  }
+
+  const release = await activeLoaderReleaseMeta();
+
+  if (!release) {
+    return res.status(404).json({
+      error: "release_unavailable",
+      message: "Nenhuma versão publicada.",
+    });
+  }
+
+  res.json({
+    release: {
+      id: Number(release.id),
+      version: release.version,
+      fileName: release.file_name,
+      fileSize: Number(release.file_size),
+      sha256: release.sha256,
+      notes: release.notes,
+      uploadedAt: release.uploaded_at,
+      downloadUrl: "/api/client/download-loader",
+    },
+  });
+});
+
+app.get("/api/client/download-loader", requireClient, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).send("Acesso ativo necessário.");
+  }
+
+  const result = await pool.query(
+    `SELECT version, file_name, mime_type, file_size, sha256, file_data
+     FROM loader_releases
+     WHERE is_active = TRUE
+     ORDER BY uploaded_at DESC
+     LIMIT 1`
+  );
+
+  const release = result.rows[0];
+  if (!release) return res.status(404).send("Nenhuma versão publicada.");
+
+  const fileName = sanitizeFileName(release.file_name);
+
+  res.setHeader("Content-Type", release.mime_type || "application/octet-stream");
+  res.setHeader("Content-Length", String(release.file_size));
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("X-Loader-Version", release.version);
+  res.setHeader("X-Content-SHA256", release.sha256);
+  res.send(release.file_data);
+});
+
 app.post("/api/admin/login", (req, res) => {
   const configuredPassword = process.env.ADMIN_PASSWORD || "";
   if (!configuredPassword || !sessionSecret()) {
@@ -744,17 +854,10 @@ app.post(
       });
     }
 
-    const version = String(req.query.version || "").trim().slice(0, 60);
+    const version = await nextLoaderVersion();
     const notes = String(req.query.notes || "").trim().slice(0, 500);
     const fileName = sanitizeFileName(req.query.fileName);
     const mimeType = String(req.query.mimeType || "application/octet-stream").slice(0, 120);
-
-    if (!version) {
-      return res.status(400).json({
-        error: "version_required",
-        message: "Informe a versão do loader.",
-      });
-    }
 
     const digest = sha256(file);
     const client = await pool.connect();
