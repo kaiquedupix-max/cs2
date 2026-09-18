@@ -149,6 +149,89 @@ namespace Mac1ota_Menu.Classes
             }
         }
 
+        public static async Task<(bool Success, string Message)> DownloadLatestLoaderAsync(
+            string destinationPath)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    Token))
+            {
+                return (
+                    false,
+                    "Faça login novamente para atualizar o loader."
+                );
+            }
+
+            try
+            {
+                using var request =
+                    new HttpRequestMessage(
+                        HttpMethod.Get,
+                        "api/client/download-loader");
+
+                request.Headers.Authorization =
+                    new AuthenticationHeaderValue(
+                        "Bearer",
+                        Token);
+
+                request.Headers.Add(
+                    "X-Device-ID",
+                    DeviceIdentity.CurrentId);
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request,
+                        HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string message =
+                        response.StatusCode ==
+                        HttpStatusCode.Forbidden
+                            ? "Seu acesso não permite baixar esta atualização."
+                            : "Não foi possível baixar a atualização.";
+
+                    return (
+                        false,
+                        message
+                    );
+                }
+
+                await using Stream source =
+                    await response.Content
+                        .ReadAsStreamAsync();
+
+                await using FileStream destination =
+                    new(
+                        destinationPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None);
+
+                await source.CopyToAsync(
+                    destination);
+
+                return (
+                    true,
+                    "Atualização baixada."
+                );
+            }
+            catch (TaskCanceledException)
+            {
+                return (
+                    false,
+                    "O download da atualização demorou demais."
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    false,
+                    "Falha ao baixar atualização: " +
+                    ex.Message
+                );
+            }
+        }
+
         public static void Clear()
         {
             Token =
