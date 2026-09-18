@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#07100e">
   <title>Admin · legitbaratinho.xyz</title>
-  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0525">
-  <link rel="stylesheet" href="/styles.css?v=20260918-0525">
+  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0540">
+  <link rel="stylesheet" href="/styles.css?v=20260918-0540">
 </head>
 <body class="admin-body">
   <div class="glow glow-a"></div>
   <main class="admin-shell">
     <a class="brand" href="/">
-      <img class="brand-icon" src="/brand-icon.svg?v=20260918-0525" alt="">
+      <img class="brand-icon" src="/brand-icon.svg?v=20260918-0540" alt="">
       <span>legitbaratinho.xyz</span>
     </a>
 
@@ -56,9 +56,10 @@
           <p class="admin-muted">A nova versão vira a versão ativa automaticamente após o upload.</p>
 
           <form id="releaseForm">
-            <label>Versão
-              <input id="releaseVersion" placeholder="Ex.: 2.4.0" maxlength="60" required>
-            </label>
+            <div class="auto-version-note">
+              <span>VERSÃO AUTOMÁTICA</span>
+              <b id="nextReleaseVersion">Próxima: v1.0</b>
+            </div>
             <label>Arquivo
               <input id="releaseFile" type="file" accept=".zip,.exe,.msi,application/zip,application/octet-stream" required>
             </label>
@@ -127,6 +128,6 @@
       </article>
     </section>
   </main>
-  <script src="/admin.js?v=20260918-0525"></script>
+  <script src="/admin.js?v=20260918-0540"></script>
 </body>
 </html>

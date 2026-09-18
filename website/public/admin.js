@@ -175,6 +175,12 @@ async function loadReleases() {
 function renderReleases() {
   releasesBody.innerHTML = "";
   const active = cachedReleases.find((release) => release.isActive);
+  const latest = cachedReleases[0];
+  const currentVersion = String(latest?.version || "").match(/^(\d+)\.(\d+)$/);
+  const nextVersion = currentVersion
+    ? currentVersion[1] + "." + (Number(currentVersion[2]) + 1)
+    : "1.0";
+  document.getElementById("nextReleaseVersion").textContent = "Próxima: v" + nextVersion;
 
   document.getElementById("currentReleaseVersion").textContent =
     active ? "v" + active.version : "Nenhuma publicada";
@@ -224,11 +230,10 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
   event.preventDefault();
 
   const file = document.getElementById("releaseFile").files?.[0];
-  const version = document.getElementById("releaseVersion").value.trim();
   const notes = document.getElementById("releaseNotes").value.trim();
 
-  if (!file || !version) {
-    alert("Informe a versão e selecione o arquivo.");
+  if (!file) {
+    alert("Selecione o arquivo do loader.");
     return;
   }
 
@@ -250,7 +255,6 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
   button.disabled = true;
 
   const query = new URLSearchParams({
-    version,
     notes,
     fileName: file.name,
     mimeType: file.type || "application/octet-stream",
