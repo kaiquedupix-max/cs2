@@ -941,6 +941,66 @@ namespace Mac1ota_Menu.Classes
                         TextSecondary;
                 };
 
+            forgot.Text =
+                "Criar uma conta";
+
+            forgot.Location =
+                new Point(
+                    445,
+                    332);
+
+            forgot.Click +=
+                (_, _) =>
+                    OpenPortalLink(
+                        "account#register");
+
+            var buyAccess =
+                new Label
+                {
+                    Parent =
+                        _loginPanel,
+
+                    Text =
+                        "Ainda não tem acesso?  Comprar acesso",
+
+                    Font =
+                        FontOf(
+                            8.5f,
+                            FontStyle.Regular),
+
+                    ForeColor =
+                        TextSecondary,
+
+                    BackColor =
+                        Color.Transparent,
+
+                    Cursor =
+                        Cursors.Hand,
+
+                    AutoSize =
+                        true,
+
+                    Location =
+                        new Point(
+                            45,
+                            446)
+                };
+
+            buyAccess.MouseEnter +=
+                (_, _) =>
+                    buyAccess.ForeColor =
+                        Accent;
+
+            buyAccess.MouseLeave +=
+                (_, _) =>
+                    buyAccess.ForeColor =
+                        TextSecondary;
+
+            buyAccess.Click +=
+                (_, _) =>
+                    OpenPortalLink(
+                        "account#plans");
+
             _enter.Parent =
                 _loginPanel;
 
@@ -987,7 +1047,7 @@ namespace Mac1ota_Menu.Classes
             _status.Location =
                 new Point(
                     45,
-                    464);
+                    477);
 
             _status.Size =
                 new Size(
@@ -1000,7 +1060,7 @@ namespace Mac1ota_Menu.Classes
             _progress.Location =
                 new Point(
                     45,
-                    495);
+                    507);
 
             _progress.Size =
                 new Size(
@@ -1264,85 +1324,89 @@ namespace Mac1ota_Menu.Classes
 
         private async Task TryBeginLoadingAsync()
         {
+            string identifier =
+                _username.InputText.Trim();
+
+            string password =
+                _password.InputText;
+
+            if (string.IsNullOrWhiteSpace(
+                    identifier) ||
+                string.IsNullOrWhiteSpace(
+                    password))
+            {
+                _status.ForeColor =
+                    Color.FromArgb(
+                        235,
+                        86,
+                        86);
+
+                _status.Text =
+                    "Preencha usuário/e-mail e senha.";
+
+                return;
+            }
+
+            _remoteStatusTimer.Stop();
+
             _enter.Enabled =
                 false;
 
-            bool statusAvailable =
-                await RefreshRemoteStatusAsync(
-                    true);
+            _username.Enabled =
+                false;
 
-            if (!statusAvailable)
+            _password.Enabled =
+                false;
+
+            _status.ForeColor =
+                TextSecondary;
+
+            _status.Text =
+                "Validando sua conta...";
+
+            (bool success, string message) =
+                await ClientPortalApi.LoginAsync(
+                    identifier,
+                    password);
+
+            if (!success)
             {
+                _username.Enabled =
+                    true;
+
+                _password.Enabled =
+                    true;
+
                 _enter.Enabled =
-                    false;
+                    true;
 
-                MessageBox.Show(
-                    "Não foi possível consultar o status do serviço.\n\n" +
-                    "Por segurança, o carregamento foi bloqueado.",
+                _status.ForeColor =
+                    Color.FromArgb(
+                        235,
+                        86,
+                        86);
 
-                    "legitbaratinho.xyz",
+                _status.Text =
+                    message;
 
-                    MessageBoxButtons.OK,
-
-                    MessageBoxIcon.Warning);
+                _remoteStatusTimer.Start();
 
                 return;
             }
 
-            if (_remoteProductStatus ==
-                RemoteProductStatus.Offline)
-            {
-                _enter.Enabled =
-                    false;
+            _status.ForeColor =
+                Accent;
 
-                MessageBox.Show(
-                    string.IsNullOrWhiteSpace(
-                        _remoteStatusMessage)
-                        ? "O serviço está offline no momento."
-                        : _remoteStatusMessage,
+            _status.Text =
+                "Conta conectada. Abrindo produtos...";
 
-                    "legitbaratinho.xyz — Offline",
+            await Task.Delay(
+                300);
 
-                    MessageBoxButtons.OK,
+            DialogResult =
+                DialogResult.OK;
 
-                    MessageBoxIcon.Error);
-
-                return;
-            }
-
-            if (_remoteProductStatus ==
-                RemoteProductStatus.Maintenance)
-            {
-                DialogResult choice =
-                    MessageBox.Show(
-                        "O sistema está em manutenção.\n\n" +
-                        (string.IsNullOrWhiteSpace(
-                            _remoteStatusMessage)
-                            ? string.Empty
-                            : _remoteStatusMessage +
-                              "\n\n") +
-                        "Caso continue, o uso é por sua conta e risco.\n\n" +
-                        "Deseja continuar mesmo assim?",
-
-                        "legitbaratinho.xyz — Manutenção",
-
-                        MessageBoxButtons.YesNo,
-
-                        MessageBoxIcon.Warning,
-
-                        MessageBoxDefaultButton.Button2);
-
-                if (choice !=
-                    DialogResult.Yes)
-                {
-                    _enter.Enabled =
-                        true;
-
-                    return;
-                }
-            }
-
-            BeginLoading();
+            Close();
         }
 
         private async Task<bool> RefreshRemoteStatusAsync(
@@ -1429,9 +1493,6 @@ namespace Mac1ota_Menu.Classes
                     _productStatus.ForeColor =
                         Accent;
 
-                    _enter.Enabled =
-                        true;
-
                     _status.ForeColor =
                         TextSecondary;
 
@@ -1455,9 +1516,6 @@ namespace Mac1ota_Menu.Classes
                             242,
                             201,
                             76);
-
-                    _enter.Enabled =
-                        true;
 
                     _status.ForeColor =
                         Color.FromArgb(
@@ -1486,9 +1544,6 @@ namespace Mac1ota_Menu.Classes
                             86,
                             86);
 
-                    _enter.Enabled =
-                        false;
-
                     _status.ForeColor =
                         Color.FromArgb(
                             235,
@@ -1513,9 +1568,6 @@ namespace Mac1ota_Menu.Classes
                     _productStatus.ForeColor =
                         TextSecondary;
 
-                    _enter.Enabled =
-                        false;
-
                     _status.ForeColor =
                         TextSecondary;
 
@@ -1526,6 +1578,27 @@ namespace Mac1ota_Menu.Classes
                     }
 
                     break;
+            }
+        }
+
+        private static void OpenPortalLink(
+            string path)
+        {
+            try
+            {
+                Process.Start(
+                    new ProcessStartInfo
+                    {
+                        FileName =
+                            ClientPortalApi.PortalBaseUrl +
+                            path,
+
+                        UseShellExecute =
+                            true
+                    });
+            }
+            catch
+            {
             }
         }
 
@@ -2500,6 +2573,18 @@ namespace Mac1ota_Menu.Classes
 
             set =>
                 _box.PlaceholderText =
+                    value;
+        }
+
+        [DesignerSerializationVisibility(
+            DesignerSerializationVisibility.Hidden)]
+        public string InputText
+        {
+            get =>
+                _box.Text;
+
+            set =>
+                _box.Text =
                     value;
         }
 
