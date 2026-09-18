@@ -28,17 +28,77 @@ namespace Mac1ota_Menu.Data.Game
         public static int RoundDamage { get; set; }
         public static List<WorldEntity?> worldEntities { get; set; } = [];
 
-        public static bool CS2Open() // i didnt know where to put this
+        public static bool CS2Open()
         {
-            return !(Process.GetProcessesByName("cs2").Length == 0);
+            return GetCS2Process().Length > 0;
         }
+
         public static Process[] CS2Processes = [];
+
         public static Process[] GetCS2Process()
         {
-            if (CS2Processes.Length <= 0)
-                CS2Processes = Process.GetProcessesByName("cs2");
+            try
+            {
+                CS2Processes =
+                    Process
+                        .GetProcessesByName(
+                            "cs2")
+                        .Where(
+                            process =>
+                            {
+                                try
+                                {
+                                    return !process.HasExited;
+                                }
+                                catch
+                                {
+                                    return false;
+                                }
+                            })
+                        .ToArray();
+            }
+            catch
+            {
+                CS2Processes = [];
+            }
 
             return CS2Processes;
+        }
+
+        public static bool IsConnectedToCS2()
+        {
+            if (memory == null ||
+                client == IntPtr.Zero ||
+                Renderer.CS2ProcessId == 0)
+            {
+                return false;
+            }
+
+            try
+            {
+                using Process process =
+                    Process.GetProcessById(
+                        Renderer.CS2ProcessId);
+
+                return !process.HasExited;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static void ResetConnection()
+        {
+            memory = null;
+            client = IntPtr.Zero;
+            EntityList = IntPtr.Zero;
+            LocalPlayer = null;
+            Entities = [];
+            worldEntities = [];
+            CS2Processes = [];
+
+            Renderer.CS2ProcessId = 0;
         }
     }
 }

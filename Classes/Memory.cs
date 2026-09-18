@@ -40,9 +40,70 @@ namespace Mac1ota_Menu.Classes.Memory
         /// <returns></returns>
         public Process GetProcess(string procname)
         {
-            process = Renderer.CS2ProcessId != 0 ? Process.GetProcessById(Renderer.CS2ProcessId) : Process.GetProcessesByName(procname)[0];
-            handle = process.Handle;
-            return process;
+            Process? targetProcess =
+                null;
+
+            if (Renderer.CS2ProcessId != 0)
+            {
+                try
+                {
+                    Process candidate =
+                        Process.GetProcessById(
+                            Renderer.CS2ProcessId);
+
+                    if (!candidate.HasExited)
+                    {
+                        targetProcess =
+                            candidate;
+                    }
+                    else
+                    {
+                        candidate.Dispose();
+                    }
+                }
+                catch
+                {
+                    targetProcess =
+                        null;
+                }
+            }
+
+            if (targetProcess == null)
+            {
+                targetProcess =
+                    Process
+                        .GetProcessesByName(
+                            procname)
+                        .FirstOrDefault(
+                            candidate =>
+                            {
+                                try
+                                {
+                                    return !candidate.HasExited;
+                                }
+                                catch
+                                {
+                                    return false;
+                                }
+                            });
+            }
+
+            if (targetProcess == null)
+            {
+                throw new InvalidOperationException(
+                    $"Processo {procname} não encontrado.");
+            }
+
+            process =
+                targetProcess;
+
+            Renderer.CS2ProcessId =
+                targetProcess.Id;
+
+            handle =
+                targetProcess.Handle;
+
+            return targetProcess;
         }
 
         public IntPtr GetModuleBase(string modulename)

@@ -23,140 +23,19 @@ string triPath =
         "Map Data",
         "tri");
 
-if (!LoaderForm.ShowLogin())
+async Task<bool> ConnectToCs2Async(
+    bool updateStartup)
 {
-    return;
-}
-
-try
-{
-    LoaderForm.ShowStartup();
-
-    LoaderForm.SetStartupProgress(
-        5,
-        "Inicializando interface...");
-
-    GameState.renderer =
-        new();
-
-    EntityManager entityManager =
-        new();
-
-    ImGui.CreateContext();
-
-    Renderer.LoadFonts();
-
-    Mac1ota_Menu
-        .Classes
-        .DiscordRPC
-        .DiscordRPC
-        .Initialize();
-
-    LoaderForm.SetStartupProgress(
-        12,
-        "Preparando ambiente...");
-
-    await GameState.renderer.Start();
-
-    GernadeLineup.Initialize();
-
-    List<Entity>? entities =
-        [];
-
-    while (!GameState.CS2Open())
+    while (true)
     {
-        LoaderForm.SetStartupProgress(
-            100,
-            "Aguardando CS2...");
+        bool connected =
+        await ConnectToCs2Async(
+            true);
 
-        await Task.Delay(
-            500);
-    }
-
-    LoaderForm.SetStartupProgress(
-        20,
-        "Conectando ao CS2...");
-
-    GameState.memory =
-        new("cs2");
-
-    GameState.client =
-        GameState.memory
-            .GetModuleBase(
-                "client.dll");
-
-    LoaderForm.SetStartupProgress(
-        40,
-        "Atualizando dados...");
-
-    await Task.Delay(
-        250);
-
-    await OffsetGetter
-        .UpdateOffsetsAsync();
-
-    const int validationTimeoutSeconds =
-        15;
-
-    DateTime validationDeadline =
-        DateTime.UtcNow
-            .AddSeconds(
-                validationTimeoutSeconds);
-
-    while (
-        GameState.memory != null &&
-        !OffsetGetter.Updated &&
-        DateTime.UtcNow <
-        validationDeadline)
-    {
-        if (!GameState.CS2Open())
-        {
-            LoaderForm.SetStartupProgress(
-                100,
-                "Aguardando CS2...");
-
-            while (!GameState.CS2Open())
-            {
-                await Task.Delay(
-                    500);
-            }
-        }
-
-        Process[] cs2 =
-            GameState.GetCS2Process();
-
-        Renderer.CS2ProcessId =
-            cs2
-                .FirstOrDefault()
-                ?.Id ?? 0;
-
-        Process[] overlay =
-            Process.GetProcessesByName(
-                "legitbaratinho.xyz");
-
-        Renderer.OverlayProcessId =
-            overlay
-                .FirstOrDefault()
-                ?.Id ?? 0;
-
-        LoaderForm.SetStartupProgress(
-            65,
-            "Atualizando dados...");
-
-        await OffsetGetter
-            .CheckIfOffsetsAreValid();
-
-        if (!OffsetGetter.Updated)
-        {
-            await Task.Delay(
-                500);
-        }
-    }
-
-    if (!OffsetGetter.Updated)
+    if (!connected)
     {
         LoaderForm.SetStartupOffline(
-            "OFFLINE - não foi possível atualizar os dados. Abra novamente.");
+            "OFFLINE - não foi possível conectar ao CS2. Tentando novamente ao reiniciar.");
 
         while (LoaderForm.StartupVisible)
         {
@@ -212,36 +91,92 @@ try
     Thread entityUpdateThread =
         new(() =>
         {
+            int consecutiveEmptyEntityLists =
+                0;
+
             while (true)
             {
                 try
                 {
-                    if (entityManager != null)
+                    if (!GameState.IsConnectedToCS2())
                     {
-                        entities =
-                            EntityManager
-                                .GetEntities();
-                    }
+                        entities = [];
 
-                    if (entities != null)
-                    {
                         GameState.renderer
                             .UpdateEntities(
                                 entities);
 
+                        GameState.Entities =
+                            [];
+
+                        ConnectToCs2Async(
+                                false)
+                            .GetAwaiter()
+                            .GetResult();
+
+                        consecutiveEmptyEntityLists =
+                            0;
+
+                        Thread.Sleep(
+                            50);
+
+                        continue;
+                    }
+
+                    entities =
+                        EntityManager
+                            .GetEntities();
+
+                    if (GameState.EntityList ==
+                        IntPtr.Zero)
+                    {
+                        consecutiveEmptyEntityLists++;
+                    }
+                    else
+                    {
+                        consecutiveEmptyEntityLists =
+                            0;
+                    }
+
+                    if (consecutiveEmptyEntityLists >
+                        250)
+                    {
+                        Console.WriteLine(
+                            "[CS2 CONNECT] EntityList inválida. Reconectando...");
+
+                        GameState.ResetConnection();
+
+                        consecutiveEmptyEntityLists =
+                            0;
+
+                        continue;
+                    }
+
+                    GameState.renderer
+                        .UpdateEntities(
+                            entities);
+
 #pragma warning disable CS8619
 
-                        GameState.Entities =
-                            entities;
+                    GameState.Entities =
+                        entities;
 
 #pragma warning restore CS8619
-                    }
 
                     Thread.Sleep(
                         1);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(
+                        "[ENTITY LOOP] " +
+                        ex.Message);
+
+                    if (!GameState.CS2Open())
+                    {
+                        GameState.ResetConnection();
+                    }
+
                     Thread.Sleep(
                         50);
                 }
