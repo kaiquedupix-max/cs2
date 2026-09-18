@@ -14,6 +14,14 @@
 		<AssemblyName>legitbaratinho.xyz</AssemblyName>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
 		<ApplicationIcon>MenuLogo.ico</ApplicationIcon>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		<PublishTrimmed>false</PublishTrimmed>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -27,11 +35,8 @@
 		<None Remove="Resources\fonts\NotoSans-BoldIcons.ttf" />
 		<None Remove="Resources\fonts\undefeated.ttf" />
 		<None Remove="Resources\MenuLogo.png" />
+		<None Remove="Resources\LoaderBackground.png" />
 		<None Remove="Resources\sounds\hitsounds\CODHitmarker.wav" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Content Include="MenuLogo.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -83,9 +88,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Resources\LoaderBackground.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		<EmbeddedResource Include="Resources\LoaderBackground.png">
+			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</EmbeddedResource>
 	</ItemGroup>
 
 </Project>

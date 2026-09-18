@@ -8,6 +8,16 @@ namespace Mac1ota_Menu.Classes
     {
         public BrandIconControl()
         {
+            // WinForms só aceita Color.Transparent depois que
+            // SupportsTransparentBackColor estiver habilitado.
+            SetStyle(
+                ControlStyles.SupportsTransparentBackColor |
+                ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.UserPaint |
+                ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.ResizeRedraw,
+                true);
+
             DoubleBuffered =
                 true;
 
@@ -18,13 +28,6 @@ namespace Mac1ota_Menu.Classes
                 new Size(
                     40,
                     40);
-
-            SetStyle(
-                ControlStyles.SupportsTransparentBackColor |
-                ControlStyles.AllPaintingInWmPaint |
-                ControlStyles.UserPaint |
-                ControlStyles.OptimizedDoubleBuffer,
-                true);
         }
 
         protected override void OnPaint(
