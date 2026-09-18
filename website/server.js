@@ -737,7 +737,7 @@ app.get("/api/admin/releases", requireAdmin, async (_req, res) => {
 app.post(
   "/api/admin/releases/upload",
   requireAdmin,
-  express.raw({ type: "application/octet-stream", limit: "100mb" }),
+  express.raw({ type: "*/*", limit: "100mb" }),
   async (req, res) => {
     if (!pool) return res.status(503).json({ error: "database_not_configured" });
 
