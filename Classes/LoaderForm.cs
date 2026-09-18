@@ -2171,6 +2171,12 @@ namespace Mac1ota_Menu.Classes
                 Color.Transparent;
         }
 
+        protected override void OnPaintBackground(
+            PaintEventArgs pevent)
+        {
+            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
+        }
+
         protected override void OnPaint(
             PaintEventArgs e)
         {
@@ -2344,9 +2350,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.ResizeRedraw,
                 true);
 
-            BackColor =
-                Color.Transparent;
-
             Cursor =
                 Cursors.Hand;
         }
@@ -2363,6 +2366,12 @@ namespace Mac1ota_Menu.Classes
                 true;
 
             base.OnClick(e);
+        }
+
+        protected override void OnPaintBackground(
+            PaintEventArgs pevent)
+        {
+            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
         }
 
         protected override void OnPaint(
@@ -2724,6 +2733,12 @@ namespace Mac1ota_Menu.Classes
                 Color.Transparent;
         }
 
+        protected override void OnPaintBackground(
+            PaintEventArgs pevent)
+        {
+            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
+        }
+
         protected override void OnPaint(
             PaintEventArgs e)
         {
@@ -2858,9 +2873,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.SupportsTransparentBackColor,
                 true);
 
-            BackColor =
-                Color.Transparent;
-
             Cursor =
                 Cursors.IBeam;
 
@@ -2919,6 +2931,12 @@ namespace Mac1ota_Menu.Classes
             MouseDown +=
                 (_, _) =>
                 _box.Focus();
+        }
+
+        protected override void OnPaintBackground(
+            PaintEventArgs pevent)
+        {
+            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
         }
 
         protected override void OnPaint(
@@ -3052,9 +3070,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.SupportsTransparentBackColor,
                 true);
 
-            BackColor =
-                Color.Transparent;
-
             Cursor =
                 Cursors.Hand;
 
@@ -3080,6 +3095,12 @@ namespace Mac1ota_Menu.Classes
             }
 
             base.OnClick(e);
+        }
+
+        protected override void OnPaintBackground(
+            PaintEventArgs pevent)
+        {
+            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
         }
 
         protected override void OnPaint(
@@ -3262,9 +3283,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.SupportsTransparentBackColor |
                 ControlStyles.ResizeRedraw,
                 true);
-
-            BackColor =
-                Color.Transparent;
 
             Cursor =
                 Cursors.Hand;
@@ -3725,9 +3743,6 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.SupportsTransparentBackColor,
                 true);
 
-            BackColor =
-                Color.Transparent;
-
             Cursor =
                 Cursors.Hand;
 
@@ -3763,6 +3778,12 @@ namespace Mac1ota_Menu.Classes
             Invalidate();
 
             base.OnMouseLeave(e);
+        }
+
+        protected override void OnPaintBackground(
+            PaintEventArgs pevent)
+        {
+            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
         }
 
         protected override void OnPaint(
