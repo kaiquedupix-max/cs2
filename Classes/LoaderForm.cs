@@ -47,7 +47,12 @@ namespace Mac1ota_Menu.Classes
         private readonly ModernProgressBar _progress = new();
 
         private readonly Label _loginTitle = new();
+        private readonly Label _loginTitleSuffix = new();
         private readonly Label _loginSubtitle = new();
+
+        private readonly Label _productFooterLeft = new();
+        private readonly Label _productFooterRight = new();
+        private readonly Label _productFooterDot = new();
 
         private readonly System.Windows.Forms.Timer _timer = new();
 
@@ -222,8 +227,6 @@ namespace Mac1ota_Menu.Classes
         }
 
         // ============================================================
-        // BRANDING        // ============================================================
-        // BRANDING        // ============================================================
         // BRANDING
         // ============================================================
 
@@ -414,8 +417,6 @@ namespace Mac1ota_Menu.Classes
         }
 
         // ============================================================
-        // LOGIN        // ============================================================
-        // LOGIN        // ============================================================
         // LOGIN
         // ============================================================
 
@@ -502,6 +503,37 @@ namespace Mac1ota_Menu.Classes
                 new Point(
                     118,
                     78);
+
+            _loginTitleSuffix.Parent =
+                _loginPanel;
+
+            _loginTitleSuffix.Text =
+                "PROJECT.GG";
+
+            _loginTitleSuffix.Font =
+                FontOf(
+                    24f,
+                    FontStyle.Regular);
+
+            _loginTitleSuffix.ForeColor =
+                Color.FromArgb(
+                    190,
+                    190,
+                    194);
+
+            _loginTitleSuffix.BackColor =
+                Color.Transparent;
+
+            _loginTitleSuffix.AutoSize =
+                true;
+
+            _loginTitleSuffix.Location =
+                new Point(
+                    262,
+                    66);
+
+            _loginTitleSuffix.Visible =
+                false;
 
             _loginSubtitle.Parent =
                 _loginPanel;
@@ -727,6 +759,9 @@ namespace Mac1ota_Menu.Classes
             _status.Parent =
                 _loginPanel;
 
+            _status.Visible =
+                true;
+
             _status.Text =
                 "Pronto para iniciar";
 
@@ -775,6 +810,99 @@ namespace Mac1ota_Menu.Classes
 
             _progress.AccentColor =
                 Accent;
+
+            _productFooterLeft.Parent =
+                _loginPanel;
+
+            _productFooterLeft.Text =
+                "Versão 1.0.0";
+
+            _productFooterLeft.Font =
+                FontOf(
+                    8.2f,
+                    FontStyle.Regular);
+
+            _productFooterLeft.ForeColor =
+                Color.FromArgb(
+                    110,
+                    110,
+                    116);
+
+            _productFooterLeft.BackColor =
+                Color.Transparent;
+
+            _productFooterLeft.AutoSize =
+                true;
+
+            _productFooterLeft.Location =
+                new Point(
+                    39,
+                    608);
+
+            _productFooterLeft.Visible =
+                false;
+
+            _productFooterRight.Parent =
+                _loginPanel;
+
+            _productFooterRight.Text =
+                "brasaproject.gg";
+
+            _productFooterRight.Font =
+                FontOf(
+                    8.2f,
+                    FontStyle.Regular);
+
+            _productFooterRight.ForeColor =
+                Color.FromArgb(
+                    110,
+                    110,
+                    116);
+
+            _productFooterRight.BackColor =
+                Color.Transparent;
+
+            _productFooterRight.AutoSize =
+                true;
+
+            _productFooterRight.Location =
+                new Point(
+                    435,
+                    608);
+
+            _productFooterRight.Visible =
+                false;
+
+            _productFooterDot.Parent =
+                _loginPanel;
+
+            _productFooterDot.Text =
+                "●";
+
+            _productFooterDot.Font =
+                FontOf(
+                    9f,
+                    FontStyle.Bold);
+
+            _productFooterDot.ForeColor =
+                Color.FromArgb(
+                    22,
+                    190,
+                    92);
+
+            _productFooterDot.BackColor =
+                Color.Transparent;
+
+            _productFooterDot.AutoSize =
+                true;
+
+            _productFooterDot.Location =
+                new Point(
+                    533,
+                    606);
+
+            _productFooterDot.Visible =
+                false;
 
             AddFeature(
                 "⚡",
@@ -956,7 +1084,7 @@ namespace Mac1ota_Menu.Classes
                 true);
 
             _loginTitle.Text =
-                "BRASA PROJECT.GG";
+                "BRASA";
 
             _loginTitle.Font =
                 FontOf(
@@ -967,6 +1095,9 @@ namespace Mac1ota_Menu.Classes
                 new Point(
                     118,
                     66);
+
+            _loginTitleSuffix.Visible =
+                true;
 
             _loginSubtitle.Text =
                 "Escolha o seu produto para continuar.";
@@ -1005,14 +1136,17 @@ namespace Mac1ota_Menu.Classes
                     504,
                     22);
 
-            _status.ForeColor =
-                Color.FromArgb(
-                    110,
-                    110,
-                    116);
+            _status.Visible =
+                false;
 
-            _status.Text =
-                "Versão 1.0.0                                      brasaproject.gg   ●";
+            _productFooterLeft.Visible =
+                true;
+
+            _productFooterRight.Visible =
+                true;
+
+            _productFooterDot.Visible =
+                true;
 
             _progress.Visible =
                 false;
@@ -1059,6 +1193,21 @@ namespace Mac1ota_Menu.Classes
 
             SetProductOptionsVisible(
                 false);
+
+            _loginTitleSuffix.Visible =
+                false;
+
+            _productFooterLeft.Visible =
+                false;
+
+            _productFooterRight.Visible =
+                false;
+
+            _productFooterDot.Visible =
+                false;
+
+            _status.Visible =
+                true;
 
             _enter.Visible =
                 false;
@@ -1260,7 +1409,6 @@ namespace Mac1ota_Menu.Classes
         }
 
         // ============================================================
-        // WINDOW BUTTONS        // ============================================================
         // WINDOW BUTTONS
         // ============================================================
 
@@ -2401,12 +2549,36 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.AllPaintingInWmPaint |
                 ControlStyles.UserPaint |
                 ControlStyles.OptimizedDoubleBuffer |
-                ControlStyles.SupportsTransparentBackColor |
                 ControlStyles.ResizeRedraw,
                 true);
 
             Cursor =
                 Cursors.Hand;
+        }
+
+        protected override void OnResize(
+            EventArgs e)
+        {
+            base.OnResize(e);
+
+            if (Width <= 0 ||
+                Height <= 0)
+            {
+                return;
+            }
+
+            using var path =
+                Rounded(
+                    new Rectangle(
+                        0,
+                        0,
+                        Width - 1,
+                        Height - 1),
+                    13);
+
+            Region =
+                new Region(
+                    path);
         }
 
         protected override void OnClick(
@@ -2522,30 +2694,9 @@ namespace Mac1ota_Menu.Classes
                 iconBrush,
                 iconPath);
 
-            TextRenderer.DrawText(
+            DrawProductIcon(
                 e.Graphics,
-                IconText,
-                new Font(
-                    "Segoe UI",
-                    IconText.Length > 1
-                        ? 10f
-                        : 15f,
-                    FontStyle.Bold),
-
-                iconRect,
-
-                Available
-                    ? Color.FromArgb(
-                        15,
-                        15,
-                        16)
-                    : Color.FromArgb(
-                        32,
-                        32,
-                        34),
-
-                TextFormatFlags.HorizontalCenter |
-                TextFormatFlags.VerticalCenter);
+                iconRect);
 
             TextRenderer.DrawText(
                 e.Graphics,
@@ -2692,6 +2843,162 @@ namespace Mac1ota_Menu.Classes
             }
         }
 
+        private void DrawProductIcon(
+            Graphics graphics,
+            Rectangle rect)
+        {
+            Color ink =
+                Available
+                    ? Color.FromArgb(
+                        15,
+                        15,
+                        16)
+                    : Color.FromArgb(
+                        38,
+                        38,
+                        41);
+
+            if (IconText == "CS")
+            {
+                using var brush =
+                    new SolidBrush(
+                        ink);
+
+                graphics.FillEllipse(
+                    brush,
+                    rect.X + 17,
+                    rect.Y + 8,
+                    9,
+                    9);
+
+                graphics.FillRectangle(
+                    brush,
+                    rect.X + 19,
+                    rect.Y + 16,
+                    6,
+                    20);
+
+                using var pen =
+                    new Pen(
+                        ink,
+                        4f)
+                    {
+                        StartCap =
+                            LineCap.Round,
+
+                        EndCap =
+                            LineCap.Round
+                    };
+
+                graphics.DrawLine(
+                    pen,
+                    rect.X + 21,
+                    rect.Y + 22,
+                    rect.X + 35,
+                    rect.Y + 17);
+
+                graphics.DrawLine(
+                    pen,
+                    rect.X + 22,
+                    rect.Y + 34,
+                    rect.X + 14,
+                    rect.Y + 44);
+
+                graphics.DrawLine(
+                    pen,
+                    rect.X + 23,
+                    rect.Y + 34,
+                    rect.X + 31,
+                    rect.Y + 45);
+
+                graphics.DrawLine(
+                    pen,
+                    rect.X + 34,
+                    rect.Y + 17,
+                    rect.X + 44,
+                    rect.Y + 17);
+            }
+            else if (IconText == "R")
+            {
+                using var pen =
+                    new Pen(
+                        ink,
+                        4f);
+
+                graphics.DrawEllipse(
+                    pen,
+                    rect.X + 13,
+                    rect.Y + 13,
+                    24,
+                    24);
+
+                graphics.DrawLine(
+                    pen,
+                    rect.X + 25,
+                    rect.Y + 10,
+                    rect.X + 25,
+                    rect.Y + 40);
+
+                graphics.DrawLine(
+                    pen,
+                    rect.X + 10,
+                    rect.Y + 25,
+                    rect.X + 40,
+                    rect.Y + 25);
+            }
+            else if (IconText == "FF")
+            {
+                using var flame =
+                    new GraphicsPath();
+
+                flame.AddBezier(
+                    rect.X + 27,
+                    rect.Y + 7,
+                    rect.X + 39,
+                    rect.Y + 20,
+                    rect.X + 39,
+                    rect.Y + 34,
+                    rect.X + 26,
+                    rect.Y + 44);
+
+                flame.AddBezier(
+                    rect.X + 26,
+                    rect.Y + 44,
+                    rect.X + 12,
+                    rect.Y + 37,
+                    rect.X + 12,
+                    rect.Y + 24,
+                    rect.X + 27,
+                    rect.Y + 7);
+
+                flame.CloseFigure();
+
+                using var brush =
+                    new SolidBrush(
+                        ink);
+
+                graphics.FillPath(
+                    brush,
+                    flame);
+            }
+            else
+            {
+                TextRenderer.DrawText(
+                    graphics,
+                    "F",
+                    new Font(
+                        "Segoe UI",
+                        19f,
+                        FontStyle.Bold),
+
+                    rect,
+                    ink,
+
+                    TextFormatFlags.HorizontalCenter |
+                    TextFormatFlags.VerticalCenter);
+            }
+        }
+
         private static GraphicsPath Rounded(
             Rectangle r,
             int radius)
@@ -2774,16 +3081,37 @@ namespace Mac1ota_Menu.Classes
 
         public RoundedPanel()
         {
-            // IMPORTANTE:
-            // habilita transparência ANTES do BackColor transparente
             SetStyle(
                 ControlStyles.AllPaintingInWmPaint |
                 ControlStyles.UserPaint |
                 ControlStyles.OptimizedDoubleBuffer |
-                ControlStyles.SupportsTransparentBackColor |
                 ControlStyles.ResizeRedraw,
                 true);
+        }
 
+        protected override void OnResize(
+            EventArgs e)
+        {
+            base.OnResize(e);
+
+            if (Width <= 0 ||
+                Height <= 0)
+            {
+                return;
+            }
+
+            using var path =
+                Rounded(
+                    new Rectangle(
+                        0,
+                        0,
+                        Width - 1,
+                        Height - 1),
+                    Radius);
+
+            Region =
+                new Region(
+                    path);
         }
 
         protected override void OnPaintBackground(
@@ -2955,10 +3283,6 @@ namespace Mac1ota_Menu.Classes
             Controls.Add(
                 _box);
 
-            Resize +=
-                (_, _) =>
-                    UpdateTextBoxBounds();
-
             _box.GotFocus +=
                 (_, _) =>
                 {
@@ -2982,6 +3306,38 @@ namespace Mac1ota_Menu.Classes
                     _box.Focus();
 
             UpdateTextBoxBounds();
+            UpdateRoundedRegion();
+        }
+
+        protected override void OnResize(
+            EventArgs e)
+        {
+            base.OnResize(e);
+
+            UpdateTextBoxBounds();
+            UpdateRoundedRegion();
+        }
+
+        private void UpdateRoundedRegion()
+        {
+            if (Width <= 0 ||
+                Height <= 0)
+            {
+                return;
+            }
+
+            using var path =
+                Rounded(
+                    new Rectangle(
+                        0,
+                        0,
+                        Width - 1,
+                        Height - 1),
+                    10);
+
+            Region =
+                new Region(
+                    path);
         }
 
         private void UpdateTextBoxBounds()
