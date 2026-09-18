@@ -49,7 +49,7 @@ namespace Mac1ota_Menu.Classes
             using var background =
                 RoundedRect(
                     bounds,
-                    Math.Max(
+                    System.Math.Max(
                         7f,
                         Width * .22f));
 
@@ -65,7 +65,7 @@ namespace Mac1ota_Menu.Classes
                 background);
 
             float scale =
-                Math.Min(
+                System.Math.Min(
                     Width,
                     Height) /
                 128f;
