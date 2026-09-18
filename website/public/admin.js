@@ -233,7 +233,7 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
   const notes = document.getElementById("releaseNotes").value.trim();
 
   if (!file) {
-    alert("Selecione o pacote .zip do loader.");
+    alert("Selecione o executável .exe do loader.");
     return;
   }
 
@@ -242,8 +242,8 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
     return;
   }
 
-  if (file.size > 100 * 1024 * 1024) {
-    alert("O arquivo deve ter no máximo 100 MB.");
+  if (file.size > 250 * 1024 * 1024) {
+    alert("O arquivo deve ter no máximo 250 MB.");
     return;
   }
 
