@@ -38,7 +38,9 @@ namespace Mac1ota_Menu.Classes
                         new
                         {
                             identifier,
-                            password
+                            password,
+                            hwid =
+                                DeviceIdentity.CurrentId
                         });
 
                 if (!response.IsSuccessStatusCode)
@@ -121,6 +123,10 @@ namespace Mac1ota_Menu.Classes
                     new AuthenticationHeaderValue(
                         "Bearer",
                         Token);
+
+                request.Headers.Add(
+                    "X-Device-ID",
+                    DeviceIdentity.CurrentId);
 
                 using HttpResponseMessage response =
                     await Http.SendAsync(
