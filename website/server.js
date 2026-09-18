@@ -13,7 +13,7 @@ const port = Number(process.env.PORT || 3000);
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === "production"
+      ssl: process.env.DATABASE_SSL === "true"
         ? { rejectUnauthorized: false }
         : undefined,
     })
