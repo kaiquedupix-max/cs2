@@ -2340,6 +2340,7 @@ namespace Mac1ota_Menu.Classes
                 ControlStyles.AllPaintingInWmPaint |
                 ControlStyles.UserPaint |
                 ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.SupportsTransparentBackColor |
                 ControlStyles.ResizeRedraw,
                 true);
 
