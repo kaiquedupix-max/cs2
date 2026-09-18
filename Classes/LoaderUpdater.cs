@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
-using System.Windows.Forms;
 
 namespace Mac1ota_Menu.Classes
 {
@@ -18,7 +18,7 @@ namespace Mac1ota_Menu.Classes
 
                 Timeout =
                     TimeSpan.FromSeconds(
-                        8)
+                        15)
             };
 
         private static readonly string VersionFile =
@@ -68,9 +68,8 @@ namespace Mac1ota_Menu.Classes
             try
             {
                 Latest =
-                    await Http
-                        .GetFromJsonAsync<LoaderReleaseInfo>(
-                            "api/loader/latest");
+                    await Http.GetFromJsonAsync<LoaderReleaseInfo>(
+                        "api/loader/latest");
 
                 return Latest;
             }
@@ -81,6 +80,39 @@ namespace Mac1ota_Menu.Classes
 
                 return null;
             }
+        }
+
+        public static async Task<(bool Success, bool Restarting, string Message)>
+            TryUpdateAtStartupAsync()
+        {
+            LoaderReleaseInfo? latest =
+                await CheckLatestAsync();
+
+            if (latest == null)
+            {
+                return (
+                    true,
+                    false,
+                    "Não foi possível consultar atualizações."
+                );
+            }
+
+            if (!IsNewer(
+                    latest.Version,
+                    CurrentVersion))
+            {
+                return (
+                    true,
+                    false,
+                    "Versão atual."
+                );
+            }
+
+            return await DownloadAndPrepareAsync(
+                latest,
+                DownloadByDeviceAsync,
+                allowDeferred:
+                    true);
         }
 
         public static async Task<(bool Success, bool Restarting, string Message)>
@@ -110,6 +142,19 @@ namespace Mac1ota_Menu.Classes
                 );
             }
 
+            return await DownloadAndPrepareAsync(
+                latest,
+                ClientPortalApi.DownloadLatestLoaderAsync,
+                allowDeferred:
+                    false);
+        }
+
+        private static async Task<(bool Success, bool Restarting, string Message)>
+            DownloadAndPrepareAsync(
+                LoaderReleaseInfo latest,
+                Func<string, Task<(bool Success, string Message)>> downloader,
+                bool allowDeferred)
+        {
             string tempRoot =
                 Path.Combine(
                     Path.GetTempPath(),
@@ -132,13 +177,24 @@ namespace Mac1ota_Menu.Classes
                     extension);
 
             (bool downloadSuccess, string downloadMessage) =
-                await ClientPortalApi.DownloadLatestLoaderAsync(
+                await downloader(
                     downloadPath);
 
             if (!downloadSuccess)
             {
                 TryDelete(
                     tempRoot);
+
+                if (allowDeferred)
+                {
+                    return (
+                        true,
+                        false,
+                        "Atualização v" +
+                        latest.Version +
+                        " disponível — faça login para atualizar."
+                    );
+                }
 
                 return (
                     false,
@@ -248,7 +304,9 @@ namespace Mac1ota_Menu.Classes
                 return (
                     true,
                     true,
-                    "Atualização baixada. Reiniciando..."
+                    "Atualizando para v" +
+                    latest.Version +
+                    ". Reiniciando..."
                 );
             }
             catch (Exception ex)
@@ -261,6 +319,63 @@ namespace Mac1ota_Menu.Classes
                     false,
                     "Não foi possível aplicar a atualização: " +
                     ex.Message
+                );
+            }
+        }
+
+        private static async Task<(bool Success, string Message)> DownloadByDeviceAsync(
+            string destinationPath)
+        {
+            try
+            {
+                using var request =
+                    new HttpRequestMessage(
+                        HttpMethod.Get,
+                        "api/loader/download");
+
+                request.Headers.Add(
+                    "X-Device-ID",
+                    DeviceIdentity.CurrentId);
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request,
+                        HttpCompletionOption.ResponseHeadersRead);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return (
+                        false,
+                        response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden
+                            ? "Login necessário para autorizar a atualização."
+                            : "Não foi possível baixar a atualização."
+                    );
+                }
+
+                await using Stream source =
+                    await response.Content
+                        .ReadAsStreamAsync();
+
+                await using FileStream destination =
+                    new(
+                        destinationPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None);
+
+                await source.CopyToAsync(
+                    destination);
+
+                return (
+                    true,
+                    "Atualização baixada."
+                );
+            }
+            catch
+            {
+                return (
+                    false,
+                    "Não foi possível baixar a atualização."
                 );
             }
         }
