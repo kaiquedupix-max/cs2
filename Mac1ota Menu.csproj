@@ -83,10 +83,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Resources\LoaderBackground.jpg">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Resources\GameIcons\*.jpg">
+		<None Update="Resources\LoaderBackground.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
