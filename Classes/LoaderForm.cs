@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
+using System.Net.Http.Json;
 using System.Windows.Forms;
 
 namespace Mac1ota_Menu.Classes
@@ -39,7 +40,28 @@ namespace Mac1ota_Menu.Classes
         private readonly Button _showPassword = new();
 
         private readonly Label _status = new();
+        private readonly Label _productStatus = new();
         private readonly ModernProgressBar _progress = new();
+
+        private readonly System.Windows.Forms.Timer _remoteStatusTimer = new();
+
+        private static readonly HttpClient StatusHttp =
+            new()
+            {
+                BaseAddress =
+                    new Uri(
+                        "https://website-production-ee97.up.railway.app/"),
+
+                Timeout =
+                    TimeSpan.FromSeconds(
+                        5)
+            };
+
+        private RemoteProductStatus _remoteProductStatus =
+            RemoteProductStatus.Unknown;
+
+        private string _remoteStatusMessage =
+            "Consultando status...";
 
         private readonly Label _loginTitle = new();
         private readonly Label _loginSubtitle = new();
@@ -94,16 +116,41 @@ namespace Mac1ota_Menu.Classes
             Resize += (_, _) =>
                 ApplyRoundedRegion();
 
-            Shown += (_, _) =>
-            {
-                ApplyRoundedRegion();
-                Activate();
-            };
+            Shown +=
+                async (_, _) =>
+                {
+                    ApplyRoundedRegion();
+                    Activate();
+
+                    if (!IsStartupInstance())
+                    {
+                        await RefreshRemoteStatusAsync(
+                            false);
+
+                        _remoteStatusTimer.Start();
+                    }
+                };
 
             // 100ms x 100 = aproximadamente 10 segundos
             _timer.Interval = 100;
 
             _timer.Tick += LoadingTick;
+
+            _remoteStatusTimer.Interval =
+                20_000;
+
+            _remoteStatusTimer.Tick +=
+                async (_, _) =>
+                {
+                    await RefreshRemoteStatusAsync(
+                        false);
+                };
+
+            FormClosed +=
+                (_, _) =>
+                {
+                    _remoteStatusTimer.Stop();
+                };
 
             ResumeLayout(false);
         }
@@ -592,34 +639,30 @@ namespace Mac1ota_Menu.Classes
                             37)
                 };
 
-            var online =
-                new Label
-                {
-                    Parent =
-                        gameCard,
+            _productStatus.Parent =
+                gameCard;
 
-                    Text =
-                        "●  Online",
+            _productStatus.Text =
+                "●  Consultando";
 
-                    Font =
-                        FontOf(
-                            8f,
-                            FontStyle.Bold),
+            _productStatus.Font =
+                FontOf(
+                    8f,
+                    FontStyle.Bold);
 
-                    ForeColor =
-                        Accent,
+            _productStatus.ForeColor =
+                TextSecondary;
 
-                    BackColor =
-                        Color.Transparent,
+            _productStatus.BackColor =
+                Color.Transparent;
 
-                    AutoSize =
-                        true,
+            _productStatus.AutoSize =
+                true;
 
-                    Location =
-                        new Point(
-                            393,
-                            26)
-                };
+            _productStatus.Location =
+                new Point(
+                    378,
+                    26);
         }
 
         // ============================================================
@@ -918,8 +961,8 @@ namespace Mac1ota_Menu.Classes
                 Accent;
 
             _enter.Click +=
-                (_, _) =>
-                BeginLoading();
+                async (_, _) =>
+                    await TryBeginLoadingAsync();
 
             _status.Parent =
                 _loginPanel;
@@ -1212,6 +1255,280 @@ namespace Mac1ota_Menu.Classes
         // LOGIN LOADING
         // ============================================================
 
+        private bool IsStartupInstance()
+        {
+            return ReferenceEquals(
+                this,
+                _startupForm);
+        }
+
+        private async Task TryBeginLoadingAsync()
+        {
+            _enter.Enabled =
+                false;
+
+            bool statusAvailable =
+                await RefreshRemoteStatusAsync(
+                    true);
+
+            if (!statusAvailable)
+            {
+                _enter.Enabled =
+                    false;
+
+                MessageBox.Show(
+                    "Não foi possível consultar o status do serviço.\n\n" +
+                    "Por segurança, o carregamento foi bloqueado.",
+
+                    "legitbaratinho.xyz",
+
+                    MessageBoxButtons.OK,
+
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            if (_remoteProductStatus ==
+                RemoteProductStatus.Offline)
+            {
+                _enter.Enabled =
+                    false;
+
+                MessageBox.Show(
+                    string.IsNullOrWhiteSpace(
+                        _remoteStatusMessage)
+                        ? "O serviço está offline no momento."
+                        : _remoteStatusMessage,
+
+                    "legitbaratinho.xyz — Offline",
+
+                    MessageBoxButtons.OK,
+
+                    MessageBoxIcon.Error);
+
+                return;
+            }
+
+            if (_remoteProductStatus ==
+                RemoteProductStatus.Maintenance)
+            {
+                DialogResult choice =
+                    MessageBox.Show(
+                        "O sistema está em manutenção.\n\n" +
+                        (string.IsNullOrWhiteSpace(
+                            _remoteStatusMessage)
+                            ? string.Empty
+                            : _remoteStatusMessage +
+                              "\n\n") +
+                        "Caso continue, o uso é por sua conta e risco.\n\n" +
+                        "Deseja continuar mesmo assim?",
+
+                        "legitbaratinho.xyz — Manutenção",
+
+                        MessageBoxButtons.YesNo,
+
+                        MessageBoxIcon.Warning,
+
+                        MessageBoxDefaultButton.Button2);
+
+                if (choice !=
+                    DialogResult.Yes)
+                {
+                    _enter.Enabled =
+                        true;
+
+                    return;
+                }
+            }
+
+            BeginLoading();
+        }
+
+        private async Task<bool> RefreshRemoteStatusAsync(
+            bool forceVisualUpdate)
+        {
+            try
+            {
+                RemoteStatusResponse? remote =
+                    await StatusHttp
+                        .GetFromJsonAsync<RemoteStatusResponse>(
+                            "api/status");
+
+                if (remote == null)
+                {
+                    ApplyRemoteStatus(
+                        RemoteProductStatus.Unknown,
+                        "Status indisponível.");
+
+                    return false;
+                }
+
+                RemoteProductStatus status =
+                    remote.Status
+                        ?.Trim()
+                        .ToLowerInvariant() switch
+                    {
+                        "online" =>
+                            RemoteProductStatus.Online,
+
+                        "maintenance" =>
+                            RemoteProductStatus.Maintenance,
+
+                        "offline" =>
+                            RemoteProductStatus.Offline,
+
+                        _ =>
+                            RemoteProductStatus.Unknown
+                    };
+
+                _remoteStatusMessage =
+                    remote.Message
+                        ?.Trim() ??
+                    string.Empty;
+
+                ApplyRemoteStatus(
+                    status,
+                    _remoteStatusMessage);
+
+                return status !=
+                       RemoteProductStatus.Unknown;
+            }
+            catch
+            {
+                _remoteStatusMessage =
+                    "Não foi possível consultar o servidor.";
+
+                ApplyRemoteStatus(
+                    RemoteProductStatus.Unknown,
+                    _remoteStatusMessage);
+
+                return false;
+            }
+        }
+
+        private void ApplyRemoteStatus(
+            RemoteProductStatus status,
+            string message)
+        {
+            _remoteProductStatus =
+                status;
+
+            if (IsDisposed ||
+                Disposing)
+            {
+                return;
+            }
+
+            switch (status)
+            {
+                case RemoteProductStatus.Online:
+                    _productStatus.Text =
+                        "●  Online";
+
+                    _productStatus.ForeColor =
+                        Accent;
+
+                    _enter.Enabled =
+                        true;
+
+                    _status.ForeColor =
+                        TextSecondary;
+
+                    if (!_timer.Enabled)
+                    {
+                        _status.Text =
+                            string.IsNullOrWhiteSpace(
+                                message)
+                                ? "Pronto para iniciar"
+                                : message;
+                    }
+
+                    break;
+
+                case RemoteProductStatus.Maintenance:
+                    _productStatus.Text =
+                        "●  Manutenção";
+
+                    _productStatus.ForeColor =
+                        Color.FromArgb(
+                            242,
+                            201,
+                            76);
+
+                    _enter.Enabled =
+                        true;
+
+                    _status.ForeColor =
+                        Color.FromArgb(
+                            242,
+                            201,
+                            76);
+
+                    if (!_timer.Enabled)
+                    {
+                        _status.Text =
+                            string.IsNullOrWhiteSpace(
+                                message)
+                                ? "Manutenção — uso por sua conta e risco"
+                                : message;
+                    }
+
+                    break;
+
+                case RemoteProductStatus.Offline:
+                    _productStatus.Text =
+                        "●  Offline";
+
+                    _productStatus.ForeColor =
+                        Color.FromArgb(
+                            235,
+                            86,
+                            86);
+
+                    _enter.Enabled =
+                        false;
+
+                    _status.ForeColor =
+                        Color.FromArgb(
+                            235,
+                            86,
+                            86);
+
+                    if (!_timer.Enabled)
+                    {
+                        _status.Text =
+                            string.IsNullOrWhiteSpace(
+                                message)
+                                ? "Serviço offline"
+                                : message;
+                    }
+
+                    break;
+
+                default:
+                    _productStatus.Text =
+                        "●  Indisponível";
+
+                    _productStatus.ForeColor =
+                        TextSecondary;
+
+                    _enter.Enabled =
+                        false;
+
+                    _status.ForeColor =
+                        TextSecondary;
+
+                    if (!_timer.Enabled)
+                    {
+                        _status.Text =
+                            "Não foi possível consultar o status";
+                    }
+
+                    break;
+            }
+        }
+
         private void BeginLoading()
         {
             _username.Enabled =
@@ -1443,6 +1760,23 @@ namespace Mac1ota_Menu.Classes
 
             _progress.Value =
                 5;
+        }
+
+        private enum RemoteProductStatus
+        {
+            Unknown,
+            Online,
+            Maintenance,
+            Offline
+        }
+
+        private sealed class RemoteStatusResponse
+        {
+            public string Status { get; set; } =
+                string.Empty;
+
+            public string Message { get; set; } =
+                string.Empty;
         }
 
         // ============================================================
