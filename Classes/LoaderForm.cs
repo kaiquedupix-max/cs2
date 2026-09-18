@@ -3544,9 +3544,9 @@ namespace Mac1ota_Menu.Classes
             DesignerSerializationVisibility.Hidden)]
         public Color AccentColor { get; set; } =
             Color.FromArgb(
-                21,
-                232,
-                169);
+                255,
+                55,
+                43);
 
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
