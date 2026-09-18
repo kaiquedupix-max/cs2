@@ -588,6 +588,57 @@ app.get("/api/loader/latest", async (_req, res) => {
   }
 });
 
+app.get("/api/loader/download", async (req, res) => {
+  if (!pool) return res.status(503).send("Banco indisponível.");
+
+  const hwid = String(req.headers["x-device-id"] || "").trim();
+  if (!/^[a-f0-9]{64}$/i.test(hwid)) {
+    return res.status(401).send("Dispositivo não identificado.");
+  }
+
+  const hwidHash = sha256(hwid);
+
+  const access = await pool.query(
+    `SELECT u.id
+     FROM users u
+     JOIN user_products p
+       ON p.user_id = u.id
+      AND p.product_code = $1
+     WHERE u.disabled_at IS NULL
+       AND u.hwid_hash = $2
+       AND p.revoked_at IS NULL
+       AND p.expires_at > NOW()
+     LIMIT 1`,
+    [PRODUCT_CODE, hwidHash]
+  );
+
+  if (!access.rows[0]) {
+    return res.status(403).send("Login necessário para autorizar a atualização.");
+  }
+
+  const result = await pool.query(
+    `SELECT version, file_name, mime_type, file_size, sha256, file_data
+     FROM loader_releases
+     WHERE is_active = TRUE
+     ORDER BY uploaded_at DESC
+     LIMIT 1`
+  );
+
+  const release = result.rows[0];
+  if (!release) return res.status(404).send("Nenhuma versão publicada.");
+
+  const fileName = sanitizeFileName(release.file_name);
+
+  res.setHeader("Content-Type", release.mime_type || "application/octet-stream");
+  res.setHeader("Content-Length", String(release.file_size));
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("X-Loader-Version", release.version);
+  res.setHeader("X-Content-SHA256", release.sha256);
+  res.send(release.file_data);
+});
+
+
 app.get("/api/account/release", requireUser, async (req, res) => {
   if (!await activeProductAccess(req.userId)) {
     return res.status(403).json({
