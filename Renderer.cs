@@ -35,6 +35,8 @@ namespace Mac1ota_Menu
 
         private bool? _lastStreamModeState;
         private IntPtr _lastStreamModeWindow = IntPtr.Zero;
+
+        private IntPtr _taskbarHiddenForWindow = IntPtr.Zero;
         public static bool IsTextFontNormalLoaded => !TextFontNormal.Equals(default(ImFontPtr));
         public static bool IsTextFont24Loaded => !TextFont24.Equals(default(ImFontPtr));
         public static bool IsTextFont48Loaded => !TextFont48.Equals(default(ImFontPtr));
@@ -232,6 +234,7 @@ namespace Mac1ota_Menu
             {
                 this.VSync = EnableVsync;
 
+                HideTaskbarButton();
                 ApplyStreamMode();
 
                 RenderESPOverlay();
@@ -250,6 +253,41 @@ namespace Mac1ota_Menu
             }
         }
 
+
+        private void HideTaskbarButton()
+        {
+            using Process currentProcess =
+                Process.GetCurrentProcess();
+
+            currentProcess.Refresh();
+
+            IntPtr windowHandle =
+                currentProcess.MainWindowHandle;
+
+            if (windowHandle ==
+                IntPtr.Zero)
+            {
+                windowHandle =
+                    User32.FindWindow(
+                        null!,
+                        "legitbaratinho.xyz");
+            }
+
+            if (windowHandle ==
+                    IntPtr.Zero ||
+                windowHandle ==
+                    _taskbarHiddenForWindow)
+            {
+                return;
+            }
+
+            if (TaskbarWindowHelper.TryRemoveTaskbarButton(
+                    windowHandle))
+            {
+                _taskbarHiddenForWindow =
+                    windowHandle;
+            }
+        }
 
         private void ApplyStreamMode()
         {

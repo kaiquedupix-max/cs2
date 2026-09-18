@@ -3,6 +3,77 @@ using System.Runtime.InteropServices;
 
 namespace Mac1ota_Menu.Classes
 {
+    [ComImport]
+    [Guid("56FDF342-FD6D-11D0-958A-006097C9A090")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface ITaskbarList
+    {
+        void HrInit();
+        void AddTab(IntPtr hwnd);
+        void DeleteTab(IntPtr hwnd);
+        void ActivateTab(IntPtr hwnd);
+        void SetActiveAlt(IntPtr hwnd);
+    }
+
+    internal static class TaskbarWindowHelper
+    {
+        private static readonly Guid TaskbarListClsid =
+            new("56FDF344-FD6D-11D0-958A-006097C9A090");
+
+        public static bool TryRemoveTaskbarButton(
+            IntPtr hwnd)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            object? instance =
+                null;
+
+            try
+            {
+                Type? type =
+                    Type.GetTypeFromCLSID(
+                        TaskbarListClsid);
+
+                if (type == null)
+                {
+                    return false;
+                }
+
+                instance =
+                    Activator.CreateInstance(
+                        type);
+
+                if (instance is not ITaskbarList taskbar)
+                {
+                    return false;
+                }
+
+                taskbar.HrInit();
+                taskbar.DeleteTab(
+                    hwnd);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                if (instance != null &&
+                    Marshal.IsComObject(
+                        instance))
+                {
+                    Marshal.FinalReleaseComObject(
+                        instance);
+                }
+            }
+        }
+    }
+
     internal class User32 // what is SYSLIB1054 pls help
     {
         private static HashSet<int> _heldKeys = new();
