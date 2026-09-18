@@ -82,7 +82,10 @@ namespace Mac1ota_Menu.Classes
         public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern uint SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowDisplayAffinity(
+            IntPtr hWnd,
+            uint dwAffinity);
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool UnhookWindowsHookEx(IntPtr hInstance);
