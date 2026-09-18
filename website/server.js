@@ -385,11 +385,6 @@ async function accountSnapshot(userId) {
   };
 }
 
-function generateLicenseKey() {
-  const raw = crypto.randomBytes(18).toString("hex").toUpperCase();
-  return ["LBT", raw.slice(0, 6), raw.slice(6, 12), raw.slice(12, 18), raw.slice(18, 24)].join("-");
-}
-
 app.get("/health", (_req, res) => {
   res.json({ ok: true, database: Boolean(pool) });
 });
@@ -934,51 +929,6 @@ app.post("/api/admin/clients/:id/reset-hwid", requireAdmin, async (req, res) => 
   if (!pool) return res.status(503).json({ error: "database_not_configured" });
   const userId = Number(req.params.id);
   await pool.query("UPDATE users SET hwid_hash = NULL WHERE id = $1", [userId]);
-  res.json({ ok: true });
-});
-
-app.get("/api/admin/licenses", requireAdmin, async (_req, res) => {
-  if (!pool) return res.status(503).json({ error: "database_not_configured" });
-  const result = await pool.query(`
-    SELECT id, key_prefix, plan, note, created_at, expires_at, revoked_at
-    FROM licenses
-    ORDER BY id DESC
-    LIMIT 250
-  `);
-  res.json({ licenses: result.rows });
-});
-
-app.post("/api/admin/licenses", requireAdmin, async (req, res) => {
-  if (!pool) return res.status(503).json({ error: "database_not_configured" });
-
-  const plan = String(req.body?.plan || "standard").slice(0, 40);
-  const note = String(req.body?.note || "").slice(0, 180);
-  const days = Number(req.body?.days || 30);
-  const expiresAt = Number.isFinite(days) && days > 0
-    ? new Date(Date.now() + days * 86400000)
-    : null;
-
-  const licenseKey = generateLicenseKey();
-  const keyHash = sha256(licenseKey);
-  const keyPrefix = licenseKey.slice(0, 14) + "…";
-
-  const result = await pool.query(
-    `INSERT INTO licenses(key_hash, key_prefix, plan, note, expires_at)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, key_prefix, plan, note, created_at, expires_at, revoked_at`,
-    [keyHash, keyPrefix, plan, note, expiresAt]
-  );
-
-  res.status(201).json({
-    license: result.rows[0],
-    key: licenseKey,
-    warning: "A chave completa é exibida somente agora.",
-  });
-});
-
-app.post("/api/admin/licenses/:id/revoke", requireAdmin, async (req, res) => {
-  if (!pool) return res.status(503).json({ error: "database_not_configured" });
-  await pool.query("UPDATE licenses SET revoked_at = NOW() WHERE id = $1", [req.params.id]);
   res.json({ ok: true });
 });
 
