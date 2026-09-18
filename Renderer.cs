@@ -3,6 +3,7 @@ using ImGuiNET;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Numerics;
+using System.Diagnostics;
 using System.Reflection;
 using Mac1ota_Menu.Classes;
 using Mac1ota_Menu.Classes.Rendering;
