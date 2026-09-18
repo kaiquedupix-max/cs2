@@ -11,7 +11,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Platforms>AnyCPU;x64</Platforms>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
-		<AssemblyName>Brasa Project.gg</AssemblyName>
+		<AssemblyName>legitbaratinho.xyz</AssemblyName>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
 		<ApplicationIcon>MenuLogo.ico</ApplicationIcon>
 	</PropertyGroup>

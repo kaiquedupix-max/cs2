@@ -21,7 +21,7 @@ namespace Mac1ota_Menu
 {
     public class Renderer : Overlay
     {
-        public Renderer() : base("Brasa Project.gg", Screen.PrimaryScreen!.Bounds.Width, Screen.PrimaryScreen!.Bounds.Height)
+        public Renderer() : base("legitbaratinho.xyz", Screen.PrimaryScreen!.Bounds.Width, Screen.PrimaryScreen!.Bounds.Height)
         {
         }
 
@@ -263,7 +263,7 @@ namespace Mac1ota_Menu
                 TimeSinceLastUpdate = 0.0f;
             }
 
-            drawList.AddText(new(textPosition.X, textPosition.Y), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, 1)), $"Brasa Project.gg | FPS: {Math.Round(LastFPS)} | V-{Configs.Version} | {DateTime.Now.ToLocalTime().ToShortTimeString()}");
+            drawList.AddText(new(textPosition.X, textPosition.Y), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, 1)), $"legitbaratinho.xyz | FPS: {Math.Round(LastFPS)} | V-{Configs.Version} | {DateTime.Now.ToLocalTime().ToShortTimeString()}");
             ImGui.PopFont();
             ImGui.End();
 
@@ -421,7 +421,7 @@ namespace Mac1ota_Menu
                 ImGui.SetNextWindowSize(MainWindowSize, ImGuiCond.Always);
 
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                ImGui.Begin("Brasa Project.gg",
+                ImGui.Begin("legitbaratinho.xyz",
                     ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar |
                     ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoSavedSettings);
 
@@ -437,7 +437,7 @@ namespace Mac1ota_Menu
                 ImGui.BeginChild("Sidebar", TabSize, ImGuiChildFlags.None);
                 {
                     ImGui.SetCursorPos(new Vector2(18, 28));
-                    ImGui.TextColored(TextCol, "BRASA");
+                    ImGui.TextColored(TextCol, "LEGIT");
                     ImGui.SetCursorPosX(18);
                     ImGui.TextDisabled("MENU / CS2");
                     ImGui.Dummy(new Vector2(0, 24));
@@ -502,7 +502,7 @@ namespace Mac1ota_Menu
                     ImGui.SetCursorPos(new Vector2(18, 18));
                     ImGui.TextColored(TextCol, new[] { "Geral", "Mira", "Visuais", "Perfis", "Ajustes" }[_selectedTab]);
                     ImGui.SameLine();
-                    ImGui.TextDisabled(" / Brasa Project.gg");
+                    ImGui.TextDisabled(" / legitbaratinho.xyz");
                     ImGui.Separator();
                     switch (_selectedTab)
                     {

@@ -59,7 +59,7 @@ namespace Mac1ota_Menu.Classes
         {
             SuspendLayout();
 
-            Text = "Brasa Project.gg";
+            Text = "legitbaratinho.xyz";
 
             ClientSize = new Size(
                 1300,
@@ -155,7 +155,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     Parent = _background,
 
-                    Text = "M",
+                    Text = "L",
 
                     Font = FontOf(
                         24f,
@@ -182,7 +182,7 @@ namespace Mac1ota_Menu.Classes
                     Parent = _background,
 
                     Text =
-                        "Brasa Project.gg",
+                        "legitbaratinho.xyz",
 
                     Font = FontOf(
                         10.5f,
@@ -258,7 +258,7 @@ namespace Mac1ota_Menu.Classes
                         _background,
 
                     Text =
-                        "P R O J E C T . G G",
+                        "B A R A T I N H O . X Y Z",
 
                     Font =
                         FontOf(
@@ -387,7 +387,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     Parent = parent,
 
-                    Text = "BRA",
+                    Text = "LE",
 
                     Font = font,
 
@@ -406,7 +406,7 @@ namespace Mac1ota_Menu.Classes
 
             int macWidth =
                 TextRenderer.MeasureText(
-                    "BRA",
+                    "LE",
                     font).Width - 6;
 
             var ten =
@@ -414,7 +414,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     Parent = parent,
 
-                    Text = "SA",
+                    Text = "GIT",
 
                     Font = font,
 
@@ -437,7 +437,7 @@ namespace Mac1ota_Menu.Classes
 
             int tenWidth =
                 TextRenderer.MeasureText(
-                    "SA",
+                    "GIT",
                     font).Width - 6;
 
             var ta =
@@ -689,7 +689,7 @@ namespace Mac1ota_Menu.Classes
                 _loginPanel;
 
             _loginTitle.Text =
-                "BRASA PROJECT.GG";
+                "LEGITBARATINHO.XYZ";
 
             _loginTitle.Font =
                 FontOf(
@@ -1406,7 +1406,7 @@ namespace Mac1ota_Menu.Classes
                     189);
 
             _loginSubtitle.Text =
-                "Preparando Mac1ota Menu";
+                "Preparando legitbaratinho.xyz";
 
             _loginSubtitle.Location =
                 new Point(
@@ -1471,7 +1471,7 @@ namespace Mac1ota_Menu.Classes
                     "Não foi possível abrir o loader.\n\n" +
                     ex.Message,
 
-                    "Brasa Project.gg",
+                    "legitbaratinho.xyz",
 
                     MessageBoxButtons.OK,
 

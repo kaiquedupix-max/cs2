@@ -1,6 +1,6 @@
 # Como contribuir
 
-As contribuições ao Brasa Project.gg devem respeitar a licença GPL-3.0 e as licenças de terceiros.
+As contribuições ao legitbaratinho.xyz devem respeitar a licença GPL-3.0 e as licenças de terceiros.
 
 - Verifique se o código compila e se a alteração funciona.
 - Siga a formatação e o estilo existentes no projeto.

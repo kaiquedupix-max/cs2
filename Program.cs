@@ -17,7 +17,7 @@ string triPath =
         Environment.GetFolderPath(
             Environment.SpecialFolder.MyDocuments),
 
-        "Brasa Project.gg",
+        "legitbaratinho.xyz",
         "CS2",
         "External",
         "Map Data",
@@ -132,7 +132,7 @@ try
 
         Process[] overlay =
             Process.GetProcessesByName(
-                "Brasa Project.gg");
+                "legitbaratinho.xyz");
 
         Renderer.OverlayProcessId =
             overlay
@@ -295,7 +295,7 @@ catch (IndexOutOfRangeException)
         .Show(
             "Não foi possível iniciar o Brasa Project.gg.\nVerifique se o CS2 está aberto.",
 
-            "Brasa Project.gg",
+            "legitbaratinho.xyz",
 
             System.Windows.Forms
                 .MessageBoxButtons.OK,
@@ -314,7 +314,7 @@ catch (Exception e)
             "Erro ao iniciar o Brasa Project.gg:\n\n" +
             e.Message,
 
-            "Brasa Project.gg",
+            "legitbaratinho.xyz",
 
             System.Windows.Forms
                 .MessageBoxButtons.OK,
