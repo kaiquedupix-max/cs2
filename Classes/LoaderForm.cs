@@ -493,7 +493,7 @@ namespace Mac1ota_Menu.Classes
                 new Label
                 {
                     Parent =
-                        _background,
+                        _loginPanel,
 
                     Text =
                         "B E M - V I N D O   A O",
@@ -1181,7 +1181,7 @@ namespace Mac1ota_Menu.Classes
                 new RoundedPanel
                 {
                     Parent =
-                        _loginPanel,
+                        _background,
 
                     Location =
                         new Point(
@@ -1276,7 +1276,7 @@ namespace Mac1ota_Menu.Classes
 
                     Size =
                         new Size(
-                            133,
+                            116,
                             19)
                 };
 
@@ -1310,7 +1310,7 @@ namespace Mac1ota_Menu.Classes
 
                     Size =
                         new Size(
-                            133,
+                            116,
                             17)
                 };
         }
