@@ -233,6 +233,22 @@ async function initDb() {
       UNIQUE(user_id, product_code)
     );
 
+    CREATE TABLE IF NOT EXISTS loader_releases (
+      id BIGSERIAL PRIMARY KEY,
+      version TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+      file_size BIGINT NOT NULL,
+      sha256 TEXT NOT NULL,
+      notes TEXT NOT NULL DEFAULT '',
+      file_data BYTEA NOT NULL,
+      uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      is_active BOOLEAN NOT NULL DEFAULT FALSE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_loader_releases_active
+      ON loader_releases(is_active, uploaded_at DESC);
+
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS hwid_hash TEXT NULL;
 
@@ -276,6 +292,43 @@ async function productStatus() {
     pool ? "Sistema disponível." : "Banco de dados indisponível."
   );
   return { status, message };
+}
+
+async function activeProductAccess(userId) {
+  if (!pool) return false;
+
+  const result = await pool.query(
+    `SELECT 1
+     FROM user_products
+     WHERE user_id = $1
+       AND product_code = $2
+       AND revoked_at IS NULL
+       AND expires_at > NOW()
+     LIMIT 1`,
+    [userId, PRODUCT_CODE]
+  );
+
+  return Boolean(result.rows[0]);
+}
+
+async function activeLoaderReleaseMeta() {
+  if (!pool) return null;
+
+  const result = await pool.query(
+    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
+     FROM loader_releases
+     WHERE is_active = TRUE
+     ORDER BY uploaded_at DESC
+     LIMIT 1`
+  );
+
+  return result.rows[0] || null;
+}
+
+function sanitizeFileName(value) {
+  const raw = String(value || "legitbaratinho-loader.zip").trim();
+  const clean = raw.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  return clean || "legitbaratinho-loader.zip";
 }
 
 async function accountSnapshot(userId) {
@@ -484,6 +537,64 @@ app.post("/api/account/purchase-simulated", requireUser, async (req, res) => {
   });
 });
 
+app.get("/api/account/release", requireUser, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).json({
+      error: "access_required",
+      message: "Você precisa de um acesso ativo para baixar o loader.",
+    });
+  }
+
+  const release = await activeLoaderReleaseMeta();
+
+  if (!release) {
+    return res.status(404).json({
+      error: "release_unavailable",
+      message: "Ainda não existe uma versão do loader publicada.",
+    });
+  }
+
+  res.json({
+    release: {
+      id: Number(release.id),
+      version: release.version,
+      fileName: release.file_name,
+      fileSize: Number(release.file_size),
+      sha256: release.sha256,
+      notes: release.notes,
+      uploadedAt: release.uploaded_at,
+      downloadUrl: "/api/account/download-loader",
+    },
+  });
+});
+
+app.get("/api/account/download-loader", requireUser, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).send("Acesso ativo necessário.");
+  }
+
+  const result = await pool.query(
+    `SELECT version, file_name, mime_type, file_size, sha256, file_data
+     FROM loader_releases
+     WHERE is_active = TRUE
+     ORDER BY uploaded_at DESC
+     LIMIT 1`
+  );
+
+  const release = result.rows[0];
+  if (!release) return res.status(404).send("Nenhuma versão publicada.");
+
+  const fileName = sanitizeFileName(release.file_name);
+
+  res.setHeader("Content-Type", release.mime_type || "application/octet-stream");
+  res.setHeader("Content-Length", String(release.file_size));
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("X-Loader-Version", release.version);
+  res.setHeader("X-Content-SHA256", release.sha256);
+  res.send(release.file_data);
+});
+
 app.post("/api/client/login", async (req, res) => {
   if (!pool) return res.status(503).json({ error: "database_not_configured" });
 
@@ -592,6 +703,140 @@ app.post("/api/admin/logout", (_req, res) => {
 
 app.get("/api/admin/me", requireAdmin, (_req, res) => {
   res.json({ authenticated: true });
+});
+
+app.get("/api/admin/releases", requireAdmin, async (_req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const result = await pool.query(
+    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at, is_active
+     FROM loader_releases
+     ORDER BY uploaded_at DESC
+     LIMIT 30`
+  );
+
+  res.json({
+    releases: result.rows.map((row) => ({
+      id: Number(row.id),
+      version: row.version,
+      fileName: row.file_name,
+      mimeType: row.mime_type,
+      fileSize: Number(row.file_size),
+      sha256: row.sha256,
+      notes: row.notes,
+      uploadedAt: row.uploaded_at,
+      isActive: Boolean(row.is_active),
+    })),
+  });
+});
+
+app.post(
+  "/api/admin/releases/upload",
+  requireAdmin,
+  express.raw({ type: "application/octet-stream", limit: "100mb" }),
+  async (req, res) => {
+    if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+    const file = req.body;
+    if (!Buffer.isBuffer(file) || file.length === 0) {
+      return res.status(400).json({
+        error: "empty_file",
+        message: "Selecione um arquivo do loader.",
+      });
+    }
+
+    const version = String(req.headers["x-release-version"] || "").trim().slice(0, 60);
+    const notes = String(req.headers["x-release-notes"] || "").trim().slice(0, 500);
+    const fileName = sanitizeFileName(req.headers["x-file-name"]);
+    const mimeType = String(req.headers["x-file-type"] || "application/octet-stream").slice(0, 120);
+
+    if (!version) {
+      return res.status(400).json({
+        error: "version_required",
+        message: "Informe a versão do loader.",
+      });
+    }
+
+    const digest = sha256(file);
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE");
+
+      const result = await client.query(
+        `INSERT INTO loader_releases(
+          version, file_name, mime_type, file_size, sha256, notes, file_data, is_active
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+        RETURNING id, version, file_name, file_size, sha256, notes, uploaded_at, is_active`,
+        [version, fileName, mimeType, file.length, digest, notes, file]
+      );
+
+      await client.query("COMMIT");
+      res.status(201).json({ ok: true, release: result.rows[0] });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error(error);
+      res.status(500).json({
+        error: "upload_failed",
+        message: "Não foi possível publicar esta versão.",
+      });
+    } finally {
+      client.release();
+    }
+  }
+);
+
+app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const releaseId = Number(req.params.id);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const exists = await client.query(
+      "SELECT 1 FROM loader_releases WHERE id = $1 LIMIT 1",
+      [releaseId]
+    );
+
+    if (!exists.rows[0]) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "release_not_found" });
+    }
+
+    await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE");
+    await client.query("UPDATE loader_releases SET is_active = TRUE WHERE id = $1", [releaseId]);
+    await client.query("COMMIT");
+
+    res.json({ ok: true });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+});
+
+app.delete("/api/admin/releases/:id", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const releaseId = Number(req.params.id);
+  const result = await pool.query(
+    "DELETE FROM loader_releases WHERE id = $1 AND is_active = FALSE RETURNING id",
+    [releaseId]
+  );
+
+  if (!result.rows[0]) {
+    return res.status(400).json({
+      error: "cannot_delete_active",
+      message: "A versão ativa não pode ser excluída. Ative outra versão primeiro.",
+    });
+  }
+
+  res.json({ ok: true });
 });
 
 app.get("/api/admin/clients", requireAdmin, async (_req, res) => {
