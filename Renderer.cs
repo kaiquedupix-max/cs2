@@ -25,6 +25,8 @@ namespace Mac1ota_Menu
         {
         }
 
+
+
         public static bool DrawWindow = false;
         public static bool EnableWatermark = true;
         public static bool ShowHotkeys = true;
