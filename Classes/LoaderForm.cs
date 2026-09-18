@@ -128,29 +128,62 @@ namespace Mac1ota_Menu.Classes
                         _enter.Enabled =
                             false;
 
+                        _status.ForeColor =
+                            TextSecondary;
+
                         _status.Text =
                             "Verificando atualizações...";
 
-                        await RefreshRemoteStatusAsync(
-                            false);
-
-                        LoaderUpdater.LoaderReleaseInfo? latest =
-                            await LoaderUpdater.CheckLatestAsync();
+                        (bool updateSuccess, bool restarting, string updateMessage) =
+                            await LoaderUpdater.TryUpdateAtStartupAsync();
 
                         _versionLabel.Text =
                             "v" +
                             LoaderUpdater.CurrentVersion;
 
-                        if (latest != null &&
-                            LoaderUpdater.UpdateAvailable)
+                        if (!updateSuccess)
+                        {
+                            _status.ForeColor =
+                                Color.FromArgb(
+                                    235,
+                                    86,
+                                    86);
+
+                            _status.Text =
+                                updateMessage;
+
+                            return;
+                        }
+
+                        if (restarting)
                         {
                             _status.ForeColor =
                                 Accent;
 
                             _status.Text =
-                                "Atualização v" +
-                                latest.Version +
-                                " disponível — entre para atualizar.";
+                                updateMessage;
+
+                            await Task.Delay(
+                                450);
+
+                            Application.Exit();
+
+                            Environment.Exit(
+                                0);
+
+                            return;
+                        }
+
+                        await RefreshRemoteStatusAsync(
+                            false);
+
+                        if (LoaderUpdater.UpdateAvailable)
+                        {
+                            _status.ForeColor =
+                                Accent;
+
+                            _status.Text =
+                                updateMessage;
                         }
 
                         _enter.Enabled =
