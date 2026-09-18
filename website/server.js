@@ -40,8 +40,12 @@ app.use(express.static(path.join(__dirname, "public"), {
   },
 }));
 
-function sha256(text) {
-  return crypto.createHash("sha256").update(String(text)).digest("hex");
+function sha256(value) {
+  const input = Buffer.isBuffer(value)
+    ? value
+    : Buffer.from(String(value), "utf8");
+
+  return crypto.createHash("sha256").update(input).digest("hex");
 }
 
 function safeEqual(a, b) {
@@ -745,10 +749,10 @@ app.post(
       });
     }
 
-    const version = String(req.headers["x-release-version"] || "").trim().slice(0, 60);
-    const notes = String(req.headers["x-release-notes"] || "").trim().slice(0, 500);
-    const fileName = sanitizeFileName(req.headers["x-file-name"]);
-    const mimeType = String(req.headers["x-file-type"] || "application/octet-stream").slice(0, 120);
+    const version = String(req.query.version || "").trim().slice(0, 60);
+    const notes = String(req.query.notes || "").trim().slice(0, 500);
+    const fileName = sanitizeFileName(req.query.fileName);
+    const mimeType = String(req.query.mimeType || "application/octet-stream").slice(0, 120);
 
     if (!version) {
       return res.status(400).json({
