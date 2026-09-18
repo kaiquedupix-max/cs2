@@ -217,6 +217,18 @@ try
 
     LoaderForm.SetStartupProgress(
         5,
+        "Aguardando CS2...");
+
+    List<Entity> entities =
+        [];
+
+    // Não cria nem inicia a overlay enquanto o CS2 estiver fechado.
+    // Primeiro aguardamos o processo, client.dll e EntityList válidos.
+    await ConnectToCs2Async(
+        true);
+
+    LoaderForm.SetStartupProgress(
+        72,
         "Inicializando interface...");
 
     GameState.renderer =
@@ -233,18 +245,12 @@ try
         .Initialize();
 
     LoaderForm.SetStartupProgress(
-        12,
-        "Preparando ambiente...");
+        78,
+        "Preparando overlay...");
 
     await GameState.renderer.Start();
 
     GernadeLineup.Initialize();
-
-    List<Entity> entities =
-        [];
-
-    await ConnectToCs2Async(
-        true);
 
     LoaderForm.SetStartupProgress(
         82,
