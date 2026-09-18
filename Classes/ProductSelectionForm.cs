@@ -152,13 +152,21 @@ namespace Mac1ota_Menu.Classes
         private void BuildHeader()
         {
             var logo =
-                MakeLabel(
-                    "L",
-                    24f,
-                    FontStyle.Bold,
-                    Accent,
-                    28,
-                    20);
+                new BrandIconControl
+                {
+                    Parent =
+                        _background,
+
+                    Location =
+                        new Point(
+                            23,
+                            17),
+
+                    Size =
+                        new Size(
+                            42,
+                            42)
+                };
 
             var name =
                 MakeLabel(
@@ -166,11 +174,8 @@ namespace Mac1ota_Menu.Classes
                     11f,
                     FontStyle.Bold,
                     TextPrimary,
-                    67,
+                    77,
                     28);
-
-            logo.Parent =
-                _background;
 
             name.Parent =
                 _background;
