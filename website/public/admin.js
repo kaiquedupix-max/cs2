@@ -3,6 +3,10 @@ const dashboard = document.getElementById("dashboard");
 const loginError = document.getElementById("loginError");
 const licensesBody = document.getElementById("licensesBody");
 const newKeyBox = document.getElementById("newKeyBox");
+const clientsBody = document.getElementById("clientsBody");
+const clientsSummary = document.getElementById("clientsSummary");
+const clientSearch = document.getElementById("clientSearch");
+let cachedClients = [];
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -19,7 +23,7 @@ async function checkAuth() {
     await api("/api/admin/me");
     loginBox.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    await Promise.all([loadLicenses(), loadStatus()]);
+    await Promise.all([loadLicenses(), loadStatus(), loadClients()]);
   } catch {
     loginBox.classList.remove("hidden");
     dashboard.classList.add("hidden");
@@ -105,6 +109,110 @@ async function loadLicenses() {
     });
   });
 }
+
+async function loadClients() {
+  const data = await api("/api/admin/clients");
+  cachedClients = data.clients || [];
+  renderClients();
+}
+
+function renderClients() {
+  const query = (clientSearch?.value || "").trim().toLowerCase();
+  const clients = cachedClients.filter((client) =>
+    !query ||
+    client.username.toLowerCase().includes(query) ||
+    client.email.toLowerCase().includes(query)
+  );
+
+  clientsSummary.textContent = `${clients.length} cliente(s)`;
+  clientsBody.innerHTML = "";
+
+  for (const client of clients) {
+    const row = document.createElement("tr");
+    const hwid = client.hwidBound
+      ? '<span class="tag ok">Vinculado</span>'
+      : '<span class="tag neutral">Livre</span>';
+    const status = client.banned
+      ? '<span class="tag bad">Banido</span>'
+      : '<span class="tag ok">Ativo</span>';
+
+    row.innerHTML = `
+      <td>
+        <div class="client-cell">
+          <strong>${escapeHtml(client.username)}</strong>
+          <small>${escapeHtml(client.email)}</small>
+        </div>
+      </td>
+      <td>${escapeHtml(client.plan || "Sem acesso")}</td>
+      <td><strong>${client.daysRemaining || 0}</strong></td>
+      <td>${hwid}</td>
+      <td>${status}</td>
+      <td>
+        <div class="client-actions">
+          <button class="button ghost small add-days" data-id="${client.id}" data-user="${escapeHtml(client.username)}">+ Dias</button>
+          <button class="button ghost small reset-hwid" data-id="${client.id}" ${client.hwidBound ? "" : "disabled"}>Reset HWID</button>
+          <button class="button ${client.banned ? "primary" : "danger"} small toggle-ban" data-id="${client.id}" data-banned="${client.banned}">
+            ${client.banned ? "Desbanir" : "Banir"}
+          </button>
+        </div>
+      </td>
+    `;
+    clientsBody.appendChild(row);
+  }
+
+  document.querySelectorAll(".add-days").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const amount = prompt(`Quantos dias adicionar para ${button.dataset.user}?`, "30");
+      if (amount === null) return;
+
+      const days = Number(amount);
+      if (!Number.isInteger(days) || days < 1 || days > 3650) {
+        alert("Informe um número entre 1 e 3650.");
+        return;
+      }
+
+      await api(`/api/admin/clients/${button.dataset.id}/add-days`, {
+        method: "POST",
+        body: JSON.stringify({ days, plan: "admin" }),
+      });
+
+      await loadClients();
+    });
+  });
+
+  document.querySelectorAll(".reset-hwid").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!confirm("Resetar o HWID deste cliente? O próximo computador que fizer login será vinculado.")) return;
+
+      await api(`/api/admin/clients/${button.dataset.id}/reset-hwid`, {
+        method: "POST",
+      });
+
+      await loadClients();
+    });
+  });
+
+  document.querySelectorAll(".toggle-ban").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const banned = button.dataset.banned === "true";
+      const action = banned ? "unban" : "ban";
+      const message = banned
+        ? "Desbanir este cliente?"
+        : "Banir este cliente? Ele perderá acesso ao site e ao loader.";
+
+      if (!confirm(message)) return;
+
+      await api(`/api/admin/clients/${button.dataset.id}/${action}`, {
+        method: "POST",
+      });
+
+      await loadClients();
+    });
+  });
+}
+
+document.getElementById("refreshClientsBtn")?.addEventListener("click", loadClients);
+clientSearch?.addEventListener("input", renderClients);
 
 document.getElementById("refreshBtn").addEventListener("click", loadLicenses);
 
