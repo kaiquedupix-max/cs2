@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#07100e">
   <title>Admin · legitbaratinho.xyz</title>
-  <link rel="stylesheet" href="/styles.css?v=20260918-0510">
+  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0525">
+  <link rel="stylesheet" href="/styles.css?v=20260918-0525">
 </head>
 <body class="admin-body">
   <div class="glow glow-a"></div>
   <main class="admin-shell">
-    <a class="brand" href="/"><span class="mark">L</span><span>legitbaratinho.xyz</span></a>
+    <a class="brand" href="/">
+      <img class="brand-icon" src="/brand-icon.svg?v=20260918-0525" alt="">
+      <span>legitbaratinho.xyz</span>
+    </a>
 
     <section id="loginBox" class="admin-card login-card">
       <div class="section-label">ADMINISTRAÇÃO</div>
@@ -31,6 +35,7 @@
 
       <div class="admin-grid">
         <article class="admin-card">
+          <div class="section-label">SERVIÇO</div>
           <h2>Status global</h2>
           <form id="statusForm">
             <label>Status
@@ -45,15 +50,34 @@
           </form>
         </article>
 
-        <article class="admin-card">
-          <h2>Gerar licença</h2>
-          <form id="keyForm">
-            <label>Plano<input id="plan" value="standard" maxlength="40"></label>
-            <label>Duração em dias<input id="days" type="number" min="1" value="30"></label>
-            <label>Nota<input id="note" maxlength="180" placeholder="Cliente / pedido / observação"></label>
-            <button class="button primary full" type="submit">Gerar key</button>
+        <article class="admin-card release-card">
+          <div class="section-label">DISTRIBUIÇÃO</div>
+          <h2>Publicar loader</h2>
+          <p class="admin-muted">A nova versão vira a versão ativa automaticamente após o upload.</p>
+
+          <form id="releaseForm">
+            <label>Versão
+              <input id="releaseVersion" placeholder="Ex.: 2.4.0" maxlength="60" required>
+            </label>
+            <label>Arquivo
+              <input id="releaseFile" type="file" accept=".zip,.exe,.msi,application/zip,application/octet-stream" required>
+            </label>
+            <label>Notas da versão
+              <textarea id="releaseNotes" maxlength="500" placeholder="O que mudou nesta versão?"></textarea>
+            </label>
+            <button id="releaseUploadBtn" class="button primary full" type="submit">Publicar nova versão</button>
           </form>
-          <div id="newKeyBox" class="new-key hidden"></div>
+
+          <div id="uploadState" class="upload-state hidden">
+            <div class="upload-state-head"><span id="uploadStateText">Enviando...</span><b id="uploadPercent">0%</b></div>
+            <div class="upload-progress"><i id="uploadProgressBar"></i></div>
+          </div>
+
+          <div id="currentRelease" class="current-release">
+            <small>VERSÃO ATUAL</small>
+            <strong id="currentReleaseVersion">Nenhuma publicada</strong>
+            <span id="currentReleaseMeta">—</span>
+          </div>
         </article>
       </div>
 
@@ -87,16 +111,22 @@
       </article>
 
       <article class="admin-card">
-        <div class="table-title"><h2>Licenças</h2><button id="refreshBtn" class="button ghost small">Atualizar</button></div>
+        <div class="table-title">
+          <div>
+            <div class="section-label">VERSÕES</div>
+            <h2>Histórico do loader</h2>
+          </div>
+          <button id="refreshReleasesBtn" class="button ghost small">Atualizar</button>
+        </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ID</th><th>Key</th><th>Plano</th><th>Expira</th><th>Nota</th><th>Status</th><th></th></tr></thead>
-            <tbody id="licensesBody"></tbody>
+            <thead><tr><th>Versão</th><th>Arquivo</th><th>Tamanho</th><th>Publicado</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="releasesBody"></tbody>
           </table>
         </div>
       </article>
     </section>
   </main>
-  <script src="/admin.js?v=20260918-0510"></script>
+  <script src="/admin.js?v=20260918-0525"></script>
 </body>
 </html>
