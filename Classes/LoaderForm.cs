@@ -156,26 +156,6 @@ namespace Mac1ota_Menu.Classes
 
         private void BuildHeader()
         {
-            var mark =
-                new BrasaFlame
-                {
-                    Parent =
-                        _background,
-
-                    Location =
-                        new Point(
-                            22,
-                            18),
-
-                    Size =
-                        new Size(
-                            34,
-                            38),
-
-                    AccentColor =
-                        Accent
-                };
-
             var product =
                 new Label
                 {
@@ -201,8 +181,8 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            66,
-                            29)
+                            58,
+                            27)
                 };
 
             var version =
@@ -221,9 +201,9 @@ namespace Mac1ota_Menu.Classes
 
                     ForeColor =
                         Color.FromArgb(
-                            95,
-                            95,
-                            100),
+                            96,
+                            96,
+                            101),
 
                     BackColor =
                         Color.Transparent,
@@ -233,42 +213,22 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            184,
-                            32)
+                            176,
+                            30)
                 };
 
-            EnableDrag(mark);
             EnableDrag(product);
             EnableDrag(version);
         }
 
         // ============================================================
         // BRANDING        // ============================================================
+        // BRANDING        // ============================================================
         // BRANDING
         // ============================================================
 
         private void BuildBranding()
         {
-            var flame =
-                new BrasaFlame
-                {
-                    Parent =
-                        _background,
-
-                    Location =
-                        new Point(
-                            188,
-                            150),
-
-                    Size =
-                        new Size(
-                            210,
-                            220),
-
-                    AccentColor =
-                        Accent
-                };
-
             var brasa =
                 new Label
                 {
@@ -280,7 +240,7 @@ namespace Mac1ota_Menu.Classes
 
                     Font =
                         FontOf(
-                            60f,
+                            56f,
                             FontStyle.Bold),
 
                     ForeColor =
@@ -297,8 +257,8 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            116,
-                            365)
+                            145,
+                            404)
                 };
 
             var project =
@@ -326,8 +286,8 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            212,
-                            455)
+                            214,
+                            482)
                 };
 
             var slogan =
@@ -341,14 +301,14 @@ namespace Mac1ota_Menu.Classes
 
                     Font =
                         FontOf(
-                            7.5f,
+                            7.2f,
                             FontStyle.Regular),
 
                     ForeColor =
                         Color.FromArgb(
-                            205,
-                            205,
-                            208),
+                            212,
+                            212,
+                            215),
 
                     BackColor =
                         Color.Transparent,
@@ -358,8 +318,8 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            77,
-                            510)
+                            92,
+                            532)
                 };
 
             var footerLine =
@@ -373,13 +333,13 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            35,
-                            766),
+                            34,
+                            770),
 
                     Size =
                         new Size(
                             2,
-                            28)
+                            26)
                 };
 
             var footer =
@@ -398,9 +358,9 @@ namespace Mac1ota_Menu.Classes
 
                     ForeColor =
                         Color.FromArgb(
-                            196,
-                            196,
-                            199),
+                            198,
+                            198,
+                            201),
 
                     BackColor =
                         Color.Transparent,
@@ -410,8 +370,8 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            52,
-                            771)
+                            51,
+                            776)
                 };
 
             var country =
@@ -425,7 +385,7 @@ namespace Mac1ota_Menu.Classes
 
                     Font =
                         FontOf(
-                            7.5f,
+                            7.2f,
                             FontStyle.Bold),
 
                     ForeColor =
@@ -442,11 +402,10 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            438,
-                            776)
+                            468,
+                            780)
                 };
 
-            EnableDrag(flame);
             EnableDrag(brasa);
             EnableDrag(project);
             EnableDrag(slogan);
@@ -455,6 +414,7 @@ namespace Mac1ota_Menu.Classes
         }
 
         // ============================================================
+        // LOGIN        // ============================================================
         // LOGIN        // ============================================================
         // LOGIN
         // ============================================================
@@ -472,7 +432,7 @@ namespace Mac1ota_Menu.Classes
             _loginPanel.Size =
                 new Size(
                     582,
-                    690);
+                    648);
 
             _loginPanel.Radius =
                 22;
@@ -541,7 +501,7 @@ namespace Mac1ota_Menu.Classes
             _loginTitle.Location =
                 new Point(
                     118,
-                    81);
+                    78);
 
             _loginSubtitle.Parent =
                 _loginPanel;
@@ -565,21 +525,21 @@ namespace Mac1ota_Menu.Classes
 
             _loginSubtitle.Location =
                 new Point(
-                    205,
-                    128);
+                    203,
+                    124);
 
             _username.Parent =
                 _loginPanel;
 
             _username.Location =
                 new Point(
-                    45,
-                    185);
+                    39,
+                    186);
 
             _username.Size =
                 new Size(
                     504,
-                    56);
+                    50);
 
             _username.PlaceholderText =
                 "Usuário";
@@ -589,13 +549,13 @@ namespace Mac1ota_Menu.Classes
 
             _password.Location =
                 new Point(
-                    45,
-                    255);
+                    39,
+                    248);
 
             _password.Size =
                 new Size(
                     504,
-                    56);
+                    50);
 
             _password.PlaceholderText =
                 "Senha";
@@ -635,13 +595,13 @@ namespace Mac1ota_Menu.Classes
 
             _showPassword.Size =
                 new Size(
-                    69,
-                    25);
+                    72,
+                    23);
 
             _showPassword.Location =
                 new Point(
-                    466,
-                    270);
+                    462,
+                    262);
 
             _showPassword.Click +=
                 (_, _) =>
@@ -677,8 +637,8 @@ namespace Mac1ota_Menu.Classes
 
             _remember.Location =
                 new Point(
-                    47,
-                    327);
+                    41,
+                    313);
 
             _remember.Size =
                 new Size(
@@ -713,8 +673,8 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            413,
-                            332)
+                            402,
+                            318)
                 };
 
             forgot.MouseEnter +=
@@ -741,13 +701,13 @@ namespace Mac1ota_Menu.Classes
 
             _enter.Location =
                 new Point(
-                    45,
-                    372);
+                    39,
+                    354);
 
             _enter.Size =
                 new Size(
                     504,
-                    62);
+                    58);
 
             _enter.AccentColor =
                 Accent;
@@ -786,8 +746,8 @@ namespace Mac1ota_Menu.Classes
 
             _status.Location =
                 new Point(
-                    45,
-                    464);
+                    39,
+                    438);
 
             _status.Size =
                 new Size(
@@ -799,16 +759,19 @@ namespace Mac1ota_Menu.Classes
 
             _progress.Location =
                 new Point(
-                    45,
-                    495);
+                    39,
+                    472);
 
             _progress.Size =
                 new Size(
                     504,
-                    8);
+                    7);
 
             _progress.Value =
                 0;
+
+            _progress.Visible =
+                false;
 
             _progress.AccentColor =
                 Accent;
@@ -849,7 +812,7 @@ namespace Mac1ota_Menu.Classes
                 "CS",
                 "Counter-Strike 2",
                 "O N L I N E",
-                174,
+                150,
                 true);
 
             ConfigureProductOption(
@@ -857,7 +820,7 @@ namespace Mac1ota_Menu.Classes
                 "R",
                 "Rust",
                 "E M   B R E V E",
-                258,
+                238,
                 false);
 
             ConfigureProductOption(
@@ -865,7 +828,7 @@ namespace Mac1ota_Menu.Classes
                 "FF",
                 "Free Fire",
                 "E M   B R E V E",
-                342,
+                326,
                 false);
 
             ConfigureProductOption(
@@ -873,7 +836,7 @@ namespace Mac1ota_Menu.Classes
                 "F",
                 "Fortnite",
                 "E M   B R E V E",
-                426,
+                414,
                 false);
 
             _productCs2.Click +=
@@ -918,7 +881,7 @@ namespace Mac1ota_Menu.Classes
             option.Size =
                 new Size(
                     504,
-                    72);
+                    76);
 
             option.AccentColor =
                 Accent;
@@ -1003,15 +966,15 @@ namespace Mac1ota_Menu.Classes
             _loginTitle.Location =
                 new Point(
                     118,
-                    80);
+                    66);
 
             _loginSubtitle.Text =
                 "Escolha o seu produto para continuar.";
 
             _loginSubtitle.Location =
                 new Point(
-                    169,
-                    126);
+                    168,
+                    112);
 
             _enter.Text =
                 "ENTRAR     →";
@@ -1019,7 +982,7 @@ namespace Mac1ota_Menu.Classes
             _enter.Location =
                 new Point(
                     39,
-                    520);
+                    510);
 
             _enter.Size =
                 new Size(
@@ -1035,7 +998,7 @@ namespace Mac1ota_Menu.Classes
             _status.Location =
                 new Point(
                     39,
-                    605);
+                    597);
 
             _status.Size =
                 new Size(
@@ -1102,13 +1065,13 @@ namespace Mac1ota_Menu.Classes
 
             _enter.Location =
                 new Point(
-                    45,
-                    372);
+                    39,
+                    354);
 
             _enter.Size =
                 new Size(
                     504,
-                    62);
+                    58);
 
             _status.Location =
                 new Point(
@@ -1177,53 +1140,24 @@ namespace Mac1ota_Menu.Classes
             int x,
             int y)
         {
-            var panel =
-                new RoundedPanel
-                {
-                    Parent =
-                        _background,
+            int left =
+                x + 57;
 
-                    Location =
-                        new Point(
-                            x + 48,
-                            y + 74),
-
-                    Size =
-                        new Size(
-                            116,
-                            76),
-
-                    Radius =
-                        14,
-
-                    FillColor =
-                        Color.FromArgb(
-                            16,
-                            12,
-                            12),
-
-                    BorderColor =
-                        Color.FromArgb(
-                            62,
-                            36,
-                            34),
-
-                    BorderWidth =
-                        1
-                };
+            int top =
+                y + 49;
 
             var iconLabel =
                 new Label
                 {
                     Parent =
-                        panel,
+                        _background,
 
                     Text =
                         icon,
 
                     Font =
                         FontOf(
-                            15f,
+                            19f,
                             FontStyle.Bold),
 
                     ForeColor =
@@ -1237,31 +1171,34 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            0,
-                            9),
+                            left,
+                            top),
 
                     Size =
                         new Size(
-                            116,
-                            24)
+                            90,
+                            31)
                 };
 
             var titleLabel =
                 new Label
                 {
                     Parent =
-                        panel,
+                        _background,
 
                     Text =
-                        title,
+                        title.ToUpperInvariant(),
 
                     Font =
                         FontOf(
-                            8.5f,
-                            FontStyle.Bold),
+                            7.8f,
+                            FontStyle.Regular),
 
                     ForeColor =
-                        TextPrimary,
+                        Color.FromArgb(
+                            224,
+                            224,
+                            226),
 
                     BackColor =
                         Color.Transparent,
@@ -1271,31 +1208,34 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            0,
-                            38),
+                            left - 8,
+                            top + 38),
 
                     Size =
                         new Size(
-                            116,
-                            19)
+                            106,
+                            22)
                 };
 
             var subtitleLabel =
                 new Label
                 {
                     Parent =
-                        panel,
+                        _background,
 
                     Text =
                         subtitle,
 
                     Font =
                         FontOf(
-                            7f,
+                            6.4f,
                             FontStyle.Regular),
 
                     ForeColor =
-                        TextSecondary,
+                        Color.FromArgb(
+                            112,
+                            112,
+                            118),
 
                     BackColor =
                         Color.Transparent,
@@ -1305,17 +1245,22 @@ namespace Mac1ota_Menu.Classes
 
                     Location =
                         new Point(
-                            0,
-                            59),
+                            left - 14,
+                            top + 58),
 
                     Size =
                         new Size(
-                            116,
-                            17)
+                            118,
+                            18)
                 };
+
+            EnableDrag(iconLabel);
+            EnableDrag(titleLabel);
+            EnableDrag(subtitleLabel);
         }
 
         // ============================================================
+        // WINDOW BUTTONS        // ============================================================
         // WINDOW BUTTONS
         // ============================================================
 
@@ -1917,14 +1862,11 @@ namespace Mac1ota_Menu.Classes
 
             if (_artwork != null)
             {
-                const int imageAreaWidth =
-                    790;
-
                 Rectangle target =
                     new Rectangle(
                         0,
                         0,
-                        imageAreaWidth,
+                        820,
                         Height);
 
                 float scale =
@@ -1946,18 +1888,10 @@ namespace Mac1ota_Menu.Classes
                         scale);
 
                 int drawX =
-                    target.X +
-                    (
-                        target.Width -
-                        drawWidth
-                    ) / 2;
+                    -80;
 
                 int drawY =
-                    target.Y +
-                    (
-                        target.Height -
-                        drawHeight
-                    ) / 2;
+                    (Height - drawHeight) / 2;
 
                 e.Graphics.DrawImage(
                     _artwork,
@@ -1969,39 +1903,25 @@ namespace Mac1ota_Menu.Classes
                         drawHeight));
             }
 
-            // Escurecimento geral
-            using (var dim =
-                   new SolidBrush(
-                       Color.FromArgb(
-                           36,
-                           0,
-                           5,
-                           6)))
-            {
-                e.Graphics.FillRectangle(
-                    dim,
-                    ClientRectangle);
-            }
-
             using (var redWash =
                    new LinearGradientBrush(
                        new Rectangle(
                            0,
                            0,
-                           690,
+                           760,
                            Height),
 
                        Color.FromArgb(
-                           80,
-                           120,
-                           12,
-                           7),
+                           88,
+                           142,
+                           18,
+                           11),
 
                        Color.FromArgb(
-                           0,
-                           20,
-                           7,
-                           6),
+                           14,
+                           60,
+                           9,
+                           8),
 
                        LinearGradientMode.Horizontal))
             {
@@ -2009,31 +1929,26 @@ namespace Mac1ota_Menu.Classes
                     redWash,
                     0,
                     0,
-                    690,
+                    760,
                     Height);
             }
 
-            // Fade da imagem para o fundo.
-            // Começa transparente e termina totalmente escuro.
-            Rectangle blendRect =
-                new Rectangle(
-                    330,
-                    0,
-                    600,
-                    Height);
-
-            using (var blend =
+            using (var vignette =
                    new LinearGradientBrush(
-                       blendRect,
+                       new Rectangle(
+                           300,
+                           0,
+                           720,
+                           Height),
 
                        Color.FromArgb(
                            0,
-                           5,
-                           10,
-                           11),
+                           7,
+                           7,
+                           8),
 
                        Color.FromArgb(
-                           255,
+                           250,
                            7,
                            7,
                            8),
@@ -2041,47 +1956,45 @@ namespace Mac1ota_Menu.Classes
                        LinearGradientMode.Horizontal))
             {
                 e.Graphics.FillRectangle(
-                    blend,
-                    blendRect);
+                    vignette,
+                    300,
+                    0,
+                    720,
+                    Height);
             }
 
-            // Uniformiza completamente o lado direito
             using (var right =
                    new SolidBrush(
                        Color.FromArgb(
-                           232,
+                           228,
                            7,
                            7,
                            8)))
             {
                 e.Graphics.FillRectangle(
                     right,
-                    875,
+                    900,
                     0,
-                    Width - 875,
+                    Width - 900,
                     Height);
             }
 
-            // Fade inferior
-            Rectangle bottomRect =
-                new Rectangle(
-                    0,
-                    Height - 250,
-                    Width,
-                    250);
-
             using (var bottom =
                    new LinearGradientBrush(
-                       bottomRect,
+                       new Rectangle(
+                           0,
+                           Height - 230,
+                           Width,
+                           230),
 
                        Color.FromArgb(
                            0,
-                           5,
-                           10,
-                           11),
+                           7,
+                           7,
+                           8),
 
                        Color.FromArgb(
-                           220,
+                           225,
                            7,
                            7,
                            8),
@@ -2090,30 +2003,32 @@ namespace Mac1ota_Menu.Classes
             {
                 e.Graphics.FillRectangle(
                     bottom,
-                    bottomRect);
+                    0,
+                    Height - 230,
+                    Width,
+                    230);
             }
 
-            // Header
             using (var top =
                    new SolidBrush(
                        Color.FromArgb(
-                           175,
-                           8,
-                           8,
-                           9)))
+                           188,
+                           9,
+                           9,
+                           10)))
             {
                 e.Graphics.FillRectangle(
                     top,
                     0,
                     0,
                     Width,
-                    74);
+                    66);
             }
 
             using (var separator =
                    new Pen(
                        Color.FromArgb(
-                           30,
+                           34,
                            255,
                            255,
                            255),
@@ -2122,12 +2037,154 @@ namespace Mac1ota_Menu.Classes
                 e.Graphics.DrawLine(
                     separator,
                     0,
-                    74,
+                    66,
                     Width,
-                    74);
+                    66);
             }
 
+            DrawFlame(
+                e.Graphics,
+                new Rectangle(
+                    20,
+                    18,
+                    24,
+                    30),
+                Color.FromArgb(
+                    255,
+                    55,
+                    43));
+
+            DrawFlame(
+                e.Graphics,
+                new Rectangle(
+                    188,
+                    154,
+                    210,
+                    230),
+                Color.FromArgb(
+                    255,
+                    55,
+                    43));
+
             base.OnPaint(e);
+        }
+
+        private static void DrawFlame(
+            Graphics graphics,
+            Rectangle rect,
+            Color color)
+        {
+            float sx =
+                rect.Width / 100f;
+
+            float sy =
+                rect.Height / 120f;
+
+            using var outer =
+                new GraphicsPath();
+
+            outer.AddBezier(
+                rect.X + 50 * sx,
+                rect.Y + 1 * sy,
+                rect.X + 78 * sx,
+                rect.Y + 29 * sy,
+                rect.X + 92 * sx,
+                rect.Y + 55 * sy,
+                rect.X + 82 * sx,
+                rect.Y + 82 * sy);
+
+            outer.AddBezier(
+                rect.X + 82 * sx,
+                rect.Y + 82 * sy,
+                rect.X + 71 * sx,
+                rect.Y + 108 * sy,
+                rect.X + 54 * sx,
+                rect.Y + 118 * sy,
+                rect.X + 49 * sx,
+                rect.Y + 119 * sy);
+
+            outer.AddBezier(
+                rect.X + 49 * sx,
+                rect.Y + 119 * sy,
+                rect.X + 18 * sx,
+                rect.Y + 105 * sy,
+                rect.X + 7 * sx,
+                rect.Y + 80 * sy,
+                rect.X + 19 * sx,
+                rect.Y + 53 * sy);
+
+            outer.AddBezier(
+                rect.X + 19 * sx,
+                rect.Y + 53 * sy,
+                rect.X + 27 * sx,
+                rect.Y + 37 * sy,
+                rect.X + 39 * sx,
+                rect.Y + 27 * sy,
+                rect.X + 50 * sx,
+                rect.Y + 1 * sy);
+
+            outer.CloseFigure();
+
+            using var gradient =
+                new LinearGradientBrush(
+                    rect,
+                    Color.FromArgb(
+                        255,
+                        91,
+                        52),
+                    color,
+                    90f);
+
+            graphics.FillPath(
+                gradient,
+                outer);
+
+            using var inner =
+                new GraphicsPath();
+
+            inner.AddBezier(
+                rect.X + 50 * sx,
+                rect.Y + 40 * sy,
+                rect.X + 70 * sx,
+                rect.Y + 58 * sy,
+                rect.X + 68 * sx,
+                rect.Y + 79 * sy,
+                rect.X + 52 * sx,
+                rect.Y + 101 * sy);
+
+            inner.AddBezier(
+                rect.X + 52 * sx,
+                rect.Y + 101 * sy,
+                rect.X + 43 * sx,
+                rect.Y + 110 * sy,
+                rect.X + 36 * sx,
+                rect.Y + 113 * sy,
+                rect.X + 34 * sx,
+                rect.Y + 95 * sy);
+
+            inner.AddBezier(
+                rect.X + 34 * sx,
+                rect.Y + 95 * sy,
+                rect.X + 31 * sx,
+                rect.Y + 76 * sy,
+                rect.X + 37 * sx,
+                rect.Y + 59 * sy,
+                rect.X + 50 * sx,
+                rect.Y + 40 * sy);
+
+            inner.CloseFigure();
+
+            using var cut =
+                new SolidBrush(
+                    Color.FromArgb(
+                        14,
+                        7,
+                        7,
+                        8));
+
+            graphics.FillPath(
+                cut,
+                inner);
         }
 
         protected override void Dispose(
@@ -2830,6 +2887,12 @@ namespace Mac1ota_Menu.Classes
 
     internal sealed class ModernTextBox : UserControl
     {
+        private static readonly Color FieldColor =
+            Color.FromArgb(
+                24,
+                24,
+                27);
+
         private readonly TextBox _box =
             new();
 
@@ -2861,12 +2924,11 @@ namespace Mac1ota_Menu.Classes
 
         public ModernTextBox()
         {
-            // Transparência habilitada primeiro.
             SetStyle(
                 ControlStyles.UserPaint |
                 ControlStyles.AllPaintingInWmPaint |
                 ControlStyles.OptimizedDoubleBuffer |
-                ControlStyles.SupportsTransparentBackColor,
+                ControlStyles.ResizeRedraw,
                 true);
 
             Cursor =
@@ -2876,35 +2938,26 @@ namespace Mac1ota_Menu.Classes
                 BorderStyle.None;
 
             _box.BackColor =
-                Color.FromArgb(
-                    23,
-                    23,
-                    25);
+                FieldColor;
 
             _box.ForeColor =
-                Color.White;
+                Color.FromArgb(
+                    238,
+                    238,
+                    240);
 
             _box.Font =
                 new Font(
                     "Segoe UI",
-                    10f);
-
-            _box.Location =
-                new Point(
-                    19,
-                    19);
+                    9.5f,
+                    FontStyle.Regular);
 
             Controls.Add(
                 _box);
 
             Resize +=
                 (_, _) =>
-                {
-                    _box.Width =
-                        System.Math.Max(
-                            1,
-                            Width - 38);
-                };
+                    UpdateTextBoxBounds();
 
             _box.GotFocus +=
                 (_, _) =>
@@ -2926,13 +2979,39 @@ namespace Mac1ota_Menu.Classes
 
             MouseDown +=
                 (_, _) =>
-                _box.Focus();
+                    _box.Focus();
+
+            UpdateTextBoxBounds();
+        }
+
+        private void UpdateTextBoxBounds()
+        {
+            int textHeight =
+                TextRenderer
+                    .MeasureText(
+                        "Ag",
+                        _box.Font)
+                    .Height;
+
+            int top =
+                System.Math.Max(
+                    8,
+                    (Height - textHeight) / 2);
+
+            _box.SetBounds(
+                16,
+                top,
+                System.Math.Max(
+                    1,
+                    Width - 32),
+                textHeight + 4);
         }
 
         protected override void OnPaintBackground(
             PaintEventArgs pevent)
         {
-            // O fundo é composto pelo controle pai; evita depender de BackColor transparente.
+            pevent.Graphics.Clear(
+                FieldColor);
         }
 
         protected override void OnPaint(
@@ -2951,14 +3030,11 @@ namespace Mac1ota_Menu.Classes
             using var path =
                 Rounded(
                     rect,
-                    12);
+                    10);
 
             using var fill =
                 new SolidBrush(
-                    Color.FromArgb(
-                        19,
-                        29,
-                        32));
+                    FieldColor);
 
             e.Graphics.FillPath(
                 fill,
@@ -2972,12 +3048,12 @@ namespace Mac1ota_Menu.Classes
                             55,
                             43)
                         : Color.FromArgb(
-                            55,
-                            55,
-                            60),
+                            48,
+                            48,
+                            53),
 
                     _focused
-                        ? 1.5f
+                        ? 1.4f
                         : 1f);
 
             e.Graphics.DrawPath(
