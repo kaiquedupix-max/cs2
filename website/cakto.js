@@ -49,9 +49,9 @@ export function checkoutConfig() {
     sdkClientId: process.env.CAKTO_SDK_CLIENT_ID || "",
     offerId: process.env.CAKTO_OFFER_ID || "",
     planName: String(process.env.CAKTO_PLAN_NAME || "mensal").slice(0, 40),
-    planDays: Math.max(1, Math.min(3650, Number(process.env.CAKTO_PLAN_DAYS || 30))),
+    planDays: Math.max(1, Math.min(3650, Math.trunc(Number(process.env.CAKTO_PLAN_DAYS || 30)) || 30)),
     priceCents: Number.isInteger(priceCents) && priceCents > 0 ? priceCents : 0,
-    pixExpiresIn: Math.max(60, Math.min(86400, Number(process.env.CAKTO_PIX_EXPIRES_IN || 900))),
+    pixExpiresIn: Math.max(60, Math.min(86400, Math.trunc(Number(process.env.CAKTO_PIX_EXPIRES_IN || 900)) || 900)),
   };
 }
 
@@ -119,7 +119,9 @@ export function verifyWebhook(rawBody, headers, parsedBody) {
   const timestamp = String(headers["x-cakto-timestamp"] || "");
   const signatureHeader = String(headers["x-cakto-signature"] || "");
 
-  if (timestamp && signatureHeader && Buffer.isBuffer(rawBody)) {
+  if (timestamp || signatureHeader) {
+    if (!timestamp || !signatureHeader || !Buffer.isBuffer(rawBody)) return false;
+
     const timestampNumber = Number(timestamp);
     if (!Number.isFinite(timestampNumber) || Math.abs(Date.now() / 1000 - timestampNumber) > 300) {
       return false;
@@ -139,7 +141,7 @@ export function verifyWebhook(rawBody, headers, parsedBody) {
         .update(rawBody)
         .digest("hex");
 
-    if (safeEqual(signature, expected)) return true;
+    return safeEqual(signature, expected);
   }
 
   return safeEqual(String(parsedBody?.secret || ""), secret);
