@@ -521,7 +521,7 @@ namespace Mac1ota_Menu.Classes
             public CommunityConfigDetails? Config { get; set; }
         }
 
-        internal sealed class CommunityConfigSummary
+        internal class CommunityConfigSummary
         {
             public long Id { get; set; }
 
