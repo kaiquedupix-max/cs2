@@ -73,24 +73,6 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   showTab("login");
 });
 
-document.getElementById("simulateBuyBtn").addEventListener("click", async () => {
-  const button = document.getElementById("simulateBuyBtn");
-  button.disabled = true;
-  button.textContent = "Ativando...";
-  try {
-    const result = await api("/api/account/purchase-simulated", { method: "POST" });
-    renderAccount(result.account);
-    const notice = document.getElementById("purchaseNotice");
-    notice.textContent = "Compra de teste concluída. O acesso de 30 dias já está disponível no loader.";
-    notice.classList.remove("hidden");
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    button.disabled = false;
-    button.textContent = "Adicionar +30 dias de teste";
-  }
-});
-
 function renderAccount(data) {
   authView.classList.add("hidden");
   dashboardView.classList.remove("hidden");
