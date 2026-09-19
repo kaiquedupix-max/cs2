@@ -113,6 +113,7 @@ namespace Mac1ota_Menu.Classes
             BuildBranding();
             BuildLoginPanel();
             BuildWindowButtons();
+            LoadRememberedLogin();
 
             Resize += (_, _) =>
                 ApplyRoundedRegion();
@@ -1295,6 +1296,25 @@ namespace Mac1ota_Menu.Classes
                 };
         }
 
+        private void LoadRememberedLogin()
+        {
+            if (!RememberedLogin.TryLoad(
+                    out string identifier,
+                    out string password))
+            {
+                return;
+            }
+
+            _username.InputText =
+                identifier;
+
+            _password.InputText =
+                password;
+
+            _remember.Checked =
+                true;
+        }
+
         // ============================================================
         // WINDOW BUTTONS
         // ============================================================
@@ -1440,6 +1460,17 @@ namespace Mac1ota_Menu.Classes
                 _remoteStatusTimer.Start();
 
                 return;
+            }
+
+            if (_remember.Checked)
+            {
+                RememberedLogin.Save(
+                    identifier,
+                    password);
+            }
+            else
+            {
+                RememberedLogin.Clear();
             }
 
             _status.ForeColor =
