@@ -27,7 +27,7 @@ namespace Mac1ota_Menu.Classes
 
         public static LoaderReleaseInfo? Latest { get; private set; }
 
-        public static string CurrentVersion
+        public static string InstalledVersion
         {
             get
             {
@@ -54,6 +54,13 @@ namespace Mac1ota_Menu.Classes
             }
         }
 
+        public static string LatestVersion =>
+            Latest?.Version ??
+            "—";
+
+        public static string CurrentVersion =>
+            InstalledVersion;
+
         public static bool UpdateAvailable =>
             Latest != null &&
             !IsCurrentBinary(
@@ -63,9 +70,38 @@ namespace Mac1ota_Menu.Classes
         {
             try
             {
+                using var request =
+                    new HttpRequestMessage(
+                        HttpMethod.Get,
+                        "api/loader/latest?ts=" +
+                        DateTimeOffset.UtcNow
+                            .ToUnixTimeMilliseconds());
+
+                request.Headers.CacheControl =
+                    new System.Net.Http.Headers.CacheControlHeaderValue
+                    {
+                        NoCache =
+                            true,
+
+                        NoStore =
+                            true
+                    };
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Latest =
+                        null;
+
+                    return null;
+                }
+
                 Latest =
-                    await Http.GetFromJsonAsync<LoaderReleaseInfo>(
-                        "api/loader/latest");
+                    await response.Content
+                        .ReadFromJsonAsync<LoaderReleaseInfo>();
 
                 return Latest;
             }
