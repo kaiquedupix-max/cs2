@@ -545,6 +545,7 @@ namespace Mac1ota_Menu
                     RenderTabButton("\uF15E", "Visuais", 2);
                     RenderTabButton("\uF1BC", "Mira", 1);
                     RenderTabButton("\uF35A", "Perfis", 3);
+                    RenderTabButton("\uF0C0", "Comunidade", 5);
                     RenderTabButton("\uF3DC", "Ajustes", 4);
 
                     const float cogButtonHeight = 35f;
@@ -595,7 +596,17 @@ namespace Mac1ota_Menu
                 ImGui.BeginChild("MainContent", mainSize, ImGuiChildFlags.AlwaysUseWindowPadding, ImGuiWindowFlags.NoBackground);
                 {
                     ImGui.SetCursorPos(new Vector2(18, 18));
-                    ImGui.TextColored(TextCol, new[] { "Geral", "Mira", "Visuais", "Perfis", "Ajustes" }[_selectedTab]);
+                    ImGui.TextColored(
+                        TextCol,
+                        new[]
+                        {
+                            "Geral",
+                            "Mira",
+                            "Visuais",
+                            "Perfis",
+                            "Ajustes",
+                            "Configs da comunidade"
+                        }[_selectedTab]);
                     ImGui.SameLine();
                     ImGui.TextDisabled(" / legitbaratinho.xyz");
                     ImGui.Separator();
@@ -726,6 +737,11 @@ namespace Mac1ota_Menu
                                 }
                             }, new Vector2(wiodthy, 200));
 
+                            break;
+
+                        case 5: // configs da comunidade
+                            ImGui.Dummy(new Vector2(0, 4));
+                            CommunityConfigs.Draw();
                             break;
                     }
                     ImGui.PopStyleVar(2);
