@@ -27,7 +27,7 @@ const CLIENT_SESSION_MS = 12 * 60 * 60 * 1000;
 const PRODUCT_CODE = "cs2";
 
 app.disable("x-powered-by");
-app.use(express.json({ limit: "64kb" }));
+app.use(express.json({ limit: "512kb" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public"), {
@@ -249,6 +249,19 @@ async function initDb() {
       uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       is_active BOOLEAN NOT NULL DEFAULT FALSE
     );
+
+    CREATE TABLE IF NOT EXISTS community_configs (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      config_json JSONB NOT NULL,
+      downloads BIGINT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_community_configs_created
+      ON community_configs(created_at DESC);
 
     CREATE INDEX IF NOT EXISTS idx_loader_releases_active
       ON loader_releases(is_active, uploaded_at DESC);
@@ -768,6 +781,190 @@ app.get("/api/client/me", requireClient, async (req, res) => {
   const snapshot = await accountSnapshot(req.userId);
   if (!snapshot) return res.status(401).json({ error: "account_unavailable" });
   res.json(snapshot);
+});
+
+app.get("/api/client/community-configs", requireClient, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).json({
+      error: "access_required",
+      message: "Acesso ativo necessário para usar as configs da comunidade.",
+    });
+  }
+
+  const result = await pool.query(
+    `SELECT
+       c.id,
+       c.title,
+       c.description,
+       c.downloads,
+       c.created_at,
+       u.username AS author
+     FROM community_configs c
+     JOIN users u ON u.id = c.user_id
+     WHERE u.disabled_at IS NULL
+     ORDER BY c.created_at DESC
+     LIMIT 100`
+  );
+
+  res.json({
+    configs: result.rows.map((row) => ({
+      id: Number(row.id),
+      title: row.title,
+      description: row.description,
+      author: row.author,
+      downloads: Number(row.downloads),
+      createdAt: row.created_at,
+    })),
+  });
+});
+
+app.post("/api/client/community-configs", requireClient, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).json({
+      error: "access_required",
+      message: "Acesso ativo necessário para compartilhar configs.",
+    });
+  }
+
+  const title = String(req.body?.title || "").trim().slice(0, 48);
+  const description = String(req.body?.description || "").trim().slice(0, 180);
+  const configJson = String(req.body?.configJson || "");
+
+  if (title.length < 3) {
+    return res.status(400).json({
+      error: "invalid_title",
+      message: "Use um nome com pelo menos 3 caracteres.",
+    });
+  }
+
+  if (!configJson || Buffer.byteLength(configJson, "utf8") > 350 * 1024) {
+    return res.status(400).json({
+      error: "invalid_config",
+      message: "A config está vazia ou é grande demais.",
+    });
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(configJson);
+  } catch {
+    return res.status(400).json({
+      error: "invalid_json",
+      message: "A config não contém JSON válido.",
+    });
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return res.status(400).json({
+      error: "invalid_config",
+      message: "Formato de config inválido.",
+    });
+  }
+
+  const count = await pool.query(
+    "SELECT COUNT(*)::int AS total FROM community_configs WHERE user_id = $1",
+    [req.userId]
+  );
+
+  if (Number(count.rows[0]?.total || 0) >= 20) {
+    return res.status(400).json({
+      error: "config_limit",
+      message: "Você atingiu o limite de 20 configs compartilhadas.",
+    });
+  }
+
+  const result = await pool.query(
+    `INSERT INTO community_configs(user_id, title, description, config_json)
+     VALUES ($1, $2, $3, $4::jsonb)
+     RETURNING id, title, description, downloads, created_at`,
+    [req.userId, title, description, configJson]
+  );
+
+  const row = result.rows[0];
+  res.status(201).json({
+    ok: true,
+    config: {
+      id: Number(row.id),
+      title: row.title,
+      description: row.description,
+      author: null,
+      downloads: Number(row.downloads),
+      createdAt: row.created_at,
+    },
+  });
+});
+
+app.get("/api/client/community-configs/:id", requireClient, async (req, res) => {
+  if (!await activeProductAccess(req.userId)) {
+    return res.status(403).json({
+      error: "access_required",
+      message: "Acesso ativo necessário para baixar configs.",
+    });
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "invalid_id" });
+  }
+
+  const result = await pool.query(
+    `UPDATE community_configs c
+     SET downloads = downloads + 1
+     FROM users u
+     WHERE c.id = $1
+       AND u.id = c.user_id
+       AND u.disabled_at IS NULL
+     RETURNING
+       c.id,
+       c.title,
+       c.description,
+       c.config_json::text AS config_json,
+       c.downloads,
+       c.created_at,
+       u.username AS author`,
+    [id]
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return res.status(404).json({
+      error: "config_not_found",
+      message: "Config não encontrada.",
+    });
+  }
+
+  res.json({
+    config: {
+      id: Number(row.id),
+      title: row.title,
+      description: row.description,
+      author: row.author,
+      configJson: row.config_json,
+      downloads: Number(row.downloads),
+      createdAt: row.created_at,
+    },
+  });
+});
+
+app.delete("/api/client/community-configs/:id", requireClient, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "invalid_id" });
+  }
+
+  const result = await pool.query(
+    "DELETE FROM community_configs WHERE id = $1 AND user_id = $2 RETURNING id",
+    [id, req.userId]
+  );
+
+  if (!result.rows[0]) {
+    return res.status(404).json({
+      error: "config_not_found",
+      message: "Config não encontrada ou não pertence a você.",
+    });
+  }
+
+  res.json({ ok: true });
 });
 
 app.get("/api/client/release", requireClient, async (req, res) => {
