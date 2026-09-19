@@ -182,7 +182,7 @@ checkoutForm.addEventListener("submit", async (event) => {
         amount: checkoutConfig.plan.priceCents,
         currency: "BRL",
         email: buyer.email,
-        name: buyer.fullName,
+        name: card.holderName,
         phone: onlyDigits(buyer.phone),
         paymentMethod: "credit",
         address: buyer.address,
