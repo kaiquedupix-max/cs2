@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#050907">
+  <title>Checkout · legitbaratinho.xyz</title>
+  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
+  <link rel="stylesheet" href="/styles.css?v=20260919-cakto">
+</head>
+<body class="account-body checkout-body">
+  <div class="noise"></div>
+  <div class="orb orb-one"></div>
+
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="/">
+        <img class="brand-icon" src="/brand-icon.svg" alt="">
+        <span class="brand-copy"><b>legitbaratinho</b><small>.xyz</small></span>
+      </a>
+      <a class="button button-small button-outline" href="/account">Minha conta</a>
+    </div>
+  </header>
+
+  <main class="checkout-shell shell">
+    <section class="checkout-heading">
+      <div class="eyebrow">CHECKOUT SEGURO</div>
+      <h1>Finalize sua compra.</h1>
+      <p>Pagamento processado pela Cakto. Número completo e CVV são tokenizados no navegador e não são armazenados no nosso servidor.</p>
+    </section>
+
+    <div class="checkout-layout">
+      <form id="checkoutForm" class="checkout-card" autocomplete="on">
+        <section>
+          <div class="checkout-section-title">
+            <span>01</span>
+            <div><small>DADOS DO COMPRADOR</small><h2>Quem está comprando</h2></div>
+          </div>
+
+          <div class="checkout-fields">
+            <label class="wide">Nome completo
+              <input id="buyerName" autocomplete="name" maxlength="160" required>
+            </label>
+            <label>CPF
+              <input id="buyerCpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required>
+            </label>
+            <label>Telefone
+              <input id="buyerPhone" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(00) 00000-0000" required>
+            </label>
+            <label class="wide">E-mail
+              <input id="buyerEmail" type="email" autocomplete="email" maxlength="160" required>
+            </label>
+            <label class="wide">Número do processo
+              <input id="processNumber" maxlength="120" autocomplete="off" required>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <div class="checkout-section-title">
+            <span>02</span>
+            <div><small>ENDEREÇO DE COBRANÇA</small><h2>Dados para autenticação</h2></div>
+          </div>
+
+          <div class="checkout-fields">
+            <label class="wide">Rua
+              <input id="billingStreet" autocomplete="address-line1" maxlength="160" required>
+            </label>
+            <label>Número
+              <input id="billingNumber" autocomplete="address-line2" maxlength="30" required>
+            </label>
+            <label>Complemento
+              <input id="billingComplement" maxlength="80">
+            </label>
+            <label>Cidade
+              <input id="billingCity" autocomplete="address-level2" maxlength="100" required>
+            </label>
+            <label>Estado
+              <input id="billingState" autocomplete="address-level1" maxlength="2" placeholder="BA" required>
+            </label>
+            <label>CEP
+              <input id="billingZip" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <div class="checkout-section-title">
+            <span>03</span>
+            <div><small>FORMA DE PAGAMENTO</small><h2>Como deseja pagar?</h2></div>
+          </div>
+
+          <div class="payment-tabs">
+            <button type="button" id="cardTab" class="active">Cartão</button>
+            <button type="button" id="pixTab">PIX</button>
+          </div>
+
+          <div id="cardPanel" class="payment-panel">
+            <div class="checkout-fields">
+              <label class="wide">Número do cartão
+                <input id="cardNumber" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="0000 0000 0000 0000" required>
+              </label>
+              <label class="wide">Nome impresso no cartão
+                <input id="cardHolder" autocomplete="cc-name" maxlength="160" required>
+              </label>
+              <label>Validade
+                <input id="cardExpiry" inputmode="numeric" autocomplete="cc-exp" maxlength="7" placeholder="MM/AA" required>
+              </label>
+              <label>CVV
+                <input id="cardCvv" type="password" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="000" required>
+              </label>
+              <label class="wide">Parcelas
+                <select id="installments">
+                  <option value="1">1x</option>
+                  <option value="2">2x</option>
+                  <option value="3">3x</option>
+                  <option value="4">4x</option>
+                  <option value="5">5x</option>
+                  <option value="6">6x</option>
+                  <option value="7">7x</option>
+                  <option value="8">8x</option>
+                  <option value="9">9x</option>
+                  <option value="10">10x</option>
+                  <option value="11">11x</option>
+                  <option value="12">12x</option>
+                </select>
+              </label>
+            </div>
+
+            <button id="payCardBtn" class="button button-primary full checkout-pay" type="submit">Pagar com cartão</button>
+            <p class="secure-note">🔒 Os dados completos do cartão vão diretamente para o SDK da Cakto. Seu backend recebe apenas o token e os metadados seguros.</p>
+          </div>
+
+          <div id="pixPanel" class="payment-panel hidden">
+            <p class="pix-intro">Gere o QR Code e pague sem sair desta página.</p>
+            <button id="generatePixBtn" class="button button-primary full checkout-pay" type="button">Gerar PIX</button>
+
+            <div id="pixResult" class="pix-result hidden">
+              <img id="pixQr" alt="QR Code PIX">
+              <div class="pix-copy-box">
+                <input id="pixCode" readonly>
+                <button id="copyPixBtn" type="button">Copiar</button>
+              </div>
+              <small id="pixExpiry">—</small>
+              <div id="pixStatus" class="payment-status waiting">Aguardando pagamento...</div>
+            </div>
+          </div>
+        </section>
+
+        <p id="checkoutMessage" class="form-message"></p>
+      </form>
+
+      <aside class="checkout-summary">
+        <div class="eyebrow">RESUMO DO PEDIDO</div>
+        <div class="summary-product">
+          <div class="product-icon">CS</div>
+          <div>
+            <strong>Counter-Strike 2</strong>
+            <span>Acesso vinculado à sua conta</span>
+          </div>
+        </div>
+        <div class="summary-row"><span>Plano</span><b id="summaryPlan">Mensal</b></div>
+        <div class="summary-row"><span>Duração</span><b id="summaryDays">30 dias</b></div>
+        <div class="summary-row total"><span>Total</span><b id="summaryPrice">—</b></div>
+        <div class="checkout-security"><strong>Compra segura</strong><span>Pagamento processado pela Cakto com tokenização, antifraude e 3DS.</span></div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="https://cakto-sdk.pages.dev/cakto-sdk.min.js"></script>
+  <script src="/checkout.js?v=20260919-cakto"></script>
+</body>
+</html>
