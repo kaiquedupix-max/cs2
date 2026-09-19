@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
 import pg from "pg";
+import QRCode from "qrcode";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,9 +26,16 @@ const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
 const USER_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CLIENT_SESSION_MS = 12 * 60 * 60 * 1000;
 const PRODUCT_CODE = "cs2";
+const CAKTO_API_BASE = "https://api.cakto.com.br/public_api";
+let caktoTokenCache = { accessToken: "", expiresAt: 0 };
 
 app.disable("x-powered-by");
-app.use(express.json({ limit: "512kb" }));
+app.use(express.json({
+  limit: "512kb",
+  verify(req, _res, buffer) {
+    req.rawBody = Buffer.from(buffer);
+  },
+}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public"), {
@@ -259,6 +267,52 @@ async function initDb() {
       downloads BIGINT NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS customer_profiles (
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      full_name TEXT NOT NULL,
+      cpf TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      process_number TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS checkout_payments (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      provider TEXT NOT NULL DEFAULT 'cakto',
+      idempotency_key TEXT UNIQUE NOT NULL,
+      provider_order_id TEXT UNIQUE NULL,
+      provider_ref_id TEXT NULL,
+      provider_external_id TEXT NULL,
+      payment_method TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'creating',
+      amount NUMERIC(12,2) NULL,
+      installments INTEGER NOT NULL DEFAULT 1,
+      buyer_name TEXT NOT NULL,
+      buyer_cpf TEXT NOT NULL,
+      buyer_email TEXT NOT NULL,
+      buyer_phone TEXT NOT NULL,
+      process_number TEXT NOT NULL,
+      card_holder_name TEXT NULL,
+      card_last4 TEXT NULL,
+      card_expiry TEXT NULL,
+      card_brand TEXT NULL,
+      pix_copy_paste TEXT NULL,
+      pix_expires_at TIMESTAMPTZ NULL,
+      paid_at TIMESTAMPTZ NULL,
+      reversed_at TIMESTAMPTZ NULL,
+      access_granted_at TIMESTAMPTZ NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_checkout_payments_user_created
+      ON checkout_payments(user_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_checkout_payments_provider_order
+      ON checkout_payments(provider_order_id);
 
     CREATE INDEX IF NOT EXISTS idx_community_configs_created
       ON community_configs(created_at DESC);
