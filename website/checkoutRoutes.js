@@ -507,6 +507,7 @@ export function registerCheckoutRoutes(app, deps) {
           paymentMethod: "threeDs",
           customer: {
             ...buyer.providerCustomer,
+            name: holderName,
             ip: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "")
               .split(",")[0]
               .trim(),
