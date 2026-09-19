@@ -944,6 +944,15 @@ namespace Mac1ota_Menu.Classes
                     150,
                     24);
 
+            _remember.Click +=
+                (_, _) =>
+                {
+                    if (!_remember.Checked)
+                    {
+                        RememberedLogin.Clear();
+                    }
+                };
+
             var forgot =
                 new Label
                 {
