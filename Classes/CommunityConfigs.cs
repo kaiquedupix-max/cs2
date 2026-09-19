@@ -53,7 +53,7 @@ namespace Mac1ota_Menu.Classes
                 new Vector2(
                     leftWidth,
                     365),
-                ImGuiChildFlags.Border);
+                ImGuiChildFlags.None);
 
             ImGui.TextColored(
                 new Vector4(
@@ -133,7 +133,7 @@ namespace Mac1ota_Menu.Classes
                 new Vector2(
                     0,
                     365),
-                ImGuiChildFlags.Border);
+                ImGuiChildFlags.None);
 
             ClientPortalApi.CommunityConfigSummary? selectedItem =
                 snapshot.FirstOrDefault(
@@ -193,7 +193,7 @@ namespace Mac1ota_Menu.Classes
                 new Vector2(
                     0,
                     205),
-                ImGuiChildFlags.Border);
+                ImGuiChildFlags.None);
 
             ImGui.TextColored(
                 new Vector4(
