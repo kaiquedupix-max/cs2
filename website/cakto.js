@@ -43,6 +43,7 @@ export function checkoutConfig() {
       process.env.CAKTO_API_CLIENT_SECRET &&
       process.env.CAKTO_SDK_CLIENT_ID &&
       process.env.CAKTO_OFFER_ID &&
+      process.env.CAKTO_WEBHOOK_SECRET &&
       Number.isInteger(priceCents) &&
       priceCents > 0
     ),
