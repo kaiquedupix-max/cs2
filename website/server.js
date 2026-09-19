@@ -2,7 +2,6 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
 import pg from "pg";
-import QRCode from "qrcode";
 import { registerCheckoutRoutes } from "./checkoutRoutes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,9 +26,6 @@ const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
 const USER_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CLIENT_SESSION_MS = 12 * 60 * 60 * 1000;
 const PRODUCT_CODE = "cs2";
-const CAKTO_API_BASE = "https://api.cakto.com.br/public_api";
-let caktoTokenCache = { accessToken: "", expiresAt: 0 };
-
 app.disable("x-powered-by");
 app.use(express.json({
   limit: "512kb",
