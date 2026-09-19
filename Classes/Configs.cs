@@ -73,6 +73,7 @@ namespace Mac1ota_Menu.Classes
                     ["ShowHotkeys"] = Renderer.ShowHotkeys,
                     ["EnableWatermark"] = Renderer.EnableWatermark,
                     ["StreamMode"] = Renderer.StreamMode,
+                    ["IgnoreAlliesInInformation"] = Renderer.IgnoreAlliesInInformation,
                 },
             };
 
@@ -146,6 +147,11 @@ namespace Mac1ota_Menu.Classes
                     interfaceData["StreamMode"]
                         ?.ToObject<bool>() ??
                     Renderer.StreamMode;
+
+                Renderer.IgnoreAlliesInInformation =
+                    interfaceData["IgnoreAlliesInInformation"]
+                        ?.ToObject<bool>() ??
+                    Renderer.IgnoreAlliesInInformation;
             }
 
             string? version = "0.0";
