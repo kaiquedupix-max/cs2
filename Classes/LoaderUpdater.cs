@@ -115,23 +115,32 @@ namespace Mac1ota_Menu.Classes
         }
 
         public static async Task<(bool Success, bool Restarting, string Message)>
-            TryUpdateAtStartupAsync()
+            TryUpdateAtStartupAsync(
+                Action<string>? status = null)
         {
+            status?.Invoke(
+                "Buscando atualização...");
+
             LoaderReleaseInfo? latest =
                 await CheckLatestAsync();
 
             if (latest == null)
             {
                 return (
-                    true,
                     false,
-                    "Não foi possível consultar atualizações."
+                    false,
+                    "Não foi possível verificar a versão mais recente. Tente novamente."
                 );
             }
 
             if (IsCurrentBinary(
                     latest.Sha256))
             {
+                status?.Invoke(
+                    "Você está na versão mais recente (v" +
+                    latest.Version +
+                    ").");
+
                 return (
                     true,
                     false,
@@ -139,16 +148,26 @@ namespace Mac1ota_Menu.Classes
                 );
             }
 
+            status?.Invoke(
+                "Atualização encontrada: v" +
+                latest.Version +
+                ". Baixando...");
+
             return await DownloadAndPrepareAsync(
                 latest,
                 DownloadByDeviceAsync,
                 allowDeferred:
-                    true);
+                    true,
+                status);
         }
 
         public static async Task<(bool Success, bool Restarting, string Message)>
-            EnsureLatestAfterLoginAsync()
+            EnsureLatestAfterLoginAsync(
+                Action<string>? status = null)
         {
+            status?.Invoke(
+                "Confirmando versão...");
+
             LoaderReleaseInfo? latest =
                 Latest ??
                 await CheckLatestAsync();
@@ -172,18 +191,25 @@ namespace Mac1ota_Menu.Classes
                 );
             }
 
+            status?.Invoke(
+                "Atualização obrigatória v" +
+                latest.Version +
+                ". Baixando...");
+
             return await DownloadAndPrepareAsync(
                 latest,
                 ClientPortalApi.DownloadLatestLoaderAsync,
                 allowDeferred:
-                    false);
+                    false,
+                status);
         }
 
         private static async Task<(bool Success, bool Restarting, string Message)>
             DownloadAndPrepareAsync(
                 LoaderReleaseInfo latest,
                 Func<string, Task<(bool Success, string Message)>> downloader,
-                bool allowDeferred)
+                bool allowDeferred,
+                Action<string>? status)
         {
             if (!latest.FileName.EndsWith(
                     ".exe",
@@ -221,8 +247,16 @@ namespace Mac1ota_Menu.Classes
                 TryDelete(
                     tempRoot);
 
-                if (allowDeferred)
+                if (allowDeferred &&
+                    downloadMessage.Contains(
+                        "Login necessário",
+                        StringComparison.OrdinalIgnoreCase))
                 {
+                    status?.Invoke(
+                        "Atualização v" +
+                        latest.Version +
+                        " encontrada. Faça login para autorizar.");
+
                     return (
                         true,
                         false,
@@ -238,6 +272,9 @@ namespace Mac1ota_Menu.Classes
                     downloadMessage
                 );
             }
+
+            status?.Invoke(
+                "Verificando integridade da atualização...");
 
             if (!VerifySha256(
                     downloadPath,
@@ -255,6 +292,11 @@ namespace Mac1ota_Menu.Classes
 
             try
             {
+                status?.Invoke(
+                    "Aplicando v" +
+                    latest.Version +
+                    " e reiniciando...");
+
                 string currentExe =
                     Environment.ProcessPath ??
                     throw new InvalidOperationException(
