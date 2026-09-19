@@ -874,9 +874,20 @@ app.post("/api/client/community-configs", requireClient, async (req, res) => {
   }
 
   const result = await pool.query(
-    `INSERT INTO community_configs(user_id, title, description, config_json)
-     VALUES ($1, $2, $3, $4::jsonb)
-     RETURNING id, title, description, downloads, created_at`,
+    `WITH inserted AS (
+       INSERT INTO community_configs(user_id, title, description, config_json)
+       VALUES ($1, $2, $3, $4::jsonb)
+       RETURNING id, user_id, title, description, downloads, created_at
+     )
+     SELECT
+       inserted.id,
+       inserted.title,
+       inserted.description,
+       inserted.downloads,
+       inserted.created_at,
+       u.username AS author
+     FROM inserted
+     JOIN users u ON u.id = inserted.user_id`,
     [req.userId, title, description, configJson]
   );
 
@@ -887,7 +898,7 @@ app.post("/api/client/community-configs", requireClient, async (req, res) => {
       id: Number(row.id),
       title: row.title,
       description: row.description,
-      author: null,
+      author: row.author,
       downloads: Number(row.downloads),
       createdAt: row.created_at,
     },
