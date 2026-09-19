@@ -613,32 +613,6 @@ app.get("/api/account/me", requireUser, async (req, res) => {
   res.json(snapshot);
 });
 
-app.post("/api/account/purchase-simulated", requireUser, async (req, res) => {
-  if (!pool) return res.status(503).json({ error: "database_not_configured" });
-
-  const days = 30;
-  const plan = "mensal-teste";
-
-  await pool.query(
-    `INSERT INTO user_products(user_id, product_code, plan, purchased_at, expires_at, revoked_at)
-     VALUES ($1, $2, $3, NOW(), NOW() + ($4 || ' days')::interval, NULL)
-     ON CONFLICT (user_id, product_code)
-     DO UPDATE SET
-       plan = EXCLUDED.plan,
-       purchased_at = NOW(),
-       expires_at =
-         GREATEST(user_products.expires_at, NOW()) + ($4 || ' days')::interval,
-       revoked_at = NULL`,
-    [req.userId, PRODUCT_CODE, plan, String(days)]
-  );
-
-  res.json({
-    ok: true,
-    simulated: true,
-    account: await accountSnapshot(req.userId),
-  });
-});
-
 app.get("/api/loader/latest", async (_req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
