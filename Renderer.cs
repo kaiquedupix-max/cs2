@@ -358,7 +358,7 @@ namespace Mac1ota_Menu
                 TimeSinceLastUpdate = 0.0f;
             }
 
-            drawList.AddText(new(textPosition.X, textPosition.Y), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, 1)), $"legitbaratinho.xyz | FPS: {Math.Round(LastFPS)} | V-{Configs.Version} | {DateTime.Now.ToLocalTime().ToShortTimeString()}");
+            drawList.AddText(new(textPosition.X, textPosition.Y), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, 1)), $"legitbaratinho.xyz | FPS: {Math.Round(LastFPS)} | V-{LoaderUpdater.InstalledVersion} | {DateTime.Now.ToLocalTime().ToShortTimeString()}");
             ImGui.PopFont();
             ImGui.End();
 

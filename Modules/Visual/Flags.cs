@@ -15,6 +15,7 @@ namespace Mac1ota_Menu.Modules.Visual
         public static bool ScopedEnabled = false;
         public static bool FlashEnabled = false;
         public static bool GunEnabled = false;
+        public static bool TeamCheck = false;
         private static Dictionary<string, int> enabledFlags = new();
         private static float _baseFontSize = 18f;
         private static float _flagPaddingX = 4f;
@@ -22,6 +23,9 @@ namespace Mac1ota_Menu.Modules.Visual
 
         public static void DrawFlags(Entity entity)
         {
+            if (TeamCheck && entity.IsTeammate)
+                return;
+
             BoxRect? rect = entity.GetBoxRect();
             if (rect == null)
                 return;

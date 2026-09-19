@@ -13,7 +13,7 @@ namespace Mac1ota_Menu.Modules.Visual
         public static void DrawDistance(Entity? e)
         {
             if (!Enabled || e == null || GameState.LocalPlayer == null || GameState.renderer == null ||
-                (BoxESP.TeamCheck && e.Team == GameState.LocalPlayer.Team) || e.Health <= 0 || e.PawnAddress == GameState.LocalPlayer.PawnAddress
+                (Flags.TeamCheck && e.IsTeammate) || e.Health <= 0 || e.PawnAddress == GameState.LocalPlayer.PawnAddress
                 || (BoxESP.FlashCheck && GameState.LocalPlayer.IsFlashed) || e.Position2D == new Vector2(-99, -99))
                 return;
 

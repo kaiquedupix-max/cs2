@@ -14,6 +14,7 @@ namespace Mac1ota_Menu.Modules.Visual
         {
             if (!Enabled || e == null || e.Position2D == new Vector2(-99, -99) || GameState.LocalPlayer == null ||
                 e.PawnAddress == GameState.LocalPlayer.PawnAddress || e.Health <= 0 ||
+                (Flags.TeamCheck && e.IsTeammate) ||
                 (BoxESP.FlashCheck && GameState.LocalPlayer.IsFlashed) || e?.Bones == null || e.Bones.Count < 2 ||
                 e.Bones[(int)BoneESP.BoneIds.Head].Position2D == new Vector2(-99, -99))
                 return;
