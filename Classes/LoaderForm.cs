@@ -66,6 +66,7 @@ namespace Mac1ota_Menu.Classes
         private readonly Label _loginTitle = new();
         private readonly Label _loginSubtitle = new();
         private readonly Label _versionLabel = new();
+        private readonly Label _latestVersionLabel = new();
 
         private readonly System.Windows.Forms.Timer _timer = new();
 
@@ -133,14 +134,20 @@ namespace Mac1ota_Menu.Classes
                             TextSecondary;
 
                         _status.Text =
-                            "Verificando atualizações...";
+                            "Buscando atualização...";
 
                         (bool updateSuccess, bool restarting, string updateMessage) =
                             await LoaderUpdater.TryUpdateAtStartupAsync();
 
                         _versionLabel.Text =
-                            "v" +
-                            LoaderUpdater.CurrentVersion;
+                            "Instalada v" +
+                            LoaderUpdater.InstalledVersion;
+
+                        _latestVersionLabel.Text =
+                            LoaderUpdater.Latest != null
+                                ? "Disponível v" +
+                                  LoaderUpdater.LatestVersion
+                                : "Disponível —";
 
                         if (!updateSuccess)
                         {
@@ -185,6 +192,16 @@ namespace Mac1ota_Menu.Classes
 
                             _status.Text =
                                 updateMessage;
+                        }
+                        else if (LoaderUpdater.Latest != null)
+                        {
+                            _status.ForeColor =
+                                TextSecondary;
+
+                            _status.Text =
+                                "Você está na versão mais recente (v" +
+                                LoaderUpdater.LatestVersion +
+                                ").";
                         }
 
                         _enter.Enabled =
@@ -299,8 +316,8 @@ namespace Mac1ota_Menu.Classes
                 _background;
 
             _versionLabel.Text =
-                "v" +
-                LoaderUpdater.CurrentVersion;
+                "Instalada v" +
+                LoaderUpdater.InstalledVersion;
 
             _versionLabel.Font =
                 FontOf(
@@ -324,6 +341,34 @@ namespace Mac1ota_Menu.Classes
                     184,
                     30);
 
+            _latestVersionLabel.Parent =
+                _background;
+
+            _latestVersionLabel.Text =
+                "Disponível —";
+
+            _latestVersionLabel.Font =
+                FontOf(
+                    8f,
+                    FontStyle.Regular);
+
+            _latestVersionLabel.ForeColor =
+                Color.FromArgb(
+                    73,
+                    92,
+                    86);
+
+            _latestVersionLabel.BackColor =
+                Color.Transparent;
+
+            _latestVersionLabel.AutoSize =
+                true;
+
+            _latestVersionLabel.Location =
+                new Point(
+                    264,
+                    30);
+
             EnableDrag(
                 logo);
 
@@ -332,6 +377,9 @@ namespace Mac1ota_Menu.Classes
 
             EnableDrag(
                 _versionLabel);
+
+            EnableDrag(
+                _latestVersionLabel);
         }
 
         // ============================================================
