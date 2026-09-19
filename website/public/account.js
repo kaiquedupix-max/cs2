@@ -115,11 +115,10 @@ function renderAccount(data) {
 
   document.getElementById("productDescription").textContent = product.hasAccess
     ? `Seu plano está ativo e possui ${product.daysRemaining} dia(s) restante(s).`
-    : "Ative a compra de teste para liberar o produto no loader.";
+    : "Compre seu acesso para liberar o produto no loader.";
 
-  document.getElementById("simulateBuyBtn").textContent = product.hasAccess
-    ? "Adicionar +30 dias de teste"
-    : "Ativar compra de teste";
+  const buyButton = document.getElementById("buyAccessBtn");
+  buyButton.textContent = product.hasAccess ? "Renovar acesso" : "Comprar acesso";
 
   loadRelease(product.hasAccess);
 }
