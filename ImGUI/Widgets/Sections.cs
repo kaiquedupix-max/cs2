@@ -102,6 +102,7 @@ internal class Sections
             new("Informações", 2, () =>
             {
                 Render2ColorPickers("Cor do texto", "Flags.TextColor", ref Flags.TextColors.TeamRGB, ref Flags.TextColors.EnemyRGB, ref Flags.TextColors.TeamColor, ref Flags.TextColors.EnemyColor);
+                RenderBoolSetting("Ignorar aliados", "Information.IgnoreAllies", () => Renderer.IgnoreAlliesInInformation, v => Renderer.IgnoreAlliesInInformation = v);
                 RenderBoolSetting("Usando luneta", "Flags.Scoped", () => Flags.ScopedEnabled, v => Flags.ScopedEnabled = v);
                 RenderBoolSetting("Cego por granada", "Flags.Flashed", () => Flags.FlashEnabled, v => Flags.FlashEnabled = v);
                 RenderBoolSetting("Exibir distância", "DistanceText.Enabled", () => DistanceText.Enabled, v => DistanceText.Enabled = v);
