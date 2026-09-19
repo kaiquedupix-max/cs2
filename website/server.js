@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
 import pg from "pg";
 import QRCode from "qrcode";
+import { registerCheckoutRoutes } from "./checkoutRoutes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -275,8 +276,22 @@ async function initDb() {
       email TEXT NOT NULL,
       phone TEXT NOT NULL,
       process_number TEXT NOT NULL,
+      billing_street TEXT NOT NULL DEFAULT '',
+      billing_number TEXT NOT NULL DEFAULT '',
+      billing_complement TEXT NOT NULL DEFAULT '',
+      billing_city TEXT NOT NULL DEFAULT '',
+      billing_state TEXT NOT NULL DEFAULT '',
+      billing_zipcode TEXT NOT NULL DEFAULT '',
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE customer_profiles
+      ADD COLUMN IF NOT EXISTS billing_street TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS billing_number TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS billing_complement TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS billing_city TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS billing_state TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS billing_zipcode TEXT NOT NULL DEFAULT '';
 
     CREATE TABLE IF NOT EXISTS checkout_payments (
       id BIGSERIAL PRIMARY KEY,
@@ -1367,12 +1382,23 @@ app.post("/api/admin/status", requireAdmin, async (req, res) => {
   res.json({ ok: true, status, message });
 });
 
+registerCheckoutRoutes(app, {
+  pool,
+  requireUser,
+  accountSnapshot,
+  productCode: PRODUCT_CODE,
+});
+
 app.get("/admin", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
 app.get("/account", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "account.html"));
+});
+
+app.get("/checkout", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "checkout.html"));
 });
 
 app.get("*", (_req, res) => {
