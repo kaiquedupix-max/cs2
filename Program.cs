@@ -200,6 +200,47 @@ async Task ConnectToCs2Async(
     }
 }
 
+int cs2StoppedHandled =
+    0;
+
+void TerminateBecauseCs2Stopped()
+{
+    if (Interlocked.Exchange(
+            ref cs2StoppedHandled,
+            1) !=
+        0)
+    {
+        return;
+    }
+
+    try
+    {
+        GameState.ResetConnection();
+
+        System.Windows.Forms
+            .MessageBox
+            .Show(
+                "O legitbaratinho.xyz foi finalizado porque o processo do CS2 parou.",
+
+                "legitbaratinho.xyz",
+
+                System.Windows.Forms
+                    .MessageBoxButtons.OK,
+
+                System.Windows.Forms
+                    .MessageBoxIcon.Information);
+    }
+    finally
+    {
+        System.Windows.Forms
+            .Application
+            .Exit();
+
+        Environment.Exit(
+            0);
+    }
+}
+
 if (!LoaderForm.ShowLogin())
 {
     return;
@@ -226,6 +267,31 @@ try
     // Primeiro aguardamos o processo, client.dll e EntityList válidos.
     await ConnectToCs2Async(
         true);
+
+    Thread cs2ProcessWatcher =
+        new(() =>
+        {
+            while (true)
+            {
+                Thread.Sleep(
+                    500);
+
+                if (!GameState.CS2Open())
+                {
+                    TerminateBecauseCs2Stopped();
+                    return;
+                }
+            }
+        })
+        {
+            IsBackground =
+                true,
+
+            Name =
+                "CS2 process watcher"
+        };
+
+    cs2ProcessWatcher.Start();
 
     LoaderForm.SetStartupProgress(
         72,
