@@ -137,7 +137,23 @@ namespace Mac1ota_Menu.Classes
                             "Buscando atualização...";
 
                         (bool updateSuccess, bool restarting, string updateMessage) =
-                            await LoaderUpdater.TryUpdateAtStartupAsync();
+                            await LoaderUpdater.TryUpdateAtStartupAsync(
+                                message =>
+                                {
+                                    _status.ForeColor =
+                                        Accent;
+
+                                    _status.Text =
+                                        message;
+
+                                    _latestVersionLabel.Text =
+                                        LoaderUpdater.Latest != null
+                                            ? "Disponível v" +
+                                              LoaderUpdater.LatestVersion
+                                            : "Disponível —";
+
+                                    Refresh();
+                                });
 
                         _versionLabel.Text =
                             "Instalada v" +
@@ -1537,7 +1553,23 @@ namespace Mac1ota_Menu.Classes
                 "Conta conectada. Verificando versão...";
 
             (bool updateSuccess, bool restarting, string updateMessage) =
-                await LoaderUpdater.EnsureLatestAfterLoginAsync();
+                await LoaderUpdater.EnsureLatestAfterLoginAsync(
+                    updateStatus =>
+                    {
+                        _status.ForeColor =
+                            Accent;
+
+                        _status.Text =
+                            updateStatus;
+
+                        _latestVersionLabel.Text =
+                            LoaderUpdater.Latest != null
+                                ? "Disponível v" +
+                                  LoaderUpdater.LatestVersion
+                                : "Disponível —";
+
+                        Refresh();
+                    });
 
             if (!updateSuccess)
             {
