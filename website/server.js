@@ -575,6 +575,11 @@ app.post("/api/account/purchase-simulated", requireUser, async (req, res) => {
 });
 
 app.get("/api/loader/latest", async (_req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Surrogate-Control", "no-store");
+
   try {
     const release = await activeLoaderReleaseMeta();
 
