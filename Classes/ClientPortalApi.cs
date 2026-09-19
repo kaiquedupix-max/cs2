@@ -232,6 +232,214 @@ namespace Mac1ota_Menu.Classes
             }
         }
 
+        private static HttpRequestMessage CreateClientRequest(
+            HttpMethod method,
+            string path)
+        {
+            var request =
+                new HttpRequestMessage(
+                    method,
+                    path);
+
+            if (!string.IsNullOrWhiteSpace(
+                    Token))
+            {
+                request.Headers.Authorization =
+                    new AuthenticationHeaderValue(
+                        "Bearer",
+                        Token);
+            }
+
+            request.Headers.Add(
+                "X-Device-ID",
+                DeviceIdentity.CurrentId);
+
+            return request;
+        }
+
+        public static async Task<(bool Success, List<CommunityConfigSummary> Configs, string Message)>
+            GetCommunityConfigsAsync()
+        {
+            if (string.IsNullOrWhiteSpace(
+                    Token))
+            {
+                return (
+                    false,
+                    new List<CommunityConfigSummary>(),
+                    "Faça login novamente."
+                );
+            }
+
+            try
+            {
+                using var request =
+                    CreateClientRequest(
+                        HttpMethod.Get,
+                        "api/client/community-configs");
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ApiError? error =
+                        await response.Content
+                            .ReadFromJsonAsync<ApiError>();
+
+                    return (
+                        false,
+                        new List<CommunityConfigSummary>(),
+                        error?.Message ??
+                        "Não foi possível carregar as configs."
+                    );
+                }
+
+                CommunityConfigListResponse? payload =
+                    await response.Content
+                        .ReadFromJsonAsync<CommunityConfigListResponse>();
+
+                return (
+                    true,
+                    payload?.Configs ??
+                    new List<CommunityConfigSummary>(),
+                    "Configs atualizadas."
+                );
+            }
+            catch
+            {
+                return (
+                    false,
+                    new List<CommunityConfigSummary>(),
+                    "Não foi possível conectar à comunidade."
+                );
+            }
+        }
+
+        public static async Task<(bool Success, CommunityConfigDetails? Config, string Message)>
+            GetCommunityConfigAsync(
+                long id)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    Token))
+            {
+                return (
+                    false,
+                    null,
+                    "Faça login novamente."
+                );
+            }
+
+            try
+            {
+                using var request =
+                    CreateClientRequest(
+                        HttpMethod.Get,
+                        "api/client/community-configs/" +
+                        id);
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ApiError? error =
+                        await response.Content
+                            .ReadFromJsonAsync<ApiError>();
+
+                    return (
+                        false,
+                        null,
+                        error?.Message ??
+                        "Não foi possível baixar esta config."
+                    );
+                }
+
+                CommunityConfigDetailsResponse? payload =
+                    await response.Content
+                        .ReadFromJsonAsync<CommunityConfigDetailsResponse>();
+
+                return (
+                    payload?.Config != null,
+                    payload?.Config,
+                    payload?.Config != null
+                        ? "Config baixada."
+                        : "Resposta inválida do servidor."
+                );
+            }
+            catch
+            {
+                return (
+                    false,
+                    null,
+                    "Não foi possível baixar esta config."
+                );
+            }
+        }
+
+        public static async Task<(bool Success, string Message)>
+            PublishCommunityConfigAsync(
+                string title,
+                string description,
+                string configJson)
+        {
+            if (string.IsNullOrWhiteSpace(
+                    Token))
+            {
+                return (
+                    false,
+                    "Faça login novamente."
+                );
+            }
+
+            try
+            {
+                using var request =
+                    CreateClientRequest(
+                        HttpMethod.Post,
+                        "api/client/community-configs");
+
+                request.Content =
+                    JsonContent.Create(
+                        new
+                        {
+                            title,
+                            description,
+                            configJson
+                        });
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ApiError? error =
+                        await response.Content
+                            .ReadFromJsonAsync<ApiError>();
+
+                    return (
+                        false,
+                        error?.Message ??
+                        "Não foi possível compartilhar esta config."
+                    );
+                }
+
+                return (
+                    true,
+                    "Config compartilhada com a comunidade."
+                );
+            }
+            catch
+            {
+                return (
+                    false,
+                    "Não foi possível compartilhar esta config."
+                );
+            }
+        }
+
         public static void Clear()
         {
             Token =
@@ -299,6 +507,42 @@ namespace Mac1ota_Menu.Classes
                 "maintenance";
 
             public string Message { get; set; } =
+                string.Empty;
+        }
+
+        internal sealed class CommunityConfigListResponse
+        {
+            public List<CommunityConfigSummary> Configs { get; set; } =
+                new();
+        }
+
+        internal sealed class CommunityConfigDetailsResponse
+        {
+            public CommunityConfigDetails? Config { get; set; }
+        }
+
+        internal sealed class CommunityConfigSummary
+        {
+            public long Id { get; set; }
+
+            public string Title { get; set; } =
+                string.Empty;
+
+            public string Description { get; set; } =
+                string.Empty;
+
+            public string Author { get; set; } =
+                string.Empty;
+
+            public long Downloads { get; set; }
+
+            public DateTime CreatedAt { get; set; }
+        }
+
+        internal sealed class CommunityConfigDetails :
+            CommunityConfigSummary
+        {
+            public string ConfigJson { get; set; } =
                 string.Empty;
         }
 
