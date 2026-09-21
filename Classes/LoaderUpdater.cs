@@ -27,6 +27,8 @@ namespace Mac1ota_Menu.Classes
 
         public static LoaderReleaseInfo? Latest { get; private set; }
 
+        public static bool LastCheckSucceeded { get; private set; }
+
         public static string InstalledVersion
         {
             get
@@ -91,10 +93,25 @@ namespace Mac1ota_Menu.Classes
                     await Http.SendAsync(
                         request);
 
+                if (response.StatusCode ==
+                    HttpStatusCode.NoContent)
+                {
+                    Latest =
+                        null;
+
+                    LastCheckSucceeded =
+                        true;
+
+                    return null;
+                }
+
                 if (!response.IsSuccessStatusCode)
                 {
                     Latest =
                         null;
+
+                    LastCheckSucceeded =
+                        false;
 
                     return null;
                 }
@@ -103,12 +120,18 @@ namespace Mac1ota_Menu.Classes
                     await response.Content
                         .ReadFromJsonAsync<LoaderReleaseInfo>();
 
+                LastCheckSucceeded =
+                    Latest != null;
+
                 return Latest;
             }
             catch
             {
                 Latest =
                     null;
+
+                LastCheckSucceeded =
+                    false;
 
                 return null;
             }
@@ -126,6 +149,18 @@ namespace Mac1ota_Menu.Classes
 
             if (latest == null)
             {
+                if (LastCheckSucceeded)
+                {
+                    status?.Invoke(
+                        "Nenhuma atualização publicada no momento.");
+
+                    return (
+                        true,
+                        false,
+                        "Nenhuma atualização publicada no momento."
+                    );
+                }
+
                 return (
                     false,
                     false,
@@ -175,9 +210,11 @@ namespace Mac1ota_Menu.Classes
             if (latest == null)
             {
                 return (
-                    true,
+                    LastCheckSucceeded,
                     false,
-                    "Não foi possível consultar atualizações."
+                    LastCheckSucceeded
+                        ? "Nenhuma atualização publicada no momento."
+                        : "Não foi possível consultar atualizações."
                 );
             }
 
