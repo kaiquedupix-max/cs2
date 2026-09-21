@@ -396,7 +396,7 @@ async function activeProductAccess(userId) {
 async function activeLoaderReleaseMeta() {
   if (!pool) return null;
 
-  const result = await pool.query(
+  const active = await pool.query(
     `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
      FROM loader_releases
      WHERE is_active = TRUE
@@ -404,7 +404,29 @@ async function activeLoaderReleaseMeta() {
      LIMIT 1`
   );
 
-  return result.rows[0] || null;
+  if (active.rows[0]) {
+    return active.rows[0];
+  }
+
+  const latest = await pool.query(
+    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
+     FROM loader_releases
+     ORDER BY uploaded_at DESC
+     LIMIT 1`
+  );
+
+  const release = latest.rows[0] || null;
+  if (!release) {
+    return null;
+  }
+
+  await pool.query(
+    `UPDATE loader_releases
+     SET is_active = (id = $1)`,
+    [release.id]
+  );
+
+  return release;
 }
 
 async function nextLoaderVersion() {
@@ -623,10 +645,7 @@ app.get("/api/loader/latest", async (_req, res) => {
     const release = await activeLoaderReleaseMeta();
 
     if (!release) {
-      return res.status(404).json({
-        error: "release_unavailable",
-        message: "Nenhuma versão publicada.",
-      });
+      return res.status(204).end();
     }
 
     res.json({
