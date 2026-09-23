@@ -146,6 +146,33 @@ async function requireUser(req, res, next) {
   next();
 }
 
+async function optionalUser(req, res, next) {
+  const session = verifySession(req.cookies?.[USER_COOKIE]);
+
+  if (!session?.userId || session?.kind !== "web" || !pool) {
+    return next();
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT disabled_at FROM users WHERE id = $1 LIMIT 1",
+      [Number(session.userId)]
+    );
+
+    const user = result.rows[0];
+    if (!user || user.disabled_at) {
+      res.clearCookie(USER_COOKIE);
+      return next();
+    }
+
+    req.userId = Number(session.userId);
+  } catch {
+    // Configuração pública do checkout continua disponível mesmo se a sessão não puder ser validada.
+  }
+
+  next();
+}
+
 async function requireClient(req, res, next) {
   const header = String(req.headers.authorization || "");
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
@@ -1407,6 +1434,7 @@ app.post("/api/admin/status", requireAdmin, async (req, res) => {
 registerCheckoutRoutes(app, {
   pool,
   requireUser,
+  optionalUser,
   accountSnapshot,
   productCode: PRODUCT_CODE,
 });
