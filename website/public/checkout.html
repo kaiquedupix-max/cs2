@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050907">
   <title>Checkout · legitbaratinho.xyz</title>
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
-  <link rel="stylesheet" href="/styles.css?v=20260923-mercadopago">
+  <link rel="stylesheet" href="/styles.css?v=20260923-guest-checkout">
 </head>
 <body class="account-body checkout-body">
   <div class="noise"></div>
@@ -26,7 +26,7 @@
     <section class="checkout-heading">
       <div class="eyebrow">CHECKOUT SEGURO</div>
       <h1>Finalize sua compra.</h1>
-      <p>Checkout direto e simples: informe somente nome completo, CPF e e-mail. O pagamento é processado pelo Mercado Pago e os dados do cartão não são armazenados no nosso servidor.</p>
+      <p>Escolha o plano, informe nome, CPF e e-mail e crie sua conta no mesmo checkout. Após a aprovação, sua assinatura é ativada e você já continua logado.</p>
     </section>
 
     <div class="checkout-layout">
@@ -59,9 +59,51 @@
           </div>
         </section>
 
-        <section>
+        <section id="checkoutAccountSection">
           <div class="checkout-section-title">
             <span>03</span>
+            <div><small>SUA CONTA</small><h2>Crie ou entre sem sair da compra</h2></div>
+          </div>
+
+          <div id="checkoutAccountLogged" class="checkout-account-logged hidden">
+            <span>✓</span>
+            <div>
+              <strong>Conta conectada</strong>
+              <small id="checkoutAccountLoggedText">Sua compra será vinculada a esta conta.</small>
+            </div>
+          </div>
+
+          <div id="checkoutAccountGuest" class="checkout-account-box">
+            <div class="checkout-account-tabs">
+              <button id="accountCreateTab" class="active" type="button">Criar conta</button>
+              <button id="accountLoginTab" type="button">Já tenho conta</button>
+            </div>
+
+            <div id="accountCreateFields" class="checkout-fields checkout-account-fields">
+              <label>Usuário
+                <input id="checkoutUsername" autocomplete="username" maxlength="28" placeholder="seu_usuario">
+              </label>
+              <label>Senha
+                <input id="checkoutPassword" type="password" autocomplete="new-password" maxlength="128" placeholder="Mínimo 8 caracteres">
+              </label>
+              <p class="checkout-account-note wide">O e-mail informado acima será usado na sua conta. Ela será criada automaticamente antes do pagamento.</p>
+            </div>
+
+            <div id="accountLoginFields" class="checkout-fields checkout-account-fields hidden">
+              <label>Usuário ou e-mail
+                <input id="checkoutLoginIdentifier" autocomplete="username" maxlength="160" placeholder="Seu usuário ou e-mail">
+              </label>
+              <label>Senha
+                <input id="checkoutLoginPassword" type="password" autocomplete="current-password" maxlength="128" placeholder="Sua senha">
+              </label>
+              <p class="checkout-account-note wide">Entre aqui e continue o pagamento sem sair desta página.</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="checkout-section-title">
+            <span>04</span>
             <div><small>FORMA DE PAGAMENTO</small><h2>Como deseja pagar?</h2></div>
           </div>
 
@@ -82,7 +124,7 @@
           <div id="paymentApproved" class="payment-approved hidden">
             <div class="payment-approved-icon">✓</div>
             <strong>Pagamento aprovado</strong>
-            <p>Seu acesso foi ativado automaticamente.</p>
+            <p>Sua assinatura está ativa e sua conta já está conectada.</p>
             <a class="button button-primary" href="/account">Ir para minha conta</a>
           </div>
 
@@ -111,7 +153,7 @@
 
   <script src="https://sdk.mercadopago.com/js/v2"></script>
   <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
-  <script src="/checkout.js?v=20260923-checkout-clean"></script>
+  <script src="/checkout.js?v=20260923-guest-checkout"></script>
   <script src="/support.js?v=20260923-support"></script>
 </body>
 </html>
