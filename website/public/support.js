@@ -96,6 +96,7 @@
   let contactSaved = false;
   let contactData = { email: "", whatsapp: "" };
   let lastAdminMessageId = null;
+  let editingContact = false;
   let audioContext = null;
   let soundEnabled = localStorage.getItem("lb_support_sound") !== "off";
 
@@ -259,8 +260,8 @@
     const ready = Boolean(contactData.email && contactData.whatsapp);
     contactSaved = ready;
 
-    contactForm.classList.toggle("hidden", ready);
-    contactSavedBox.classList.toggle("hidden", !ready);
+    contactForm.classList.toggle("hidden", ready && !editingContact);
+    contactSavedBox.classList.toggle("hidden", !ready || editingContact);
     intro.classList.toggle("support-locked", !ready);
     messagesBox.classList.toggle("support-locked", !ready);
     form.classList.toggle("support-locked", !ready);
@@ -350,10 +351,12 @@
       const data = await api("/api/support/messages");
       const contact = data.conversation?.contact || {};
 
-      contactData = {
-        email: contact.email || "",
-        whatsapp: contact.whatsapp || "",
-      };
+      if (!editingContact) {
+        contactData = {
+          email: contact.email || "",
+          whatsapp: contact.whatsapp || "",
+        };
+      }
 
       renderContactState();
       renderMessages(data.messages || []);
@@ -387,6 +390,7 @@
         email: data.contact?.email || email,
         whatsapp: data.contact?.whatsapp || whatsapp,
       };
+      editingContact = false;
 
       localStorage.setItem("lb_support_email", contactData.email);
       localStorage.setItem("lb_support_whatsapp", formatWhatsapp(contactData.whatsapp));
@@ -408,9 +412,9 @@
   });
 
   contactEdit.addEventListener("click", () => {
+    editingContact = true;
     contactEmail.value = contactData.email || "";
     contactWhatsapp.value = formatWhatsapp(contactData.whatsapp || "");
-    contactData = { email: "", whatsapp: "" };
     renderContactState();
     contactEmail.focus();
   });
