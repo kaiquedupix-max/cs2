@@ -43,17 +43,7 @@ function buyerPayload() {
     fullName: document.getElementById("buyerName").value,
     cpf: document.getElementById("buyerCpf").value,
     email: document.getElementById("buyerEmail").value,
-    phone: "00000000000",
-    processNumber: "N/A",
     fingerprint: browserFingerprint(),
-    address: {
-      street: "NA",
-      number: "0",
-      complement: "",
-      city: "NA",
-      state: "NA",
-      zipcode: "00000000",
-    },
   };
 }
 
