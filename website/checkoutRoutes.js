@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import {
   checkoutConfig,
+  checkoutPlan,
   createPayment,
   digitsOnly,
   normalizePhone,
@@ -138,16 +139,17 @@ export function registerCheckoutRoutes(app, deps) {
     );
   }
 
-  async function createIntent({ userId, idempotencyKey, method, buyer, installments = 1, card = null }) {
+  async function createIntent({ userId, idempotencyKey, method, buyer, plan, installments = 1, card = null }) {
     await saveProfile(userId, buyer);
 
     const result = await pool.query(
       `INSERT INTO checkout_payments(
          user_id, provider, idempotency_key, payment_method, status, installments,
          buyer_name, buyer_cpf, buyer_email, buyer_phone, process_number,
-         card_holder_name, card_last4, card_expiry
+         card_holder_name, card_last4, card_expiry,
+         plan_key, plan_name, plan_days, plan_lifetime, offer_id, expected_amount
        )
-       VALUES ($1,'cakto',$2,$3,'creating',$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       VALUES ($1,'cakto',$2,$3,'creating',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
        ON CONFLICT (idempotency_key)
        DO UPDATE SET updated_at = NOW()
        RETURNING id`,
@@ -164,6 +166,12 @@ export function registerCheckoutRoutes(app, deps) {
         card?.holderName || null,
         card?.last4 || null,
         card?.expiry || null,
+        plan.key,
+        plan.name,
+        plan.days,
+        Boolean(plan.lifetime),
+        plan.offerId,
+        Number(plan.priceCents || 0) / 100,
       ]
     );
 
@@ -206,7 +214,7 @@ export function registerCheckoutRoutes(app, deps) {
       await client.query("BEGIN");
 
       const result = await client.query(
-        `SELECT user_id, access_granted_at
+        `SELECT user_id, access_granted_at, plan_key, plan_name, plan_days, plan_lifetime
          FROM checkout_payments
          WHERE id = $1
          FOR UPDATE`,
@@ -220,18 +228,35 @@ export function registerCheckoutRoutes(app, deps) {
       }
 
       if (!payment.access_granted_at) {
-        const config = checkoutConfig();
+        const fallback = checkoutPlan("d30");
+        const planName = String(payment.plan_name || fallback?.name || "1 mês");
+        const planDays = Math.max(1, Number(payment.plan_days || fallback?.days || 30));
+        const lifetime = Boolean(payment.plan_lifetime) || planName.toLowerCase() === "lifetime";
 
         await client.query(
           `INSERT INTO user_products(user_id, product_code, plan, purchased_at, expires_at, revoked_at)
-           VALUES ($1,$2,$3,NOW(),NOW() + ($4 || ' days')::interval,NULL)
+           VALUES (
+             $1,$2,$3,NOW(),
+             CASE WHEN $5::boolean THEN TIMESTAMPTZ '9999-12-31 23:59:59+00'
+                  ELSE NOW() + ($4 || ' days')::interval END,
+             NULL
+           )
            ON CONFLICT (user_id, product_code)
            DO UPDATE SET
-             plan = EXCLUDED.plan,
+             plan = CASE
+               WHEN user_products.expires_at >= TIMESTAMPTZ '9999-01-01 00:00:00+00' THEN user_products.plan
+               ELSE EXCLUDED.plan
+             END,
              purchased_at = NOW(),
-             expires_at = GREATEST(user_products.expires_at, NOW()) + ($4 || ' days')::interval,
+             expires_at = CASE
+               WHEN user_products.expires_at >= TIMESTAMPTZ '9999-01-01 00:00:00+00'
+                 THEN user_products.expires_at
+               WHEN $5::boolean
+                 THEN TIMESTAMPTZ '9999-12-31 23:59:59+00'
+               ELSE GREATEST(user_products.expires_at, NOW()) + ($4 || ' days')::interval
+             END,
              revoked_at = NULL`,
-          [Number(payment.user_id), productCode, config.planName, String(config.planDays)]
+          [Number(payment.user_id), productCode, planName, String(planDays), lifetime]
         );
       }
 
@@ -333,11 +358,14 @@ export function registerCheckoutRoutes(app, deps) {
     res.json({
       configured: config.configured,
       sdkClientId: config.sdkClientId,
-      plan: {
-        name: config.planName,
-        days: config.planDays,
-        priceCents: config.priceCents,
-      },
+      plans: config.plans.map(({ key, name, days, lifetime, priceCents, available }) => ({
+        key,
+        name,
+        days,
+        lifetime: Boolean(lifetime),
+        priceCents,
+        available,
+      })),
       profile: {
         fullName: row.full_name || "",
         cpf: row.cpf || "",
@@ -358,8 +386,9 @@ export function registerCheckoutRoutes(app, deps) {
 
   app.post("/api/checkout/pix", requireUser, async (req, res) => {
     const config = checkoutConfig();
+    const plan = checkoutPlan(req.body?.planKey);
 
-    if (!config.configured) {
+    if (!config.configured || !plan?.available) {
       return res.status(503).json({
         error: "checkout_not_configured",
         message: "Checkout ainda não configurado.",
@@ -382,6 +411,7 @@ export function registerCheckoutRoutes(app, deps) {
         idempotencyKey,
         method: "pix",
         buyer,
+        plan,
       });
 
       const payment = await createPayment(
@@ -393,7 +423,7 @@ export function registerCheckoutRoutes(app, deps) {
               .split(",")[0]
               .trim(),
           },
-          items: [{ offerId: config.offerId }],
+          items: [{ offerId: plan.offerId }],
           pixExpiresIn: config.pixExpiresIn,
         },
         idempotencyKey
@@ -432,8 +462,9 @@ export function registerCheckoutRoutes(app, deps) {
 
   app.post("/api/checkout/card", requireUser, async (req, res) => {
     const config = checkoutConfig();
+    const plan = checkoutPlan(req.body?.planKey);
 
-    if (!config.configured) {
+    if (!config.configured || !plan?.available) {
       return res.status(503).json({
         error: "checkout_not_configured",
         message: "Checkout ainda não configurado.",
@@ -494,6 +525,7 @@ export function registerCheckoutRoutes(app, deps) {
         idempotencyKey,
         method: "threeDs",
         buyer,
+        plan,
         installments,
         card: {
           holderName,
@@ -512,7 +544,7 @@ export function registerCheckoutRoutes(app, deps) {
               .split(",")[0]
               .trim(),
           },
-          items: [{ offerId: config.offerId }],
+          items: [{ offerId: plan.offerId }],
           address: buyer.providerAddress,
           card: { token: cardToken },
           threeDSecure,
@@ -557,7 +589,8 @@ export function registerCheckoutRoutes(app, deps) {
     const result = await pool.query(
       `SELECT
          id, payment_method, status, amount, provider_ref_id,
-         pix_expires_at, paid_at, card_brand, card_last4
+         pix_expires_at, paid_at, card_brand, card_last4,
+         plan_key, plan_name, plan_days, plan_lifetime
        FROM checkout_payments
        WHERE id = $1 AND user_id = $2
        LIMIT 1`,
@@ -581,6 +614,12 @@ export function registerCheckoutRoutes(app, deps) {
         paidAt: payment.paid_at,
         cardBrand: payment.card_brand,
         cardLast4: payment.card_last4,
+        plan: {
+          key: payment.plan_key,
+          name: payment.plan_name,
+          days: payment.plan_days,
+          lifetime: Boolean(payment.plan_lifetime),
+        },
       },
       account: payment.status === "paid" ? await accountSnapshot(req.userId) : null,
     });
