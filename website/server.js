@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
 import pg from "pg";
 import { registerCheckoutRoutes } from "./checkoutRoutes.js";
+import { registerSupportRoutes } from "./supportRoutes.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -265,6 +266,23 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS support_conversations (
+      id BIGSERIAL PRIMARY KEY,
+      session_hash TEXT UNIQUE NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_message_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS support_messages (
+      id BIGSERIAL PRIMARY KEY,
+      conversation_id BIGINT NOT NULL REFERENCES support_conversations(id) ON DELETE CASCADE,
+      sender TEXT NOT NULL CHECK (sender IN ('visitor', 'admin')),
+      body TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      read_at TIMESTAMPTZ NULL
+    );
+
     CREATE TABLE IF NOT EXISTS customer_profiles (
       user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       full_name TEXT NOT NULL,
@@ -334,6 +352,12 @@ async function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_community_configs_created
       ON community_configs(created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_support_conversations_last_message
+      ON support_conversations(last_message_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_support_messages_conversation
+      ON support_messages(conversation_id, id ASC);
 
     CREATE INDEX IF NOT EXISTS idx_loader_releases_active
       ON loader_releases(is_active, uploaded_at DESC);
@@ -1385,6 +1409,11 @@ registerCheckoutRoutes(app, {
   requireUser,
   accountSnapshot,
   productCode: PRODUCT_CODE,
+});
+
+registerSupportRoutes(app, {
+  pool,
+  requireAdmin,
 });
 
 app.get("/admin", (_req, res) => {
