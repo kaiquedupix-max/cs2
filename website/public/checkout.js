@@ -10,6 +10,7 @@ let checkoutConfig = null;
 let cardIntent = crypto.randomUUID();
 let pixIntent = crypto.randomUUID();
 let pixPollTimer = null;
+let selectedPlanKey = new URLSearchParams(location.search).get("plan") || "d30";
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -63,6 +64,76 @@ function buyerPayload() {
 function setMessage(text, kind = "") {
   message.textContent = text;
   message.className = "form-message" + (kind ? " " + kind : "");
+}
+
+function money(cents) {
+  return (Number(cents || 0) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function selectedPlan() {
+  return checkoutConfig?.plans?.find((plan) => plan.key === selectedPlanKey) || null;
+}
+
+function updatePlanSummary() {
+  const plan = selectedPlan();
+  if (!plan) return;
+
+  document.getElementById("summaryPlan").textContent = plan.name;
+  document.getElementById("summaryDays").textContent = plan.lifetime
+    ? "Acesso permanente"
+    : plan.days + " dias";
+  document.getElementById("summaryPrice").textContent = money(plan.priceCents);
+}
+
+function choosePlan(key) {
+  const plan = checkoutConfig?.plans?.find((item) => item.key === key);
+  if (!plan || !plan.available) return;
+
+  selectedPlanKey = plan.key;
+  cardIntent = crypto.randomUUID();
+  pixIntent = crypto.randomUUID();
+
+  document.querySelectorAll("[data-plan-key]").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.planKey === selectedPlanKey);
+  });
+
+  updatePlanSummary();
+
+  const url = new URL(location.href);
+  url.searchParams.set("plan", selectedPlanKey);
+  history.replaceState(null, "", url);
+}
+
+function renderPlans() {
+  const grid = document.getElementById("planGrid");
+  if (!grid) return;
+
+  const plans = checkoutConfig?.plans || [];
+  const requested = plans.find((plan) => plan.key === selectedPlanKey && plan.available);
+  const fallback = plans.find((plan) => plan.key === "d30" && plan.available) || plans.find((plan) => plan.available);
+  selectedPlanKey = (requested || fallback || plans[0] || {}).key || "d30";
+
+  grid.innerHTML = plans.map((plan) => `
+    <button
+      type="button"
+      class="checkout-plan-card ${plan.key === selectedPlanKey ? "selected" : ""} ${plan.available ? "" : "unavailable"}"
+      data-plan-key="${plan.key}"
+      ${plan.available ? "" : "disabled"}
+    >
+      <span>${plan.name}</span>
+      <strong>${money(plan.priceCents)}</strong>
+      <small>${plan.lifetime ? "Pague uma vez" : plan.days + " dias de acesso"}${plan.available ? "" : " · configurar oferta"}</small>
+    </button>
+  `).join("");
+
+  grid.querySelectorAll("[data-plan-key]").forEach((button) => {
+    button.addEventListener("click", () => choosePlan(button.dataset.planKey));
+  });
+
+  updatePlanSummary();
 }
 
 function setMethod(method) {
@@ -146,8 +217,9 @@ checkoutForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (!caktoSdk || !checkoutConfig?.configured) {
-    setMessage("Checkout da Cakto ainda não configurado.", "error");
+  const plan = selectedPlan();
+  if (!caktoSdk || !checkoutConfig?.configured || !plan?.available) {
+    setMessage("Este plano ainda não está configurado para pagamento.", "error");
     return;
   }
 
@@ -179,7 +251,7 @@ checkoutForm.addEventListener("submit", async (event) => {
     const authResult = await caktoSdk.authenticate3DS({
       card,
       customer: {
-        amount: checkoutConfig.plan.priceCents,
+        amount: plan.priceCents,
         currency: "BRL",
         email: buyer.email,
         name: card.holderName,
@@ -205,6 +277,7 @@ checkoutForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         ...buyer,
         idempotencyKey: cardIntent,
+        planKey: plan.key,
         cardToken: tokenized.cardToken,
         threeDSecure: {
           cavv: authResult.cavv || "",
@@ -259,8 +332,9 @@ document.getElementById("generatePixBtn").addEventListener("click", async () => 
     return;
   }
 
-  if (!checkoutConfig?.configured) {
-    setMessage("Checkout da Cakto ainda não configurado.", "error");
+  const plan = selectedPlan();
+  if (!checkoutConfig?.configured || !plan?.available) {
+    setMessage("Este plano ainda não está configurado para pagamento.", "error");
     return;
   }
 
@@ -275,6 +349,7 @@ document.getElementById("generatePixBtn").addEventListener("click", async () => 
       body: JSON.stringify({
         ...buyerPayload(),
         idempotencyKey: pixIntent,
+        planKey: plan.key,
       }),
     });
 
@@ -359,11 +434,7 @@ async function boot() {
   try {
     checkoutConfig = await api("/api/checkout/config");
 
-    document.getElementById("summaryPlan").textContent = checkoutConfig.plan.name;
-    document.getElementById("summaryDays").textContent = checkoutConfig.plan.days + " dias";
-    document.getElementById("summaryPrice").textContent = checkoutConfig.plan.priceCents
-      ? (checkoutConfig.plan.priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-      : "—";
+    renderPlans();
 
     const profile = checkoutConfig.profile || {};
     document.getElementById("buyerName").value = profile.fullName || "";
@@ -381,7 +452,7 @@ async function boot() {
     document.getElementById("billingZip").value = address.zipcode || "";
 
     if (!checkoutConfig.configured) {
-      setMessage("Adicione as variáveis da Cakto no Railway para habilitar cobranças reais.", "error");
+      setMessage("Configure pelo menos uma oferta da Cakto para habilitar cobranças reais.", "error");
       return;
     }
 
