@@ -136,3 +136,47 @@
 .checkout-account-logged>div{display:grid;gap:4px}.checkout-account-logged strong{font-size:12px;color:#dff7ee}.checkout-account-logged small{font-size:9px;color:#739087;line-height:1.45}
 .checkout-flow-note{border:1px solid #1e4f3d;background:#0a1d16;border-radius:10px;padding:12px;color:#7f9a90;font-size:9px;line-height:1.5}
 @media(max-width:620px){.checkout-account-tabs{grid-template-columns:1fr}.checkout-account-fields{grid-template-columns:1fr}}
+
+
+/* Support chat v2: contact, sounds and receipts */
+.support-head-actions{display:flex;align-items:center;gap:7px}
+.support-sound-toggle{border:0;background:#ffffff0b;color:#c8d6d0;width:34px;height:31px;border-radius:9px;font-size:15px;cursor:pointer;display:grid;place-items:center}
+.support-sound-toggle:hover,.support-close:hover{background:#ffffff13}
+.support-contact-card{padding:12px 14px 0}
+.support-contact-form{display:grid;grid-template-columns:1fr 1fr;gap:9px;border:1px solid #1c4335;background:linear-gradient(145deg,#0b1c16,#08110e);border-radius:12px;padding:13px}
+.support-contact-form>div,.support-contact-form>button,.support-contact-form>small{grid-column:1/-1}
+.support-contact-form>div{display:grid;gap:4px}
+.support-contact-form>div strong{font-size:12px;color:#e1ece7}
+.support-contact-form>div p{margin:0;color:#71877e;font-size:9px;line-height:1.5}
+.support-contact-form label{display:grid;gap:5px;color:#748a81;font-size:8px;font-weight:800}
+.support-contact-form input{width:100%;min-width:0;border:1px solid #1b3b30;background:#050a08;color:#eef7f3;border-radius:8px;padding:10px;outline:none;font:10px inherit}
+.support-contact-form input:focus{border-color:#2bc999;box-shadow:0 0 0 3px #20c99110}
+.support-contact-form>button{border:0;border-radius:9px;background:linear-gradient(135deg,#31e6ad,#11ba89);color:#03110c;padding:10px 12px;font:inherit;font-size:10px;font-weight:900;cursor:pointer}
+.support-contact-form>button:disabled{opacity:.5;cursor:not-allowed}
+.support-contact-form>small{color:#50675e;font-size:7.5px;line-height:1.45}
+.support-contact-error{grid-column:1/-1;color:#ff7e87;font-size:9px;text-align:center;padding-top:2px}
+.support-contact-saved{border:1px solid #1d4d3b;background:#0a1e17;border-radius:10px;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:9px}
+.support-contact-saved>div{display:flex;align-items:center;gap:8px;min-width:0}
+.support-contact-saved>div>span{width:25px;height:25px;flex:0 0 25px;border-radius:50%;display:grid;place-items:center;background:#2ee0aa;color:#03110c;font-size:11px;font-weight:1000}
+.support-contact-saved p{display:grid;gap:2px;margin:0;min-width:0}
+.support-contact-saved strong{font-size:9px;color:#dce9e4}
+.support-contact-saved small{font-size:7.5px;color:#617970;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+.support-contact-edit{border:1px solid #235541;background:#0b2119;color:#43e4b1;border-radius:7px;padding:6px 8px;font:inherit;font-size:8px;font-weight:800;cursor:pointer}
+.support-locked{opacity:.35;pointer-events:none;filter:saturate(.5)}
+.support-message small.read,.admin-support-message small.read{color:#63f0bf;opacity:.95}
+.support-message.visitor small.read{color:#06402d}
+.support-footer-status{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}
+.admin-support-actions{display:flex;align-items:center;gap:7px}
+.admin-support-chat-identity{display:grid;gap:3px;min-width:0}
+.admin-support-contact-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
+.admin-support-contact-link{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;color:#9eb1aa;border:1px solid #1d4537;background:#091712;border-radius:7px;padding:5px 7px;font-size:8px;transition:.2s}
+.admin-support-contact-link:hover{border-color:#2d8766;color:#4be7b6}
+.admin-support-contact-link.whatsapp{color:#4be7b6}
+.admin-support-contact-link.disabled{opacity:.4;pointer-events:none}
+.support-conversation-contact{display:block;color:#4f6b61;font-size:7.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-support-chat-head{height:auto;min-height:72px;padding-top:9px;padding-bottom:9px}
+@media(max-width:520px){
+  .support-contact-form{grid-template-columns:1fr}
+  .support-contact-form>div,.support-contact-form>button,.support-contact-form>small{grid-column:auto}
+  .support-contact-saved small{max-width:180px}
+}
