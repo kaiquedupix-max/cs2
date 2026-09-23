@@ -270,6 +270,32 @@ async function initDb() {
       UNIQUE(user_id, product_code)
     );
 
+    CREATE TABLE IF NOT EXISTS free_trial_claims (
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      expires_at TIMESTAMPTZ NOT NULL,
+      activated_device_hash TEXT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS device_bindings (
+      hwid_hash TEXT PRIMARY KEY,
+      first_user_id BIGINT NOT NULL,
+      first_bound_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_device_bindings_first_user
+      ON device_bindings(first_user_id);
+
+    INSERT INTO device_bindings(hwid_hash, first_user_id, first_bound_at)
+    SELECT DISTINCT ON (hwid_hash)
+      hwid_hash,
+      id,
+      created_at
+    FROM users
+    WHERE hwid_hash IS NOT NULL
+    ORDER BY hwid_hash, created_at ASC, id ASC
+    ON CONFLICT (hwid_hash) DO NOTHING;
+
     CREATE TABLE IF NOT EXISTS loader_releases (
       id BIGSERIAL PRIMARY KEY,
       version TEXT NOT NULL,
@@ -546,10 +572,21 @@ async function accountSnapshot(userId) {
     [userId, PRODUCT_CODE]
   );
 
+  const trialResult = await pool.query(
+    `SELECT claimed_at, expires_at, activated_device_hash
+     FROM free_trial_claims
+     WHERE user_id = $1
+     LIMIT 1`,
+    [userId]
+  );
+
   const row = productResult.rows[0] || null;
+  const trial = trialResult.rows[0] || null;
   const now = Date.now();
   const expires = row?.expires_at ? new Date(row.expires_at).getTime() : 0;
-  const lifetime = String(row?.plan || "").toLowerCase() === "lifetime";
+  const normalizedPlan = String(row?.plan || "").toLowerCase();
+  const lifetime = normalizedPlan === "lifetime";
+  const isFreeTrial = normalizedPlan === "free";
   const hasAccess = Boolean(row) && !row.revoked_at && (lifetime || expires > now);
   const daysRemaining = hasAccess && !lifetime
     ? Math.max(1, Math.ceil((expires - now) / 86400000))
@@ -567,10 +604,21 @@ async function accountSnapshot(userId) {
       name: "Counter-Strike 2",
       hasAccess,
       plan: hasAccess ? row.plan : null,
+      planLabel: hasAccess
+        ? (isFreeTrial ? "Teste grátis" : row.plan)
+        : null,
       purchasedAt: row?.purchased_at || null,
       expiresAt: lifetime ? null : (row?.expires_at || null),
       daysRemaining,
       lifetime,
+      isFreeTrial: hasAccess && isFreeTrial,
+    },
+    trial: {
+      eligible: !trial && !hasAccess,
+      claimed: Boolean(trial),
+      claimedAt: trial?.claimed_at || null,
+      expiresAt: trial?.expires_at || null,
+      deviceActivated: Boolean(trial?.activated_device_hash),
     },
     status: await productStatus(),
   };
@@ -699,6 +747,107 @@ app.get("/api/account/me", requireUser, async (req, res) => {
   const snapshot = await accountSnapshot(req.userId);
   if (!snapshot) return res.status(401).json({ error: "account_unavailable" });
   res.json(snapshot);
+});
+
+app.post("/api/account/free-trial", requireUser, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const userResult = await client.query(
+      `SELECT id, disabled_at
+       FROM users
+       WHERE id = $1
+       FOR UPDATE`,
+      [req.userId]
+    );
+
+    const user = userResult.rows[0];
+    if (!user || user.disabled_at) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({
+        error: "account_unavailable",
+        message: "Esta conta não está disponível.",
+      });
+    }
+
+    const currentResult = await client.query(
+      `SELECT plan, expires_at, revoked_at
+       FROM user_products
+       WHERE user_id = $1 AND product_code = $2
+       FOR UPDATE`,
+      [req.userId, PRODUCT_CODE]
+    );
+
+    const current = currentResult.rows[0] || null;
+    const currentPlan = String(current?.plan || "").toLowerCase();
+    const currentExpires = current?.expires_at
+      ? new Date(current.expires_at).getTime()
+      : 0;
+    const currentActive = Boolean(current) &&
+      !current.revoked_at &&
+      (currentPlan === "lifetime" || currentExpires > Date.now());
+
+    if (currentActive) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({
+        error: "access_already_active",
+        message: "Você já possui um acesso ativo.",
+      });
+    }
+
+    const claimResult = await client.query(
+      `INSERT INTO free_trial_claims(user_id, claimed_at, expires_at)
+       VALUES ($1, NOW(), NOW() + INTERVAL '1 day')
+       ON CONFLICT (user_id) DO NOTHING
+       RETURNING expires_at`,
+      [req.userId]
+    );
+
+    const claim = claimResult.rows[0];
+    if (!claim) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({
+        error: "free_trial_already_used",
+        message: "Esta conta já utilizou o teste grátis de 1 dia.",
+      });
+    }
+
+    await client.query(
+      `INSERT INTO user_products(user_id, product_code, plan, purchased_at, expires_at, revoked_at)
+       VALUES ($1, $2, 'free', NOW(), $3, NULL)
+       ON CONFLICT (user_id, product_code)
+       DO UPDATE SET
+         plan = 'free',
+         purchased_at = NOW(),
+         expires_at = EXCLUDED.expires_at,
+         revoked_at = NULL`,
+      [req.userId, PRODUCT_CODE, claim.expires_at]
+    );
+
+    await client.query("COMMIT");
+
+    res.status(201).json({
+      ok: true,
+      account: await accountSnapshot(req.userId),
+    });
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+    }
+
+    console.error("Falha ao ativar teste grátis:", error);
+    res.status(500).json({
+      error: "free_trial_failed",
+      message: "Não foi possível ativar o teste grátis agora.",
+    });
+  } finally {
+    client.release();
+  }
 });
 
 app.get("/api/loader/latest", async (_req, res) => {
@@ -854,7 +1003,7 @@ app.post("/api/client/login", async (req, res) => {
   }
 
   const result = await pool.query(
-    `SELECT id, password_hash, disabled_at, hwid_hash
+    `SELECT id, password_hash, disabled_at
      FROM users
      WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1)
      LIMIT 1`,
@@ -877,19 +1026,136 @@ app.post("/api/client/login", async (req, res) => {
   }
 
   const hwidHash = sha256(hwid);
+  const client = await pool.connect();
 
-  if (user.hwid_hash && !safeEqual(user.hwid_hash, hwidHash)) {
-    return res.status(403).json({
-      error: "hwid_mismatch",
-      message: "Esta conta já está vinculada a outro computador. Solicite um reset de HWID.",
-    });
-  }
+  try {
+    await client.query("BEGIN");
 
-  if (!user.hwid_hash) {
-    await pool.query(
-      "UPDATE users SET hwid_hash = $1 WHERE id = $2 AND hwid_hash IS NULL",
+    const lockedUserResult = await client.query(
+      `SELECT id, disabled_at, hwid_hash
+       FROM users
+       WHERE id = $1
+       FOR UPDATE`,
+      [user.id]
+    );
+
+    const lockedUser = lockedUserResult.rows[0];
+    if (!lockedUser || lockedUser.disabled_at) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({
+        error: "account_banned",
+        message: "Sua conta está bloqueada. Entre em contato com o suporte.",
+      });
+    }
+
+    if (lockedUser.hwid_hash && !safeEqual(lockedUser.hwid_hash, hwidHash)) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({
+        error: "hwid_mismatch",
+        message: "Esta conta já está vinculada a outro computador. Solicite um reset de HWID.",
+      });
+    }
+
+    const productResult = await client.query(
+      `SELECT plan, expires_at, revoked_at
+       FROM user_products
+       WHERE user_id = $1 AND product_code = $2
+       FOR UPDATE`,
+      [user.id, PRODUCT_CODE]
+    );
+
+    const product = productResult.rows[0] || null;
+    const productPlan = String(product?.plan || "").toLowerCase();
+    const productExpires = product?.expires_at
+      ? new Date(product.expires_at).getTime()
+      : 0;
+    const hasActiveAccess = Boolean(product) &&
+      !product.revoked_at &&
+      (productPlan === "lifetime" || productExpires > Date.now());
+    const isFreePlan = hasActiveAccess && productPlan === "free";
+
+    let trial = null;
+    if (isFreePlan) {
+      const trialResult = await client.query(
+        `SELECT activated_device_hash
+         FROM free_trial_claims
+         WHERE user_id = $1
+         FOR UPDATE`,
+        [user.id]
+      );
+
+      trial = trialResult.rows[0] || null;
+
+      if (
+        trial?.activated_device_hash &&
+        !safeEqual(trial.activated_device_hash, hwidHash)
+      ) {
+        await client.query("ROLLBACK");
+        return res.status(403).json({
+          error: "free_trial_device_mismatch",
+          message: "O teste grátis desta conta já foi vinculado a outro computador.",
+        });
+      }
+    }
+
+    await client.query(
+      `INSERT INTO device_bindings(hwid_hash, first_user_id, first_bound_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (hwid_hash) DO NOTHING`,
       [hwidHash, user.id]
     );
+
+    const bindingResult = await client.query(
+      `SELECT first_user_id
+       FROM device_bindings
+       WHERE hwid_hash = $1
+       FOR UPDATE`,
+      [hwidHash]
+    );
+
+    const binding = bindingResult.rows[0];
+    if (
+      isFreePlan &&
+      binding &&
+      Number(binding.first_user_id) !== Number(user.id)
+    ) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({
+        error: "free_trial_device_used",
+        message: "Este computador já foi vinculado a outra conta. O teste grátis é permitido apenas uma vez por PC.",
+      });
+    }
+
+    if (!lockedUser.hwid_hash) {
+      await client.query(
+        "UPDATE users SET hwid_hash = $1 WHERE id = $2 AND hwid_hash IS NULL",
+        [hwidHash, user.id]
+      );
+    }
+
+    if (isFreePlan && trial) {
+      await client.query(
+        `UPDATE free_trial_claims
+         SET activated_device_hash = COALESCE(activated_device_hash, $2)
+         WHERE user_id = $1`,
+        [user.id, hwidHash]
+      );
+    }
+
+    await client.query("COMMIT");
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+    }
+
+    console.error("Falha no vínculo de dispositivo:", error);
+    return res.status(500).json({
+      error: "device_binding_failed",
+      message: "Não foi possível validar o vínculo deste computador.",
+    });
+  } finally {
+    client.release();
   }
 
   const userId = Number(user.id);
