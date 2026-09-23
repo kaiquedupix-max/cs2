@@ -26,7 +26,7 @@
     <section class="checkout-heading">
       <div class="eyebrow">CHECKOUT SEGURO</div>
       <h1>Finalize sua compra.</h1>
-      <p>Pagamento processado pelo Mercado Pago. Os dados do cartão são tokenizados pelo checkout oficial e não são armazenados no nosso servidor.</p>
+      <p>Checkout direto e simples: informe somente nome completo, CPF e e-mail. O pagamento é processado pelo Mercado Pago e os dados do cartão não são armazenados no nosso servidor.</p>
     </section>
 
     <div class="checkout-layout">
@@ -53,14 +53,8 @@
             <label>CPF
               <input id="buyerCpf" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" required>
             </label>
-            <label>Telefone
-              <input id="buyerPhone" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(00) 00000-0000" required>
-            </label>
-            <label class="wide">E-mail
-              <input id="buyerEmail" type="email" autocomplete="email" maxlength="160" required>
-            </label>
-            <label class="wide">Número do processo
-              <input id="processNumber" maxlength="120" autocomplete="off" required>
+            <label>E-mail
+              <input id="buyerEmail" type="email" autocomplete="email" maxlength="160" placeholder="voce@email.com" required>
             </label>
           </div>
         </section>
@@ -68,34 +62,6 @@
         <section>
           <div class="checkout-section-title">
             <span>03</span>
-            <div><small>ENDEREÇO DE COBRANÇA</small><h2>Dados para autenticação</h2></div>
-          </div>
-
-          <div class="checkout-fields">
-            <label class="wide">Rua
-              <input id="billingStreet" autocomplete="address-line1" maxlength="160" required>
-            </label>
-            <label>Número
-              <input id="billingNumber" autocomplete="address-line2" maxlength="30" required>
-            </label>
-            <label>Complemento
-              <input id="billingComplement" maxlength="80">
-            </label>
-            <label>Cidade
-              <input id="billingCity" autocomplete="address-level2" maxlength="100" required>
-            </label>
-            <label>Estado
-              <input id="billingState" autocomplete="address-level1" maxlength="2" placeholder="BA" required>
-            </label>
-            <label>CEP
-              <input id="billingZip" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" required>
-            </label>
-          </div>
-        </section>
-
-        <section>
-          <div class="checkout-section-title">
-            <span>04</span>
             <div><small>FORMA DE PAGAMENTO</small><h2>Como deseja pagar?</h2></div>
           </div>
 
@@ -120,7 +86,7 @@
             <a class="button button-primary" href="/account">Ir para minha conta</a>
           </div>
 
-          <p class="secure-note">🔒 Cartão e Pix são processados diretamente pelo Mercado Pago.</p>
+          <p class="secure-note">🔒 Você informa apenas nome, CPF e e-mail. Cartão e Pix são processados diretamente pelo Mercado Pago.</p>
         </section>
 
         <p id="checkoutMessage" class="form-message"></p>
@@ -145,6 +111,7 @@
 
   <script src="https://sdk.mercadopago.com/js/v2"></script>
   <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
-  <script src="/checkout.js?v=20260923-mercadopago"></script>
+  <script src="/checkout.js?v=20260923-checkout-clean"></script>
+  <script src="/support.js?v=20260923-support"></script>
 </body>
 </html>
