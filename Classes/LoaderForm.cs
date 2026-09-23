@@ -50,7 +50,7 @@ namespace Mac1ota_Menu.Classes
             {
                 BaseAddress =
                     new Uri(
-                        "https://website-production-ee97.up.railway.app/"),
+                        ClientPortalApi.PortalBaseUrl),
 
                 Timeout =
                     TimeSpan.FromSeconds(

@@ -7,7 +7,7 @@ namespace Mac1ota_Menu.Classes
     internal static class ClientPortalApi
     {
         public const string PortalBaseUrl =
-            "https://website-production-ee97.up.railway.app/";
+            "https://legitbaratinho.xyz/";
 
         private static readonly HttpClient Http =
             new()
