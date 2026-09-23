@@ -124,7 +124,7 @@ function renderClients() {
 
     row.innerHTML = `
       <td><div class="client-cell"><strong>${escapeHtml(client.username)}</strong><small>${escapeHtml(client.email)}</small></div></td>
-      <td>${escapeHtml(client.plan || "Sem acesso")}</td>
+      <td>${escapeHtml(client.plan === "free" ? "Teste grátis" : (client.plan || "Sem acesso"))}</td>
       <td><strong>${client.daysRemaining || 0}</strong></td>
       <td>${hwid}</td>
       <td>${status}</td>
