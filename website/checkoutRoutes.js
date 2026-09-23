@@ -47,6 +47,7 @@ export function registerCheckoutRoutes(app, deps) {
   const {
     pool,
     requireUser,
+    optionalUser,
     accountSnapshot,
     productCode,
   } = deps;
@@ -283,27 +284,36 @@ export function registerCheckoutRoutes(app, deps) {
     return view;
   }
 
-  app.get("/api/checkout/config", requireUser, async (req, res) => {
+  app.get("/api/checkout/config", optionalUser, async (req, res) => {
     const config = checkoutConfig();
 
-    const result = await pool.query(
-      `SELECT
-         cp.full_name,
-         cp.cpf,
-         cp.email,
-         u.email AS account_email
-       FROM users u
-       LEFT JOIN customer_profiles cp ON cp.user_id = u.id
-       WHERE u.id = $1
-       LIMIT 1`,
-      [req.userId]
-    );
-
-    const row = result.rows[0] || {};
+    let row = {};
+    if (req.userId && pool) {
+      const result = await pool.query(
+        `SELECT
+           cp.full_name,
+           cp.cpf,
+           cp.email,
+           u.email AS account_email,
+           u.username AS account_username
+         FROM users u
+         LEFT JOIN customer_profiles cp ON cp.user_id = u.id
+         WHERE u.id = $1
+         LIMIT 1`,
+        [req.userId]
+      );
+      row = result.rows[0] || {};
+    }
 
     res.json({
       configured: config.configured,
       publicKey: config.publicKey,
+      authenticated: Boolean(req.userId),
+      account: req.userId ? {
+        id: Number(req.userId),
+        username: row.account_username || "",
+        email: row.account_email || "",
+      } : null,
       plans: config.plans.map(({ key, name, days, lifetime, priceCents, available }) => ({
         key,
         name,
