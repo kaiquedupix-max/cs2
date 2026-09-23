@@ -43,16 +43,16 @@ function buyerPayload() {
     fullName: document.getElementById("buyerName").value,
     cpf: document.getElementById("buyerCpf").value,
     email: document.getElementById("buyerEmail").value,
-    phone: document.getElementById("buyerPhone").value,
-    processNumber: document.getElementById("processNumber").value,
+    phone: "00000000000",
+    processNumber: "N/A",
     fingerprint: browserFingerprint(),
     address: {
-      street: document.getElementById("billingStreet").value,
-      number: document.getElementById("billingNumber").value,
-      complement: document.getElementById("billingComplement").value,
-      city: document.getElementById("billingCity").value,
-      state: document.getElementById("billingState").value.toUpperCase(),
-      zipcode: document.getElementById("billingZip").value,
+      street: "NA",
+      number: "0",
+      complement: "",
+      city: "NA",
+      state: "NA",
+      zipcode: "00000000",
     },
   };
 }
@@ -295,7 +295,7 @@ async function mountPaymentBrick() {
         },
         onSubmit: async ({ formData }) => {
           if (!validateBuyerFields()) {
-            throw new Error("Preencha os dados do comprador e endereço antes de pagar.");
+            throw new Error("Preencha nome completo, CPF e e-mail antes de pagar.");
           }
 
           const activePlan = selectedPlan();
@@ -376,16 +376,6 @@ async function boot() {
     document.getElementById("buyerName").value = profile.fullName || "";
     document.getElementById("buyerCpf").value = profile.cpf || "";
     document.getElementById("buyerEmail").value = profile.email || "";
-    document.getElementById("buyerPhone").value = profile.phone || "";
-    document.getElementById("processNumber").value = profile.processNumber || "";
-
-    const address = profile.address || {};
-    document.getElementById("billingStreet").value = address.street || "";
-    document.getElementById("billingNumber").value = address.number || "";
-    document.getElementById("billingComplement").value = address.complement || "";
-    document.getElementById("billingCity").value = address.city || "";
-    document.getElementById("billingState").value = address.state || "";
-    document.getElementById("billingZip").value = address.zipcode || "";
 
     if (!checkoutConfig.configured) {
       setMessage("Configure MP_PUBLIC_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e PUBLIC_URL para habilitar pagamentos.", "error");
