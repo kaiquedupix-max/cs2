@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050907">
   <title>Checkout · legitbaratinho.xyz</title>
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
-  <link rel="stylesheet" href="/styles.css?v=20260919-cakto">
+  <link rel="stylesheet" href="/styles.css?v=20260923-plans">
 </head>
 <body class="account-body checkout-body">
   <div class="noise"></div>
@@ -34,6 +34,15 @@
         <section>
           <div class="checkout-section-title">
             <span>01</span>
+            <div><small>ESCOLHA SEU PLANO</small><h2>Quanto tempo você quer?</h2></div>
+          </div>
+
+          <div id="planGrid" class="checkout-plan-grid"></div>
+        </section>
+
+        <section>
+          <div class="checkout-section-title">
+            <span>02</span>
             <div><small>DADOS DO COMPRADOR</small><h2>Quem está comprando</h2></div>
           </div>
 
@@ -58,7 +67,7 @@
 
         <section>
           <div class="checkout-section-title">
-            <span>02</span>
+            <span>03</span>
             <div><small>ENDEREÇO DE COBRANÇA</small><h2>Dados para autenticação</h2></div>
           </div>
 
@@ -86,7 +95,7 @@
 
         <section>
           <div class="checkout-section-title">
-            <span>03</span>
+            <span>04</span>
             <div><small>FORMA DE PAGAMENTO</small><h2>Como deseja pagar?</h2></div>
           </div>
 
@@ -159,7 +168,7 @@
             <span>Acesso vinculado à sua conta</span>
           </div>
         </div>
-        <div class="summary-row"><span>Plano</span><b id="summaryPlan">Mensal</b></div>
+        <div class="summary-row"><span>Plano</span><b id="summaryPlan">1 mês</b></div>
         <div class="summary-row"><span>Duração</span><b id="summaryDays">30 dias</b></div>
         <div class="summary-row total"><span>Total</span><b id="summaryPrice">—</b></div>
         <div class="checkout-security"><strong>Compra segura</strong><span>Pagamento processado pela Cakto com tokenização, antifraude e 3DS.</span></div>
@@ -168,6 +177,6 @@
   </main>
 
   <script src="https://cakto-sdk.pages.dev/cakto-sdk.min.js"></script>
-  <script src="/checkout.js?v=20260919-cakto"></script>
+  <script src="/checkout.js?v=20260923-plans"></script>
 </body>
 </html>
