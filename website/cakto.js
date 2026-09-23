@@ -35,25 +35,52 @@ export function validCpf(value) {
   return check(9) === Number(cpf[9]) && check(10) === Number(cpf[10]);
 }
 
+const PLAN_DEFINITIONS = [
+  { key: "d1", name: "1 dia", days: 1, priceCents: 590, offerEnv: "CAKTO_OFFER_ID_1D" },
+  { key: "d7", name: "7 dias", days: 7, priceCents: 990, offerEnv: "CAKTO_OFFER_ID_7D" },
+  { key: "d15", name: "15 dias", days: 15, priceCents: 1490, offerEnv: "CAKTO_OFFER_ID_15D" },
+  { key: "d30", name: "1 mês", days: 30, priceCents: 1990, offerEnv: "CAKTO_OFFER_ID_30D" },
+  { key: "d90", name: "3 meses", days: 90, priceCents: 3990, offerEnv: "CAKTO_OFFER_ID_3M" },
+  { key: "d180", name: "6 meses", days: 180, priceCents: 6490, offerEnv: "CAKTO_OFFER_ID_6M" },
+  { key: "lifetime", name: "Lifetime", days: null, lifetime: true, priceCents: 10000, offerEnv: "CAKTO_OFFER_ID_LIFETIME" },
+];
+
+function planOfferId(plan) {
+  if (plan.key === "d30") {
+    return String(process.env[plan.offerEnv] || process.env.CAKTO_OFFER_ID || "").trim();
+  }
+  return String(process.env[plan.offerEnv] || "").trim();
+}
+
 export function checkoutConfig() {
-  const priceCents = Number(process.env.CAKTO_PLAN_PRICE_CENTS || 0);
+  const commonConfigured = Boolean(
+    process.env.CAKTO_API_CLIENT_ID &&
+    process.env.CAKTO_API_CLIENT_SECRET &&
+    process.env.CAKTO_SDK_CLIENT_ID &&
+    process.env.CAKTO_WEBHOOK_SECRET
+  );
+
+  const plans = PLAN_DEFINITIONS.map((plan) => {
+    const offerId = planOfferId(plan);
+    return {
+      ...plan,
+      offerId,
+      available: Boolean(commonConfigured && offerId),
+    };
+  });
+
   return {
-    configured: Boolean(
-      process.env.CAKTO_API_CLIENT_ID &&
-      process.env.CAKTO_API_CLIENT_SECRET &&
-      process.env.CAKTO_SDK_CLIENT_ID &&
-      process.env.CAKTO_OFFER_ID &&
-      process.env.CAKTO_WEBHOOK_SECRET &&
-      Number.isInteger(priceCents) &&
-      priceCents > 0
-    ),
+    configured: Boolean(commonConfigured && plans.some((plan) => plan.available)),
+    commonConfigured,
     sdkClientId: process.env.CAKTO_SDK_CLIENT_ID || "",
-    offerId: process.env.CAKTO_OFFER_ID || "",
-    planName: String(process.env.CAKTO_PLAN_NAME || "mensal").slice(0, 40),
-    planDays: Math.max(1, Math.min(3650, Math.trunc(Number(process.env.CAKTO_PLAN_DAYS || 30)) || 30)),
-    priceCents: Number.isInteger(priceCents) && priceCents > 0 ? priceCents : 0,
+    plans,
     pixExpiresIn: Math.max(60, Math.min(86400, Math.trunc(Number(process.env.CAKTO_PIX_EXPIRES_IN || 900)) || 900)),
   };
+}
+
+export function checkoutPlan(key) {
+  const normalized = String(key || "d30").trim().toLowerCase();
+  return checkoutConfig().plans.find((plan) => plan.key === normalized) || null;
 }
 
 export async function getAccessToken() {
