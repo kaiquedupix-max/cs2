@@ -494,6 +494,10 @@ namespace Mac1ota_Menu.Classes
 
             public string? Plan { get; set; }
 
+            public string? PlanLabel { get; set; }
+
+            public bool IsFreeTrial { get; set; }
+
             public DateTime? PurchasedAt { get; set; }
 
             public DateTime? ExpiresAt { get; set; }
