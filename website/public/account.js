@@ -83,10 +83,14 @@ function renderAccount(data) {
   document.getElementById("profileEmail").textContent = user.email;
   document.getElementById("memberSince").textContent = new Date(user.createdAt).toLocaleDateString("pt-BR");
   document.getElementById("planName").textContent = product.hasAccess ? product.plan : "Sem acesso";
-  document.getElementById("daysRemaining").textContent = String(product.daysRemaining || 0);
-  document.getElementById("expiresAt").textContent = product.expiresAt
-    ? new Date(product.expiresAt).toLocaleString("pt-BR")
-    : "—";
+  document.getElementById("daysRemaining").textContent = product.lifetime
+    ? "∞"
+    : String(product.daysRemaining || 0);
+  document.getElementById("expiresAt").textContent = product.lifetime
+    ? "Lifetime"
+    : product.expiresAt
+      ? new Date(product.expiresAt).toLocaleString("pt-BR")
+      : "—";
   document.getElementById("accountStatus").textContent =
     status.status === "online" ? "Online" :
     status.status === "maintenance" ? "Manutenção" : "Offline";
@@ -96,7 +100,9 @@ function renderAccount(data) {
   badge.className = "access-badge " + (product.hasAccess ? "active" : "inactive");
 
   document.getElementById("productDescription").textContent = product.hasAccess
-    ? `Seu plano está ativo e possui ${product.daysRemaining} dia(s) restante(s).`
+    ? product.lifetime
+      ? "Seu plano Lifetime está ativo. Seu acesso não expira."
+      : `Seu plano está ativo e possui ${product.daysRemaining} dia(s) restante(s).`
     : "Compre seu acesso para liberar o produto no loader.";
 
   const buyButton = document.getElementById("buyAccessBtn");
