@@ -24,8 +24,8 @@ namespace Mac1ota_Menu.Classes
             }
         }
         // urls to pull the dumper outputs from
-        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
-        private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/";
+        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/hikarii-dev/veloria-cs2-dumper/main/schemas/";
+        private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
         private const string OffsetsUrl = PrimaryBaseUrl + "offsets.cs";
         private const string SecondaryOffsetsUrl = SecondaryBaseUrl + "offsets.cs";
         private const string ClientDllUrl = PrimaryBaseUrl + "client_dll.cs";
