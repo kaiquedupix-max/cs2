@@ -337,28 +337,6 @@ document.getElementById("buyerCpf").addEventListener("input", (event) => {
   event.target.value = value;
 });
 
-document.getElementById("buyerPhone").addEventListener("input", (event) => {
-  const digits = onlyDigits(event.target.value).slice(0, 11);
-  if (digits.length > 6) {
-    event.target.value = digits.replace(/^(\d{2})(\d{5})(\d+)/, "($1) $2-$3");
-  } else if (digits.length > 2) {
-    event.target.value = digits.replace(/^(\d{2})(\d+)/, "($1) $2");
-  } else {
-    event.target.value = digits;
-  }
-});
-
-document.getElementById("billingZip").addEventListener("input", (event) => {
-  const digits = onlyDigits(event.target.value).slice(0, 8);
-  event.target.value = digits.length > 5
-    ? digits.slice(0, 5) + "-" + digits.slice(5)
-    : digits;
-});
-
-document.getElementById("billingState").addEventListener("input", (event) => {
-  event.target.value = event.target.value.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase();
-});
-
 document.getElementById("copyPixBtn").addEventListener("click", async () => {
   const input = document.getElementById("pixCode");
   await navigator.clipboard.writeText(input.value);
