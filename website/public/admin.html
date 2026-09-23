@@ -118,7 +118,10 @@
             <div class="section-label">SUPORTE</div>
             <h2>Conversas do site</h2>
           </div>
-          <button id="refreshSupportBtn" class="button ghost small">Atualizar</button>
+          <div class="admin-support-actions">
+            <button id="supportAdminSoundBtn" class="button ghost small" type="button">🔊 Sons</button>
+            <button id="refreshSupportBtn" class="button ghost small">Atualizar</button>
+          </div>
         </div>
 
         <div class="admin-support-layout">
@@ -138,9 +141,13 @@
 
             <div id="supportChatActive" class="hidden">
               <div class="admin-support-chat-head">
-                <div>
+                <div class="admin-support-chat-identity">
                   <small>ATENDIMENTO</small>
                   <strong id="supportChatTitle">Visitante</strong>
+                  <div id="supportContactActions" class="admin-support-contact-actions hidden">
+                    <a id="supportContactEmail" href="#" class="admin-support-contact-link">✉ E-mail</a>
+                    <a id="supportContactWhatsapp" href="#" target="_blank" rel="noopener" class="admin-support-contact-link whatsapp">◉ WhatsApp</a>
+                  </div>
                 </div>
                 <button id="toggleSupportStatusBtn" class="button ghost small" type="button">Encerrar</button>
               </div>
@@ -173,6 +180,6 @@
       </article>
     </section>
   </main>
-  <script src="/admin.js?v=20260923-support"></script>
+  <script src="/admin.js?v=20260923-support-v2"></script>
 </body>
 </html>
