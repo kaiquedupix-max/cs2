@@ -5,6 +5,10 @@ const registerForm = document.getElementById("registerForm");
 const loginTab = document.getElementById("loginTab");
 const registerTab = document.getElementById("registerTab");
 const authError = document.getElementById("authError");
+const freeTrialBtn = document.getElementById("freeTrialBtn");
+const freeTrialHint = document.getElementById("freeTrialHint");
+const purchaseNotice = document.getElementById("purchaseNotice");
+const wantsTrial = new URLSearchParams(location.search).get("trial") === "1";
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -25,7 +29,9 @@ function showTab(tab) {
   loginTab.classList.toggle("active", login);
   registerTab.classList.toggle("active", !login);
   authError.textContent = "";
-  history.replaceState(null, "", login ? "/account#login" : "/account#register");
+  const url = new URL(location.href);
+  url.hash = login ? "#login" : "#register";
+  history.replaceState(null, "", url.pathname + url.search + url.hash);
 }
 
 loginTab.addEventListener("click", () => showTab("login"));
@@ -82,7 +88,9 @@ function renderAccount(data) {
   document.getElementById("profileUsername").textContent = user.username;
   document.getElementById("profileEmail").textContent = user.email;
   document.getElementById("memberSince").textContent = new Date(user.createdAt).toLocaleDateString("pt-BR");
-  document.getElementById("planName").textContent = product.hasAccess ? product.plan : "Sem acesso";
+  document.getElementById("planName").textContent = product.hasAccess
+    ? (product.planLabel || (product.isFreeTrial ? "Teste grátis" : product.plan) || "Ativo")
+    : "Sem acesso";
   document.getElementById("daysRemaining").textContent = product.lifetime
     ? "∞"
     : String(product.daysRemaining || 0);
@@ -102,11 +110,28 @@ function renderAccount(data) {
   document.getElementById("productDescription").textContent = product.hasAccess
     ? product.lifetime
       ? "Seu plano Lifetime está ativo. Seu acesso não expira."
-      : `Seu plano está ativo e possui ${product.daysRemaining} dia(s) restante(s).`
-    : "Compre seu acesso para liberar o produto no loader.";
+      : product.isFreeTrial
+        ? "Seu teste grátis está ativo por 1 dia. O primeiro PC usado no loader ficará vinculado a este teste."
+        : `Seu plano está ativo e possui ${product.daysRemaining} dia(s) restante(s).`
+    : "Ative o teste grátis de 1 dia ou compre um plano para liberar o produto no loader.";
+
+  const trial = data.trial || {};
+  freeTrialBtn?.classList.toggle("hidden", !trial.eligible || product.hasAccess);
+
+  if (freeTrialHint) {
+    freeTrialHint.textContent = product.isFreeTrial
+      ? "Teste grátis ativo. Ele fica vinculado ao primeiro PC usado no loader."
+      : trial.claimed
+        ? "Teste grátis já utilizado nesta conta."
+        : "1 teste grátis de 1 dia por conta e por PC.";
+  }
 
   const buyButton = document.getElementById("buyAccessBtn");
-  buyButton.textContent = product.hasAccess ? "Renovar acesso" : "Comprar acesso";
+  buyButton.textContent = product.hasAccess ? "Comprar / renovar plano" : "Comprar acesso";
+
+  if (wantsTrial && trial.eligible && freeTrialBtn) {
+    freeTrialBtn.classList.add("trial-attention");
+  }
 
   loadRelease(product.hasAccess);
 }
@@ -159,6 +184,37 @@ async function loadRelease(hasAccess) {
   }
 }
 
+freeTrialBtn?.addEventListener("click", async () => {
+  const confirmed = confirm(
+    "Ativar agora o teste grátis de 1 dia? As 24 horas começam imediatamente e o teste ficará vinculado ao primeiro PC usado no loader."
+  );
+
+  if (!confirmed) return;
+
+  freeTrialBtn.disabled = true;
+  freeTrialBtn.textContent = "Ativando...";
+
+  try {
+    const result = await api("/api/account/free-trial", { method: "POST" });
+    renderAccount(result.account);
+
+    if (purchaseNotice) {
+      purchaseNotice.textContent = "Teste grátis ativado por 1 dia. Abra o loader e entre com esta mesma conta.";
+      purchaseNotice.classList.remove("hidden");
+    }
+  } catch (error) {
+    if (purchaseNotice) {
+      purchaseNotice.textContent = error.message;
+      purchaseNotice.classList.remove("hidden");
+    } else {
+      alert(error.message);
+    }
+  } finally {
+    freeTrialBtn.disabled = false;
+    freeTrialBtn.textContent = "Testar grátis por 1 dia";
+  }
+});
+
 document.getElementById("downloadLoaderBtn")?.addEventListener("click", (event) => {
   const button = event.currentTarget;
   if (button.classList.contains("disabled")) {
@@ -167,7 +223,7 @@ document.getElementById("downloadLoaderBtn")?.addEventListener("click", (event) 
 });
 
 async function boot() {
-  if (location.hash === "#register") showTab("register");
+  if (location.hash === "#register" || wantsTrial) showTab("register");
   try {
     const data = await api("/api/account/me");
     renderAccount(data);
