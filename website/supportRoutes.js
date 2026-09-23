@@ -31,6 +31,28 @@ function cleanMessage(value) {
   return message;
 }
 
+function cleanEmail(value) {
+  const email = String(value || "").trim().toLowerCase().slice(0, 160);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw Object.assign(new Error("Informe um e-mail válido."), { statusCode: 400 });
+  }
+  return email;
+}
+
+function cleanWhatsapp(value) {
+  let digits = String(value || "").replace(/\D/g, "");
+
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith("55")) {
+    digits = "55" + digits;
+  }
+
+  if (digits.length < 12 || digits.length > 15) {
+    throw Object.assign(new Error("Informe um WhatsApp válido com DDD."), { statusCode: 400 });
+  }
+
+  return digits;
+}
+
 export function registerSupportRoutes(app, deps) {
   const { pool, requireAdmin } = deps;
 
@@ -41,7 +63,7 @@ export function registerSupportRoutes(app, deps) {
     const hash = sessionHash(token);
 
     const existing = await pool.query(
-      `SELECT id, status, created_at, last_message_at
+      `SELECT id, contact_email, contact_whatsapp, status, created_at, last_message_at
        FROM support_conversations
        WHERE session_hash = $1
        LIMIT 1`,
@@ -53,16 +75,50 @@ export function registerSupportRoutes(app, deps) {
     }
 
     const created = await pool.query(
-      `INSERT INTO support_conversations(session_hash, status, created_at, last_message_at)
-       VALUES ($1, 'open', NOW(), NOW())
+      `INSERT INTO support_conversations(session_hash, contact_email, contact_whatsapp, status, created_at, last_message_at)
+       VALUES ($1, '', '', 'open', NOW(), NOW())
        ON CONFLICT (session_hash)
        DO UPDATE SET last_message_at = support_conversations.last_message_at
-       RETURNING id, status, created_at, last_message_at`,
+       RETURNING id, contact_email, contact_whatsapp, status, created_at, last_message_at`,
       [hash]
     );
 
     return created.rows[0] || null;
   }
+
+  app.post("/api/support/contact", async (req, res) => {
+    if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+    try {
+      const email = cleanEmail(req.body?.email);
+      const whatsapp = cleanWhatsapp(req.body?.whatsapp);
+      const conversation = await conversationForRequest(req, res, true);
+
+      const updated = await pool.query(
+        `UPDATE support_conversations
+         SET contact_email = $2,
+             contact_whatsapp = $3,
+             last_message_at = GREATEST(last_message_at, NOW())
+         WHERE id = $1
+         RETURNING id, contact_email, contact_whatsapp, status, created_at, last_message_at`,
+        [conversation.id, email, whatsapp]
+      );
+
+      const row = updated.rows[0];
+      res.json({
+        ok: true,
+        contact: {
+          email: row.contact_email,
+          whatsapp: row.contact_whatsapp,
+        },
+      });
+    } catch (error) {
+      res.status(error?.statusCode || 500).json({
+        error: "support_contact_failed",
+        message: error?.message || "Não foi possível salvar seus dados de contato.",
+      });
+    }
+  });
 
   app.get("/api/support/messages", async (req, res) => {
     if (!pool) return res.status(503).json({ error: "database_not_configured" });
@@ -94,6 +150,10 @@ export function registerSupportRoutes(app, deps) {
         status: conversation.status,
         createdAt: conversation.created_at,
         lastMessageAt: conversation.last_message_at,
+        contact: {
+          email: conversation.contact_email || "",
+          whatsapp: conversation.contact_whatsapp || "",
+        },
       },
       messages: result.rows.map((row) => ({
         id: Number(row.id),
@@ -111,6 +171,13 @@ export function registerSupportRoutes(app, deps) {
     try {
       const body = cleanMessage(req.body?.message);
       const conversation = await conversationForRequest(req, res, true);
+
+      if (!conversation.contact_email || !conversation.contact_whatsapp) {
+        return res.status(400).json({
+          error: "contact_required",
+          message: "Informe seu e-mail e WhatsApp antes de enviar a primeira mensagem.",
+        });
+      }
 
       const inserted = await pool.query(
         `INSERT INTO support_messages(conversation_id, sender, body)
@@ -151,6 +218,8 @@ export function registerSupportRoutes(app, deps) {
     const result = await pool.query(
       `SELECT
          c.id,
+         c.contact_email,
+         c.contact_whatsapp,
          c.status,
          c.created_at,
          c.last_message_at,
@@ -182,6 +251,8 @@ export function registerSupportRoutes(app, deps) {
         createdAt: row.created_at,
         lastMessageAt: row.last_message_at,
         lastMessage: row.last_message,
+        email: row.contact_email || "",
+        whatsapp: row.contact_whatsapp || "",
         unread: Number(row.unread || 0),
       })),
     });
@@ -196,7 +267,7 @@ export function registerSupportRoutes(app, deps) {
     }
 
     const exists = await pool.query(
-      `SELECT id, status, created_at, last_message_at
+      `SELECT id, contact_email, contact_whatsapp, status, created_at, last_message_at
        FROM support_conversations
        WHERE id = $1
        LIMIT 1`,
@@ -230,6 +301,10 @@ export function registerSupportRoutes(app, deps) {
         status: conversation.status,
         createdAt: conversation.created_at,
         lastMessageAt: conversation.last_message_at,
+        contact: {
+          email: conversation.contact_email || "",
+          whatsapp: conversation.contact_whatsapp || "",
+        },
       },
       messages: result.rows.map((row) => ({
         id: Number(row.id),
