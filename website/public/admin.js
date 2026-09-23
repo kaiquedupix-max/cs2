@@ -11,6 +11,9 @@ let cachedSupportConversations = [];
 let activeSupportConversationId = null;
 let supportPollTimer = null;
 let supportPollBusy = false;
+let supportUnreadSnapshot = null;
+let supportAudioContext = null;
+let supportAdminSoundEnabled = localStorage.getItem("lb_admin_support_sound") !== "off";
 
 const supportConversationList = document.getElementById("supportConversationList");
 const supportUnreadTotal = document.getElementById("supportUnreadTotal");
@@ -19,6 +22,10 @@ const supportChatActive = document.getElementById("supportChatActive");
 const supportAdminMessages = document.getElementById("supportAdminMessages");
 const supportChatTitle = document.getElementById("supportChatTitle");
 const toggleSupportStatusBtn = document.getElementById("toggleSupportStatusBtn");
+const supportContactActions = document.getElementById("supportContactActions");
+const supportContactEmail = document.getElementById("supportContactEmail");
+const supportContactWhatsapp = document.getElementById("supportContactWhatsapp");
+const supportAdminSoundBtn = document.getElementById("supportAdminSoundBtn");
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -174,11 +181,103 @@ clientSearch?.addEventListener("input", renderClients);
 document.getElementById("refreshClientsBtn")?.addEventListener("click", loadClients);
 
 
+function ensureSupportAdminAudio() {
+  if (!supportAdminSoundEnabled) return null;
+
+  try {
+    if (!supportAudioContext) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      supportAudioContext = new AudioContextClass();
+    }
+
+    if (supportAudioContext.state === "suspended") {
+      supportAudioContext.resume().catch(() => {});
+    }
+
+    return supportAudioContext;
+  } catch {
+    return null;
+  }
+}
+
+function supportAdminTone(frequency, duration, gainValue, delay = 0) {
+  const ctx = ensureSupportAdminAudio();
+  if (!ctx) return;
+
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const start = ctx.currentTime + delay;
+
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(frequency, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(gainValue, start + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration + 0.02);
+}
+
+function playSupportAdminSound(kind) {
+  if (!supportAdminSoundEnabled) return;
+
+  if (kind === "receive") {
+    supportAdminTone(760, 0.12, 0.06);
+    supportAdminTone(980, 0.15, 0.05, 0.11);
+    return;
+  }
+
+  supportAdminTone(560, 0.07, 0.04);
+}
+
+function updateSupportAdminSoundButton() {
+  if (!supportAdminSoundBtn) return;
+  supportAdminSoundBtn.textContent = supportAdminSoundEnabled ? "🔊 Sons" : "🔇 Sons";
+  supportAdminSoundBtn.title = supportAdminSoundEnabled
+    ? "Desativar sons do suporte"
+    : "Ativar sons do suporte";
+}
+
+supportAdminSoundBtn?.addEventListener("click", () => {
+  supportAdminSoundEnabled = !supportAdminSoundEnabled;
+  localStorage.setItem("lb_admin_support_sound", supportAdminSoundEnabled ? "on" : "off");
+  updateSupportAdminSoundButton();
+
+  if (supportAdminSoundEnabled) {
+    ensureSupportAdminAudio();
+    playSupportAdminSound("send");
+  }
+});
+
+document.addEventListener(
+  "pointerdown",
+  () => {
+    if (supportAdminSoundEnabled) ensureSupportAdminAudio();
+  },
+  { once: true }
+);
+
+updateSupportAdminSoundButton();
+
 async function loadSupportConversations() {
   if (!supportConversationList) return;
 
   const data = await api("/api/admin/support/conversations");
-  cachedSupportConversations = data.conversations || [];
+  const nextConversations = data.conversations || [];
+  const nextUnread = nextConversations.reduce(
+    (total, item) => total + Number(item.unread || 0),
+    0
+  );
+
+  if (supportUnreadSnapshot !== null && nextUnread > supportUnreadSnapshot) {
+    playSupportAdminSound("receive");
+  }
+
+  supportUnreadSnapshot = nextUnread;
+  cachedSupportConversations = nextConversations;
   renderSupportConversations();
 
   if (
@@ -236,6 +335,7 @@ function renderSupportConversations() {
         <span>${escapeHtml(date)}</span>
       </div>
       <p>${escapeHtml(conversation.lastMessage || "Conversa iniciada")}</p>
+      <small class="support-conversation-contact">${escapeHtml(conversation.email || (conversation.whatsapp ? "+" + conversation.whatsapp : "Contato não informado"))}</small>
       <div class="support-conversation-bottom">
         <span class="tag ${conversation.status === "closed" ? "neutral" : "ok"}">
           ${conversation.status === "closed" ? "Encerrada" : "Aberta"}
@@ -260,6 +360,7 @@ async function openSupportConversation(id) {
     supportChatTitle.textContent = "Visitante #" + activeSupportConversationId;
   }
 
+  supportContactActions?.classList.add("hidden");
   await loadSupportMessages();
 }
 
@@ -269,6 +370,28 @@ async function loadSupportMessages() {
   const data = await api(
     `/api/admin/support/conversations/${activeSupportConversationId}/messages`
   );
+
+  const contact = data.conversation?.contact || {};
+  const email = String(contact.email || "");
+  const whatsapp = String(contact.whatsapp || "").replace(/\D/g, "");
+
+  if (supportChatTitle) {
+    supportChatTitle.textContent = email || ("Visitante #" + activeSupportConversationId);
+  }
+
+  if (supportContactEmail) {
+    supportContactEmail.href = email ? "mailto:" + email : "#";
+    supportContactEmail.textContent = email ? "✉ " + email : "✉ E-mail não informado";
+    supportContactEmail.classList.toggle("disabled", !email);
+  }
+
+  if (supportContactWhatsapp) {
+    supportContactWhatsapp.href = whatsapp ? "https://wa.me/" + whatsapp : "#";
+    supportContactWhatsapp.textContent = whatsapp ? "◉ WhatsApp +" + whatsapp : "◉ WhatsApp não informado";
+    supportContactWhatsapp.classList.toggle("disabled", !whatsapp);
+  }
+
+  supportContactActions?.classList.toggle("hidden", !email && !whatsapp);
 
   supportAdminMessages.innerHTML = "";
 
@@ -287,7 +410,12 @@ async function loadSupportMessages() {
       new Date(message.createdAt).toLocaleTimeString("pt-BR", {
         hour: "2-digit",
         minute: "2-digit",
-      });
+      }) +
+      (message.sender === "admin" ? (message.readAt ? " ✓✓" : " ✓") : "");
+
+    if (message.sender === "admin" && message.readAt) {
+      meta.classList.add("read");
+    }
 
     bubble.append(body, meta);
     supportAdminMessages.appendChild(bubble);
@@ -333,6 +461,7 @@ document.getElementById("supportReplyForm")?.addEventListener("submit", async (e
     );
 
     input.value = "";
+    playSupportAdminSound("send");
     await Promise.all([loadSupportMessages(), loadSupportConversations()]);
   } finally {
     if (button) button.disabled = false;
