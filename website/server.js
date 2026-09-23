@@ -296,10 +296,16 @@ async function initDb() {
     CREATE TABLE IF NOT EXISTS support_conversations (
       id BIGSERIAL PRIMARY KEY,
       session_hash TEXT UNIQUE NOT NULL,
+      contact_email TEXT NOT NULL DEFAULT '',
+      contact_whatsapp TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'open',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       last_message_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE support_conversations
+      ADD COLUMN IF NOT EXISTS contact_email TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS contact_whatsapp TEXT NOT NULL DEFAULT '';
 
     CREATE TABLE IF NOT EXISTS support_messages (
       id BIGSERIAL PRIMARY KEY,
