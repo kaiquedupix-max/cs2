@@ -24,16 +24,18 @@ namespace Mac1ota_Menu.Classes
             }
         }
         // urls to pull the dumper outputs from
-        private const string OffsetsUrl = "https://raw.githubusercontent.com/xfi0/cs2-dumper/main/output/offsets.cs";
-        private const string SecondaryOffsetsUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/refs/heads/main/offsets.cs";
-        private const string ClientDllUrl = "https://raw.githubusercontent.com/xfi0/cs2-dumper/main/output/client_dll.cs";
-        private const string SecondaryClientDllUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/refs/heads/main/client_dll.cs";
-        private const string ButtonsUrl = "https://raw.githubusercontent.com/xfi0/cs2-dumper/main/output/buttons.cs";
-        private const string SecondaryButtonsUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/refs/heads/main/buttons.cs";
-        private const string Engine2Url = "https://raw.githubusercontent.com/xfi0/cs2-dumper/main/output/engine2_dll.cs";
-        private const string SecondaryEngine2Url = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/refs/heads/main/engine2_dll.cs";
-        private const string AnimationSystemUrl = "https://raw.githubusercontent.com/xfi0/cs2-dumper/main/output/animationsystem_dll.cs";
-        private const string SecondaryAnimationSystemUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/refs/heads/main/animationsystem_dll.cs";
+        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
+        private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/";
+        private const string OffsetsUrl = PrimaryBaseUrl + "offsets.cs";
+        private const string SecondaryOffsetsUrl = SecondaryBaseUrl + "offsets.cs";
+        private const string ClientDllUrl = PrimaryBaseUrl + "client_dll.cs";
+        private const string SecondaryClientDllUrl = SecondaryBaseUrl + "client_dll.cs";
+        private const string ButtonsUrl = PrimaryBaseUrl + "buttons.cs";
+        private const string SecondaryButtonsUrl = SecondaryBaseUrl + "buttons.cs";
+        private const string Engine2Url = PrimaryBaseUrl + "engine2_dll.cs";
+        private const string SecondaryEngine2Url = SecondaryBaseUrl + "engine2_dll.cs";
+        private const string AnimationSystemUrl = PrimaryBaseUrl + "animationsystem_dll.cs";
+        private const string SecondaryAnimationSystemUrl = SecondaryBaseUrl + "animationsystem_dll.cs";
 
         private static string OffsetsContent = string.Empty;
         private static string ClientDllContent = string.Empty;
