@@ -1,0 +1,122 @@
+name: Publish loader to production
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "website/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-loader-production
+  cancel-in-progress: false
+
+jobs:
+  publish-loader:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Publish single-file executable
+        shell: pwsh
+        run: >-
+          dotnet publish "Mac1ota Menu.csproj"
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:Platform=x64
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          -p:AssemblyName="legitbaratinho.xyz"
+          -o publish
+
+      - name: Verify executable
+        shell: pwsh
+        run: |
+          $executables = @(Get-ChildItem ".\publish" -Filter "*.exe" -File)
+          if ($executables.Count -ne 1) {
+            throw "Expected exactly one executable; found $($executables.Count)."
+          }
+
+          $extraFiles = @(Get-ChildItem ".\publish" -File | Where-Object Extension -ne ".exe")
+          if ($extraFiles.Count -gt 0) {
+            throw "Publish output contains files other than the single executable."
+          }
+
+          $hash = (Get-FileHash -Algorithm SHA256 $executables[0].FullName).Hash.ToLowerInvariant()
+          "LOADER_PATH=$($executables[0].FullName)" >> $env:GITHUB_ENV
+          "LOADER_SHA256=$hash" >> $env:GITHUB_ENV
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: legitbaratinho-loader-${{ github.sha }}
+          path: .\publish\*.exe
+          if-no-files-found: error
+
+      - name: Publish to production database
+        shell: pwsh
+        env:
+          LOADER_ADMIN_PASSWORD: ${{ secrets.LOADER_ADMIN_PASSWORD }}
+          PORTAL_URL: https://legitbaratinho.xyz
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:LOADER_ADMIN_PASSWORD)) {
+            Write-Warning "Repository secret LOADER_ADMIN_PASSWORD is not configured; skipping production publication."
+            exit 0
+          }
+
+          $loginBody = @{ password = $env:LOADER_ADMIN_PASSWORD } | ConvertTo-Json -Compress
+          Invoke-RestMethod `
+            -Uri "$env:PORTAL_URL/api/admin/login" `
+            -Method Post `
+            -ContentType "application/json" `
+            -Body $loginBody `
+            -SessionVariable adminSession | Out-Null
+
+          $fileName = [Uri]::EscapeDataString("legitbaratinho.xyz.exe")
+          $notes = [Uri]::EscapeDataString("Automatic build from commit $env:GITHUB_SHA")
+          $mimeType = [Uri]::EscapeDataString("application/octet-stream")
+          $uploadUri = "$env:PORTAL_URL/api/admin/releases/upload?fileName=$fileName&notes=$notes&mimeType=$mimeType"
+
+          $published = Invoke-RestMethod `
+            -Uri $uploadUri `
+            -Method Post `
+            -WebSession $adminSession `
+            -InFile $env:LOADER_PATH `
+            -ContentType "application/octet-stream" `
+            -TimeoutSec 900
+
+          if (-not $published.ok) {
+            throw "The production API did not confirm the release."
+          }
+
+          $latest = Invoke-RestMethod `
+            -Uri "$env:PORTAL_URL/api/loader/latest?ts=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())" `
+            -Method Get
+
+          if ($latest.sha256 -ne $env:LOADER_SHA256) {
+            throw "Published SHA-256 does not match the compiled executable."
+          }
+
+          Write-Host "Published loader version $($latest.version) with SHA-256 $($latest.sha256)."
