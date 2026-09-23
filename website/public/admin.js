@@ -7,6 +7,18 @@ const clientSearch = document.getElementById("clientSearch");
 const releasesBody = document.getElementById("releasesBody");
 let cachedClients = [];
 let cachedReleases = [];
+let cachedSupportConversations = [];
+let activeSupportConversationId = null;
+let supportPollTimer = null;
+let supportPollBusy = false;
+
+const supportConversationList = document.getElementById("supportConversationList");
+const supportUnreadTotal = document.getElementById("supportUnreadTotal");
+const supportChatEmpty = document.getElementById("supportChatEmpty");
+const supportChatActive = document.getElementById("supportChatActive");
+const supportAdminMessages = document.getElementById("supportAdminMessages");
+const supportChatTitle = document.getElementById("supportChatTitle");
+const toggleSupportStatusBtn = document.getElementById("toggleSupportStatusBtn");
 
 async function api(url, options = {}) {
   const response = await fetch(url, {
@@ -28,8 +40,10 @@ async function checkAuth() {
     await api("/api/admin/me");
     loginBox.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    await Promise.all([loadStatus(), loadClients(), loadReleases()]);
+    await Promise.all([loadStatus(), loadClients(), loadReleases(), loadSupportConversations()]);
+    startSupportPolling();
   } catch {
+    stopSupportPolling();
     loginBox.classList.remove("hidden");
     dashboard.classList.add("hidden");
   }
@@ -158,6 +172,220 @@ function renderClients() {
 
 clientSearch?.addEventListener("input", renderClients);
 document.getElementById("refreshClientsBtn")?.addEventListener("click", loadClients);
+
+
+async function loadSupportConversations() {
+  if (!supportConversationList) return;
+
+  const data = await api("/api/admin/support/conversations");
+  cachedSupportConversations = data.conversations || [];
+  renderSupportConversations();
+
+  if (
+    activeSupportConversationId &&
+    !cachedSupportConversations.some((item) => item.id === activeSupportConversationId)
+  ) {
+    activeSupportConversationId = null;
+    supportChatActive?.classList.add("hidden");
+    supportChatEmpty?.classList.remove("hidden");
+  }
+}
+
+function renderSupportConversations() {
+  if (!supportConversationList) return;
+
+  const unread = cachedSupportConversations.reduce(
+    (total, item) => total + Number(item.unread || 0),
+    0
+  );
+
+  if (supportUnreadTotal) {
+    supportUnreadTotal.textContent = unread
+      ? `${unread} pendente(s)`
+      : "Tudo respondido";
+  }
+
+  supportConversationList.innerHTML = "";
+
+  if (!cachedSupportConversations.length) {
+    supportConversationList.innerHTML =
+      '<div class="admin-support-no-conversations">Nenhuma conversa ainda.</div>';
+    return;
+  }
+
+  for (const conversation of cachedSupportConversations) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+      "support-conversation-item" +
+      (conversation.id === activeSupportConversationId ? " active" : "") +
+      (conversation.unread ? " unread" : "");
+
+    const date = conversation.lastMessageAt
+      ? new Date(conversation.lastMessageAt).toLocaleString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "";
+
+    button.innerHTML = `
+      <div class="support-conversation-top">
+        <strong>Visitante #${conversation.id}</strong>
+        <span>${escapeHtml(date)}</span>
+      </div>
+      <p>${escapeHtml(conversation.lastMessage || "Conversa iniciada")}</p>
+      <div class="support-conversation-bottom">
+        <span class="tag ${conversation.status === "closed" ? "neutral" : "ok"}">
+          ${conversation.status === "closed" ? "Encerrada" : "Aberta"}
+        </span>
+        ${conversation.unread ? `<b>${conversation.unread}</b>` : ""}
+      </div>
+    `;
+
+    button.addEventListener("click", () => openSupportConversation(conversation.id));
+    supportConversationList.appendChild(button);
+  }
+}
+
+async function openSupportConversation(id) {
+  activeSupportConversationId = Number(id);
+  renderSupportConversations();
+
+  supportChatEmpty?.classList.add("hidden");
+  supportChatActive?.classList.remove("hidden");
+
+  if (supportChatTitle) {
+    supportChatTitle.textContent = "Visitante #" + activeSupportConversationId;
+  }
+
+  await loadSupportMessages();
+}
+
+async function loadSupportMessages() {
+  if (!activeSupportConversationId || !supportAdminMessages) return;
+
+  const data = await api(
+    `/api/admin/support/conversations/${activeSupportConversationId}/messages`
+  );
+
+  supportAdminMessages.innerHTML = "";
+
+  for (const message of data.messages || []) {
+    const bubble = document.createElement("div");
+    bubble.className =
+      "admin-support-message " + (message.sender === "admin" ? "admin" : "visitor");
+
+    const body = document.createElement("p");
+    body.textContent = message.body;
+
+    const meta = document.createElement("small");
+    meta.textContent =
+      (message.sender === "admin" ? "Você" : "Visitante") +
+      " • " +
+      new Date(message.createdAt).toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+    bubble.append(body, meta);
+    supportAdminMessages.appendChild(bubble);
+  }
+
+  supportAdminMessages.scrollTop = supportAdminMessages.scrollHeight;
+
+  const active = cachedSupportConversations.find(
+    (item) => item.id === activeSupportConversationId
+  );
+
+  if (active) {
+    active.unread = 0;
+    active.status = data.conversation?.status || active.status;
+  }
+
+  if (toggleSupportStatusBtn) {
+    const closed = data.conversation?.status === "closed";
+    toggleSupportStatusBtn.textContent = closed ? "Reabrir" : "Encerrar";
+    toggleSupportStatusBtn.dataset.status = closed ? "closed" : "open";
+  }
+
+  renderSupportConversations();
+}
+
+document.getElementById("supportReplyForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const input = document.getElementById("supportReplyInput");
+  const message = input?.value.trim();
+  if (!activeSupportConversationId || !message) return;
+
+  const button = event.currentTarget.querySelector("button[type='submit']");
+  if (button) button.disabled = true;
+
+  try {
+    await api(
+      `/api/admin/support/conversations/${activeSupportConversationId}/messages`,
+      {
+        method: "POST",
+        body: JSON.stringify({ message }),
+      }
+    );
+
+    input.value = "";
+    await Promise.all([loadSupportMessages(), loadSupportConversations()]);
+  } finally {
+    if (button) button.disabled = false;
+    input?.focus();
+  }
+});
+
+toggleSupportStatusBtn?.addEventListener("click", async () => {
+  if (!activeSupportConversationId) return;
+
+  const current = toggleSupportStatusBtn.dataset.status || "open";
+  const status = current === "closed" ? "open" : "closed";
+
+  await api(
+    `/api/admin/support/conversations/${activeSupportConversationId}/status`,
+    {
+      method: "POST",
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  await Promise.all([loadSupportConversations(), loadSupportMessages()]);
+});
+
+document.getElementById("refreshSupportBtn")?.addEventListener("click", async () => {
+  await loadSupportConversations();
+  if (activeSupportConversationId) await loadSupportMessages();
+});
+
+function startSupportPolling() {
+  stopSupportPolling();
+
+  supportPollTimer = setInterval(async () => {
+    if (dashboard.classList.contains("hidden") || supportPollBusy) return;
+
+    supportPollBusy = true;
+    try {
+      await loadSupportConversations();
+      if (activeSupportConversationId) {
+        await loadSupportMessages();
+      }
+    } catch {
+      // Mantém o painel utilizável mesmo se uma atualização do chat falhar.
+    } finally {
+      supportPollBusy = false;
+    }
+  }, 4000);
+}
+
+function stopSupportPolling() {
+  if (supportPollTimer) clearInterval(supportPollTimer);
+  supportPollTimer = null;
+}
 
 function formatBytes(bytes) {
   const value = Number(bytes || 0);
