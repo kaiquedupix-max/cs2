@@ -2,9 +2,7 @@ import {
   checkoutConfig,
   checkoutPlan,
   createPayment,
-  digitsOnly,
   getPayment,
-  normalizePhone,
   paymentView,
   validCpf,
   verifyWebhook,
@@ -16,23 +14,13 @@ function validEmail(value) {
 
 function cleanBuyer(body) {
   const buyer = {
-    fullName: String(body?.fullName || "").slice(0, 160),
-    cpf: String(body?.cpf || "").slice(0, 32),
-    email: String(body?.email || "").slice(0, 160),
-    phone: String(body?.phone || "").slice(0, 40),
-    processNumber: String(body?.processNumber || "").slice(0, 120),
+    fullName: String(body?.fullName || "").trim().slice(0, 160),
+    cpf: String(body?.cpf || "").trim().slice(0, 32),
+    email: String(body?.email || "").trim().toLowerCase().slice(0, 160),
     fingerprint: String(body?.fingerprint || "").trim().slice(0, 200),
-    address: {
-      street: String(body?.address?.street || "").slice(0, 160),
-      number: String(body?.address?.number || "").slice(0, 30),
-      complement: String(body?.address?.complement || "").slice(0, 80),
-      city: String(body?.address?.city || "").slice(0, 100),
-      state: String(body?.address?.state || "").trim().toUpperCase().slice(0, 2),
-      zipcode: String(body?.address?.zipcode || "").slice(0, 16),
-    },
   };
 
-  if (buyer.fullName.trim().length < 3) {
+  if (buyer.fullName.length < 3 || !buyer.fullName.includes(" ")) {
     throw Object.assign(new Error("Informe o nome completo."), { statusCode: 400 });
   }
 
@@ -40,51 +28,13 @@ function cleanBuyer(body) {
     throw Object.assign(new Error("Informe um CPF válido."), { statusCode: 400 });
   }
 
-  if (!validEmail(buyer.email.trim().toLowerCase())) {
+  if (!validEmail(buyer.email)) {
     throw Object.assign(new Error("Informe um e-mail válido."), { statusCode: 400 });
-  }
-
-  const phone = normalizePhone(buyer.phone);
-  if (phone.length < 12 || phone.length > 14) {
-    throw Object.assign(new Error("Informe um telefone válido com DDD."), { statusCode: 400 });
-  }
-
-  if (buyer.processNumber.trim().length < 3) {
-    throw Object.assign(new Error("Informe o número do processo."), { statusCode: 400 });
   }
 
   if (buyer.fingerprint.length < 8) {
     throw Object.assign(new Error("Identificação do navegador ausente."), { statusCode: 400 });
   }
-
-  if (
-    buyer.address.street.trim().length < 2 ||
-    buyer.address.number.trim().length < 1 ||
-    buyer.address.city.trim().length < 2 ||
-    !/^[A-Z]{2}$/.test(buyer.address.state) ||
-    digitsOnly(buyer.address.zipcode).length !== 8
-  ) {
-    throw Object.assign(new Error("Preencha corretamente o endereço de cobrança."), { statusCode: 400 });
-  }
-
-  buyer.providerCustomer = {
-    name: buyer.fullName.trim(),
-    email: buyer.email.trim().toLowerCase(),
-    phone,
-    fingerprint: buyer.fingerprint,
-    docType: "cpf",
-    docNumber: digitsOnly(buyer.cpf),
-  };
-
-  buyer.providerAddress = {
-    country: "BR",
-    state: buyer.address.state,
-    city: buyer.address.city.trim(),
-    zipcode: digitsOnly(buyer.address.zipcode),
-    street: buyer.address.street.trim(),
-    number: buyer.address.number.trim(),
-    complement: buyer.address.complement.trim(),
-  };
 
   return buyer;
 }
@@ -108,35 +58,14 @@ export function registerCheckoutRoutes(app, deps) {
          billing_street, billing_number, billing_complement,
          billing_city, billing_state, billing_zipcode, updated_at
        )
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())
+       VALUES ($1,$2,$3,$4,'','', '', '', '', '', '', '', NOW())
        ON CONFLICT (user_id)
        DO UPDATE SET
          full_name = EXCLUDED.full_name,
          cpf = EXCLUDED.cpf,
          email = EXCLUDED.email,
-         phone = EXCLUDED.phone,
-         process_number = EXCLUDED.process_number,
-         billing_street = EXCLUDED.billing_street,
-         billing_number = EXCLUDED.billing_number,
-         billing_complement = EXCLUDED.billing_complement,
-         billing_city = EXCLUDED.billing_city,
-         billing_state = EXCLUDED.billing_state,
-         billing_zipcode = EXCLUDED.billing_zipcode,
          updated_at = NOW()`,
-      [
-        userId,
-        buyer.fullName,
-        buyer.cpf,
-        buyer.email,
-        buyer.phone,
-        buyer.processNumber,
-        buyer.address.street,
-        buyer.address.number,
-        buyer.address.complement,
-        buyer.address.city,
-        buyer.address.state,
-        buyer.address.zipcode,
-      ]
+      [userId, buyer.fullName, buyer.cpf, buyer.email]
     );
   }
 
@@ -150,7 +79,7 @@ export function registerCheckoutRoutes(app, deps) {
          card_holder_name, card_last4, card_expiry,
          plan_key, plan_name, plan_days, plan_lifetime, expected_amount
        )
-       VALUES ($1,'mercadopago',$2,$3,'creating',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       VALUES ($1,'mercadopago',$2,$3,'creating',$4,$5,$6,$7,'','',$8,$9,$10,$11,$12,$13,$14,$15)
        ON CONFLICT (idempotency_key)
        DO UPDATE SET updated_at = NOW()
        RETURNING id`,
@@ -162,8 +91,6 @@ export function registerCheckoutRoutes(app, deps) {
         buyer.fullName,
         buyer.cpf,
         buyer.email,
-        buyer.phone,
-        buyer.processNumber,
         card?.holderName || null,
         card?.last4 || null,
         card?.expiry || null,
@@ -364,14 +291,6 @@ export function registerCheckoutRoutes(app, deps) {
          cp.full_name,
          cp.cpf,
          cp.email,
-         cp.phone,
-         cp.process_number,
-         cp.billing_street,
-         cp.billing_number,
-         cp.billing_complement,
-         cp.billing_city,
-         cp.billing_state,
-         cp.billing_zipcode,
          u.email AS account_email
        FROM users u
        LEFT JOIN customer_profiles cp ON cp.user_id = u.id
@@ -397,16 +316,6 @@ export function registerCheckoutRoutes(app, deps) {
         fullName: row.full_name || "",
         cpf: row.cpf || "",
         email: row.email || row.account_email || "",
-        phone: row.phone || "",
-        processNumber: row.process_number || "",
-        address: {
-          street: row.billing_street || "",
-          number: row.billing_number || "",
-          complement: row.billing_complement || "",
-          city: row.billing_city || "",
-          state: row.billing_state || "",
-          zipcode: row.billing_zipcode || "",
-        },
       },
     });
   });
