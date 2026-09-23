@@ -723,7 +723,8 @@ namespace Mac1ota_Menu.Classes
 
             _plan.Text =
                 account.Product.HasAccess
-                    ? account.Product.Plan ??
+                    ? account.Product.PlanLabel ??
+                      account.Product.Plan ??
                       "Ativo"
                     : "Sem acesso";
 
