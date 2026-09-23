@@ -319,6 +319,14 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    ALTER TABLE checkout_payments
+      ADD COLUMN IF NOT EXISTS plan_key TEXT NULL,
+      ADD COLUMN IF NOT EXISTS plan_name TEXT NULL,
+      ADD COLUMN IF NOT EXISTS plan_days INTEGER NULL,
+      ADD COLUMN IF NOT EXISTS plan_lifetime BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS offer_id TEXT NULL,
+      ADD COLUMN IF NOT EXISTS expected_amount NUMERIC(12,2) NULL;
+
     CREATE INDEX IF NOT EXISTS idx_checkout_payments_user_created
       ON checkout_payments(user_id, created_at DESC);
 
@@ -485,10 +493,11 @@ async function accountSnapshot(userId) {
   const row = productResult.rows[0] || null;
   const now = Date.now();
   const expires = row?.expires_at ? new Date(row.expires_at).getTime() : 0;
-  const hasAccess = Boolean(row) && !row.revoked_at && expires > now;
-  const daysRemaining = hasAccess
+  const lifetime = String(row?.plan || "").toLowerCase() === "lifetime";
+  const hasAccess = Boolean(row) && !row.revoked_at && (lifetime || expires > now);
+  const daysRemaining = hasAccess && !lifetime
     ? Math.max(1, Math.ceil((expires - now) / 86400000))
-    : 0;
+    : lifetime ? null : 0;
 
   return {
     user: {
@@ -503,8 +512,9 @@ async function accountSnapshot(userId) {
       hasAccess,
       plan: hasAccess ? row.plan : null,
       purchasedAt: row?.purchased_at || null,
-      expiresAt: row?.expires_at || null,
+      expiresAt: lifetime ? null : (row?.expires_at || null),
       daysRemaining,
+      lifetime,
     },
     status: await productStatus(),
   };
