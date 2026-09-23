@@ -61,3 +61,16 @@
 .checkout-plan-card small{font-size:9px;color:#667b72;line-height:1.35}
 @media(max-width:900px){.checkout-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.checkout-plan-grid{grid-template-columns:1fr 1fr}.checkout-plan-card{padding:12px}.checkout-plan-card strong{font-size:18px}}
+
+
+/* Storefront plan cards */
+.home-plan-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:16px}
+.home-plan-grid a{text-decoration:none;color:inherit;border:1px solid #173128;background:#08110e;border-radius:12px;padding:15px 13px;display:grid;gap:5px;transition:.2s ease}
+.home-plan-grid a:hover{transform:translateY(-3px);border-color:#2a7258;background:#0b1813}
+.home-plan-grid a.featured{border-color:#2ebd8f;box-shadow:0 0 0 2px #2ee0aa12}
+.home-plan-grid a.lifetime{background:linear-gradient(145deg,#0a1712,#10271d);border-color:#35785f}
+.home-plan-grid small{font-size:8px;letter-spacing:.13em;color:#70857c;font-weight:800}
+.home-plan-grid strong{font-size:18px;color:#f0f7f4;letter-spacing:-.03em}
+.home-plan-grid span{font-size:9px;color:#60746c}
+@media(max-width:1100px){.home-plan-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.home-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
