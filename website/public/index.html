@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#050907">
   <title>legitbaratinho.xyz · CS2 brasileiro, completo e acessível</title>
   <meta name="description" content="Projeto brasileiro para CS2 com painel integrado, loader, planos acessíveis, ativação automática, Mercado Pago e suporte direto pelo site.">
-  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260923-store">
-  <link rel="stylesheet" href="/styles.css?v=20260923-store-support">
+  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260923-free-trial">
+  <link rel="stylesheet" href="/styles.css?v=20260923-free-trial">
 </head>
 <body>
   <div class="cursor-glow" id="cursorGlow"></div>
@@ -18,7 +18,7 @@
   <header class="topbar">
     <div class="shell nav">
       <a class="brand" href="/">
-        <img class="brand-icon" src="/brand-icon.svg?v=20260923-store" alt="">
+        <img class="brand-icon" src="/brand-icon.svg?v=20260923-free-trial" alt="">
         <span class="brand-copy"><b>legitbaratinho</b><small>.xyz</small></span>
       </a>
       <nav>
@@ -48,8 +48,8 @@
       </p>
 
       <div class="hero-actions reveal delay-3">
-        <a class="button button-primary magnetic" href="/checkout?plan=d30">Quero meu acesso <span>↗</span></a>
-        <a class="button button-dark magnetic" href="#recursos">Ver tudo que vem incluso</a>
+        <a class="button button-primary magnetic" href="/account?trial=1">Testar grátis por 1 dia <span>↗</span></a>
+        <a class="button button-dark magnetic" href="/checkout?plan=d30">Ver planos pagos</a>
       </div>
 
       <div class="hero-proof reveal delay-3">
@@ -59,7 +59,7 @@
         <span>💬 Suporte dentro do site</span>
         <span>🛡️ Proteções avançadas contra detecção</span>
         <span>✅ Sem detecção conhecida em nosso histórico até agora</span>
-        <span>💸 Planos a partir de R$ 5,90</span>
+        <span>🎁 Teste grátis de 1 dia</span>
       </div>
 
       <div class="hero-status reveal delay-4">
@@ -283,14 +283,15 @@
             <div class="software-status"><span id="catalogStatusDot" class="status-dot maintenance"></span><b id="catalogStatus">Consultando status...</b></div>
           </div>
           <div class="software-buy">
-            <small>PLANOS A PARTIR DE</small>
-            <strong>R$ 5,90</strong>
-            <a href="/checkout?plan=d30" class="button button-primary">Comprar agora</a>
+            <small>TESTE GRÁTIS DISPONÍVEL</small>
+            <strong>1 DIA</strong>
+            <a href="/account?trial=1" class="button button-primary">Testar grátis</a>
           </div>
         </div>
 
         <div class="home-plan-grid reveal">
-          <a href="/checkout?plan=d1"><small>1 DIA</small><strong>R$ 5,90</strong><span>Para experimentar</span></a>
+          <a class="free-trial" href="/account?trial=1"><small>TESTE GRÁTIS</small><strong>R$ 0,00</strong><span>1 dia • 1 por PC</span></a>
+          <a href="/checkout?plan=d1"><small>1 DIA</small><strong>R$ 5,90</strong><span>Para renovar por 1 dia</span></a>
           <a href="/checkout?plan=d7"><small>7 DIAS</small><strong>R$ 9,90</strong><span>Uma semana completa</span></a>
           <a href="/checkout?plan=d15"><small>15 DIAS</small><strong>R$ 14,90</strong><span>Quinzena</span></a>
           <a class="featured" href="/checkout?plan=d30"><small>1 MÊS</small><strong>R$ 19,90</strong><span>Mais escolhido</span></a>
@@ -306,6 +307,10 @@
         <div><div class="eyebrow">SEM ENROLAÇÃO</div><h2>Perguntas frequentes.</h2></div>
       </div>
       <div class="faq-grid">
+        <details class="reveal">
+          <summary>Como funciona o teste grátis de 1 dia?<span>+</span></summary>
+          <p>Cada conta pode ativar o teste grátis uma única vez. Ao entrar no loader, o teste fica vinculado ao primeiro computador usado. Um PC já vinculado a outra conta não pode iniciar outro plano Free. Planos pagos continuam funcionando normalmente.</p>
+        </details>
         <details class="reveal">
           <summary>O pagamento é automático?<span>+</span></summary>
           <p>Sim. O checkout usa Mercado Pago e, após a confirmação do pagamento, o sistema ativa o plano automaticamente na sua conta.</p>
@@ -344,21 +349,21 @@
     <section class="final-cta shell reveal">
       <div>
         <div class="eyebrow">PRONTO PARA COMEÇAR?</div>
-        <h2>Escolha seu plano.<br>Ative seu acesso.</h2>
+        <h2>Teste por 1 dia.<br>Depois escolha seu plano.</h2>
       </div>
-      <a class="button button-primary magnetic" href="/checkout?plan=d30">Comprar agora <span>↗</span></a>
+      <a class="button button-primary magnetic" href="/account?trial=1">Testar grátis <span>↗</span></a>
     </section>
   </main>
 
   <footer class="shell footer">
     <a class="brand" href="/">
-      <img class="brand-icon" src="/brand-icon.svg?v=20260923-store" alt="">
+      <img class="brand-icon" src="/brand-icon.svg?v=20260923-free-trial" alt="">
       <span class="brand-copy"><b>legitbaratinho</b><small>.xyz</small></span>
     </a>
     <span>© <span id="year"></span> · Desenvolvido no Brasil 🇧🇷</span>
   </footer>
 
-  <script src="/app.js?v=20260923-store"></script>
+  <script src="/app.js?v=20260923-free-trial"></script>
   <script src="/support.js?v=20260923-support"></script>
 </body>
 </html>
