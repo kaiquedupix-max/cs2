@@ -1,13 +1,14 @@
-import QRCode from "qrcode";
 import {
   checkoutConfig,
   checkoutPlan,
   createPayment,
   digitsOnly,
+  getPayment,
   normalizePhone,
+  paymentView,
   validCpf,
   verifyWebhook,
-} from "./cakto.js";
+} from "./mercadoPago.js";
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
@@ -147,9 +148,9 @@ export function registerCheckoutRoutes(app, deps) {
          user_id, provider, idempotency_key, payment_method, status, installments,
          buyer_name, buyer_cpf, buyer_email, buyer_phone, process_number,
          card_holder_name, card_last4, card_expiry,
-         plan_key, plan_name, plan_days, plan_lifetime, offer_id, expected_amount
+         plan_key, plan_name, plan_days, plan_lifetime, expected_amount
        )
-       VALUES ($1,'cakto',$2,$3,'creating',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+       VALUES ($1,'mercadopago',$2,$3,'creating',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        ON CONFLICT (idempotency_key)
        DO UPDATE SET updated_at = NOW()
        RETURNING id`,
@@ -170,7 +171,6 @@ export function registerCheckoutRoutes(app, deps) {
         plan.name,
         plan.days,
         Boolean(plan.lifetime),
-        plan.offerId,
         Number(plan.priceCents || 0) / 100,
       ]
     );
@@ -329,6 +329,33 @@ export function registerCheckoutRoutes(app, deps) {
     }
   }
 
+  async function syncMercadoPago(localId, rawPayment) {
+    const view = paymentView(rawPayment);
+
+    await updateFromProvider(localId, {
+      id: view.id,
+      refId: view.refId,
+      externalId: view.externalId,
+      status: view.status,
+      amount: view.amount,
+      pix: {
+        qrCode: view.pix.qrCode,
+        expirationDate: view.pix.expirationDate,
+      },
+    }, {
+      cardBrand: view.cardBrand,
+      cardLast4: view.cardLast4,
+    });
+
+    if (view.status === "paid") {
+      await activate(localId, view.paidAt || null);
+    } else if (["refund", "chargeback", "canceled"].includes(view.status)) {
+      await reverse(localId, view.status, null);
+    }
+
+    return view;
+  }
+
   app.get("/api/checkout/config", requireUser, async (req, res) => {
     const config = checkoutConfig();
 
@@ -357,7 +384,7 @@ export function registerCheckoutRoutes(app, deps) {
 
     res.json({
       configured: config.configured,
-      sdkClientId: config.sdkClientId,
+      publicKey: config.publicKey,
       plans: config.plans.map(({ key, name, days, lifetime, priceCents, available }) => ({
         key,
         name,
@@ -384,19 +411,18 @@ export function registerCheckoutRoutes(app, deps) {
     });
   });
 
-  app.post("/api/checkout/pix", requireUser, async (req, res) => {
+  app.post("/api/checkout/payment", requireUser, async (req, res) => {
     const config = checkoutConfig();
     const plan = checkoutPlan(req.body?.planKey);
 
-    if (!config.configured || !plan?.available) {
+    if (!config.configured || !plan) {
       return res.status(503).json({
         error: "checkout_not_configured",
-        message: "Checkout ainda não configurado.",
+        message: "Mercado Pago ainda não configurado.",
       });
     }
 
     const idempotencyKey = String(req.body?.idempotencyKey || "").trim();
-
     if (!validIntent(idempotencyKey)) {
       return res.status(400).json({
         error: "invalid_intent",
@@ -406,175 +432,52 @@ export function registerCheckoutRoutes(app, deps) {
 
     try {
       const buyer = cleanBuyer(req.body);
-      const localId = await createIntent({
-        userId: req.userId,
-        idempotencyKey,
-        method: "pix",
-        buyer,
-        plan,
-      });
-
-      const payment = await createPayment(
-        {
-          paymentMethod: "pix",
-          customer: {
-            ...buyer.providerCustomer,
-            ip: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "")
-              .split(",")[0]
-              .trim(),
-          },
-          items: [{ offerId: plan.offerId }],
-          pixExpiresIn: config.pixExpiresIn,
-        },
-        idempotencyKey
-      );
-
-      await updateFromProvider(localId, payment);
-
-      const code = String(payment?.pix?.qrCode || "");
-      if (!code) {
-        throw Object.assign(new Error("A Cakto não retornou o código Pix."), { statusCode: 502 });
-      }
-
-      const qrImage = await QRCode.toDataURL(code, {
-        width: 280,
-        margin: 1,
-      });
-
-      return res.status(201).json({
-        paymentId: localId,
-        status: payment.status || "waiting_payment",
-        amount: payment.amount || null,
-        refId: payment.refId || null,
-        pix: {
-          copyPaste: code,
-          expiresAt: payment.pix?.expirationDate || null,
-          qrImage,
-        },
-      });
-    } catch (error) {
-      return res.status(error?.statusCode || 500).json({
-        error: "pix_payment_failed",
-        message: error?.message || "Não foi possível gerar o Pix.",
-      });
-    }
-  });
-
-  app.post("/api/checkout/card", requireUser, async (req, res) => {
-    const config = checkoutConfig();
-    const plan = checkoutPlan(req.body?.planKey);
-
-    if (!config.configured || !plan?.available) {
-      return res.status(503).json({
-        error: "checkout_not_configured",
-        message: "Checkout ainda não configurado.",
-      });
-    }
-
-    if (req.body?.cardNumber != null || req.body?.cvv != null) {
-      return res.status(400).json({
-        error: "raw_card_rejected",
-        message: "Dados completos do cartão devem ser tokenizados no navegador.",
-      });
-    }
-
-    const idempotencyKey = String(req.body?.idempotencyKey || "").trim();
-
-    if (!validIntent(idempotencyKey)) {
-      return res.status(400).json({
-        error: "invalid_intent",
-        message: "Intenção de pagamento inválida.",
-      });
-    }
-
-    try {
-      const buyer = cleanBuyer(req.body);
-      const cardToken = String(req.body?.cardToken || "").trim().slice(0, 512);
-      const antifraudReference = String(req.body?.antifraudReference || "").trim().slice(0, 512);
-      const holderName = String(req.body?.cardHolderName || "").trim().slice(0, 160);
-      const expiry = String(req.body?.cardExpiry || "").trim().slice(0, 12);
-      const last4 = digitsOnly(req.body?.cardLast4).slice(-4);
-      const installments = Math.max(
-        1,
-        Math.min(12, Math.trunc(Number(req.body?.installments || 1)))
-      );
-
-      const threeDSecure = {
-        cavv: String(req.body?.threeDSecure?.cavv || "").slice(0, 512),
-        eci: String(req.body?.threeDSecure?.eci || "").slice(0, 32),
-        xid: String(req.body?.threeDSecure?.xid || "").slice(0, 512),
-        referenceId: String(req.body?.threeDSecure?.referenceId || "").slice(0, 512),
-        version: String(req.body?.threeDSecure?.version || "").slice(0, 32),
-        dataOnly: Boolean(req.body?.threeDSecure?.dataOnly),
-      };
-
-      if (!cardToken || !antifraudReference) {
-        throw Object.assign(new Error("Tokenização ou antifraude incompletos."), { statusCode: 400 });
-      }
-
-      if (!threeDSecure.referenceId || !threeDSecure.version) {
-        throw Object.assign(new Error("Autenticação 3DS incompleta."), { statusCode: 400 });
-      }
-
-      if (holderName.length < 3 || !/^\s*(0[1-9]|1[0-2])\s*\/\s*(\d{2}|\d{4})\s*$/.test(expiry) || !/^\d{4}$/.test(last4)) {
-        throw Object.assign(new Error("Dados do cartão inválidos."), { statusCode: 400 });
-      }
+      const formData = req.body?.formData && typeof req.body.formData === "object"
+        ? req.body.formData
+        : {};
+      const method = String(formData.payment_method_id || "unknown").slice(0, 60);
 
       const localId = await createIntent({
         userId: req.userId,
         idempotencyKey,
-        method: "threeDs",
+        method,
         buyer,
         plan,
-        installments,
-        card: {
-          holderName,
-          last4,
-          expiry,
-        },
+        installments: Math.max(1, Math.min(12, Math.trunc(Number(formData.installments || 1)))),
       });
 
-      const payment = await createPayment(
-        {
-          paymentMethod: "threeDs",
-          customer: {
-            ...buyer.providerCustomer,
-            name: holderName,
-            ip: String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "")
-              .split(",")[0]
-              .trim(),
-          },
-          items: [{ offerId: plan.offerId }],
-          address: buyer.providerAddress,
-          card: { token: cardToken },
-          threeDSecure,
-          installments,
-          antifraud_profiling_attempt_reference: antifraudReference,
-        },
-        idempotencyKey
-      );
-
-      await updateFromProvider(localId, payment, {
-        cardLast4: last4,
+      const rawPayment = await createPayment({
+        userId: req.userId,
+        localId,
+        plan,
+        buyer,
+        formData,
+        idempotencyKey,
+        deviceId: req.body?.device_id || req.body?.deviceId,
       });
 
-      const status = String(payment.status || "").toLowerCase();
-
-      if (status === "paid") {
-        await activate(localId, payment.paidAt || null);
-      }
+      const view = await syncMercadoPago(localId, rawPayment);
 
       return res.status(201).json({
         paymentId: localId,
-        status: payment.status || "pending",
-        amount: payment.amount || null,
-        refId: payment.refId || null,
-        account: status === "paid" ? await accountSnapshot(req.userId) : null,
+        status: view.status,
+        rawStatus: view.rawStatus,
+        statusDetail: view.statusDetail,
+        amount: view.amount,
+        refId: view.refId,
+        pix: view.pix.qrCode ? {
+          copyPaste: view.pix.qrCode,
+          qrCodeBase64: view.pix.qrCodeBase64,
+          ticketUrl: view.pix.ticketUrl,
+          expiresAt: view.pix.expirationDate,
+        } : null,
+        account: view.status === "paid" ? await accountSnapshot(req.userId) : null,
       });
     } catch (error) {
+      console.error("Falha ao criar pagamento Mercado Pago:", error?.message || error);
       return res.status(error?.statusCode || 500).json({
-        error: "card_payment_failed",
-        message: error?.message || "Não foi possível processar o cartão.",
+        error: "payment_failed",
+        message: error?.message || "Não foi possível processar o pagamento.",
       });
     }
   });
@@ -586,9 +489,9 @@ export function registerCheckoutRoutes(app, deps) {
       return res.status(400).json({ error: "invalid_payment" });
     }
 
-    const result = await pool.query(
+    let result = await pool.query(
       `SELECT
-         id, payment_method, status, amount, provider_ref_id,
+         id, payment_method, status, amount, provider_order_id, provider_ref_id,
          pix_expires_at, paid_at, card_brand, card_last4,
          plan_key, plan_name, plan_days, plan_lifetime
        FROM checkout_payments
@@ -597,10 +500,30 @@ export function registerCheckoutRoutes(app, deps) {
       [paymentId, req.userId]
     );
 
-    const payment = result.rows[0];
-
+    let payment = result.rows[0];
     if (!payment) {
       return res.status(404).json({ error: "payment_not_found" });
+    }
+
+    if (payment.provider_order_id && payment.status !== "paid") {
+      try {
+        const rawPayment = await getPayment(payment.provider_order_id);
+        await syncMercadoPago(paymentId, rawPayment);
+
+        result = await pool.query(
+          `SELECT
+             id, payment_method, status, amount, provider_order_id, provider_ref_id,
+             pix_expires_at, paid_at, card_brand, card_last4,
+             plan_key, plan_name, plan_days, plan_lifetime
+           FROM checkout_payments
+           WHERE id = $1 AND user_id = $2
+           LIMIT 1`,
+          [paymentId, req.userId]
+        );
+        payment = result.rows[0];
+      } catch (error) {
+        console.error("Falha ao consultar pagamento Mercado Pago:", error?.message || error);
+      }
     }
 
     return res.json({
@@ -625,61 +548,41 @@ export function registerCheckoutRoutes(app, deps) {
     });
   });
 
-  app.post("/api/webhooks/cakto", async (req, res) => {
-    if (!pool) {
-      return res.status(503).send("database_unavailable");
-    }
+  app.post("/api/webhooks/mercadopago", async (req, res) => {
+    if (!pool) return res.status(503).send("database_unavailable");
 
-    if (!process.env.CAKTO_WEBHOOK_SECRET) {
-      return res.status(503).send("webhook_not_configured");
-    }
+    const dataId = String(
+      req.body?.data?.id ||
+      req.query?.["data.id"] ||
+      req.query?.id ||
+      ""
+    ).trim();
 
-    if (!verifyWebhook(req.rawBody, req.headers, req.body)) {
+    if (!dataId) return res.sendStatus(200);
+
+    if (!verifyWebhook(req.headers, dataId)) {
       return res.status(401).send("unauthorized");
     }
 
-    const event = String(req.body?.event || "");
-    const entries = Array.isArray(req.body?.data)
-      ? req.body.data
-      : [req.body?.data];
-
     try {
-      for (const order of entries) {
-        const providerOrderId = String(order?.id || "").trim();
-        if (!providerOrderId) continue;
+      const rawPayment = await getPayment(dataId);
+      const metadata = rawPayment?.metadata || {};
+      let localId = Number(metadata.local_payment_id || 0);
 
+      if (!localId) {
         const localResult = await pool.query(
           "SELECT id FROM checkout_payments WHERE provider_order_id = $1 LIMIT 1",
-          [providerOrderId]
+          [String(rawPayment?.id || dataId)]
         );
-
-        const localId = Number(localResult.rows[0]?.id || 0);
-        if (!localId) continue;
-
-        await updateFromProvider(localId, order, {
-          cardBrand: order?.card?.brand || null,
-          cardLast4: order?.card?.lastDigits || order?.card?.last4 || null,
-        });
-
-        if (event === "purchase_approved" || String(order?.status || "").toLowerCase() === "paid") {
-          await activate(localId, order?.paidAt || null);
-        } else if (event === "refund" || event === "chargeback") {
-          await reverse(
-            localId,
-            event,
-            order?.refundedAt || order?.chargedbackAt || null
-          );
-        } else if (event === "purchase_refused") {
-          await pool.query(
-            "UPDATE checkout_payments SET status = $2, updated_at = NOW() WHERE id = $1",
-            [localId, order?.status || "refused"]
-          );
-        }
+        localId = Number(localResult.rows[0]?.id || 0);
       }
 
+      if (!localId) return res.sendStatus(200);
+
+      await syncMercadoPago(localId, rawPayment);
       return res.sendStatus(200);
     } catch (error) {
-      console.error("Falha ao processar webhook Cakto:", error?.message || error);
+      console.error("Falha ao processar webhook Mercado Pago:", error?.message || error);
       return res.sendStatus(500);
     }
   });

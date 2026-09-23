@@ -20,23 +20,29 @@ npm start
 Admin: `/admin`
 Healthcheck: `/health`
 
+### Mercado Pago
 
-### Planos Cakto
+O checkout usa o Payment Brick oficial do Mercado Pago com Pix e cartão.
 
-O checkout suporta estes planos:
+Planos:
 
-- 1 dia — R$ 5,90 — `CAKTO_OFFER_ID_1D`
-- 7 dias — R$ 9,90 — `CAKTO_OFFER_ID_7D`
-- 15 dias — R$ 14,90 — `CAKTO_OFFER_ID_15D`
-- 1 mês — R$ 19,90 — `CAKTO_OFFER_ID_30D` (faz fallback para `CAKTO_OFFER_ID`)
-- 3 meses — R$ 39,90 — `CAKTO_OFFER_ID_3M`
-- 6 meses — R$ 64,90 — `CAKTO_OFFER_ID_6M`
-- Lifetime — R$ 100,00 — `CAKTO_OFFER_ID_LIFETIME`
+- 1 dia — R$ 5,90
+- 7 dias — R$ 9,90
+- 15 dias — R$ 14,90
+- 1 mês — R$ 19,90
+- 3 meses — R$ 39,90
+- 6 meses — R$ 64,90
+- Lifetime — R$ 100,00
 
-Variáveis comuns obrigatórias:
+Variáveis obrigatórias:
 
-- `CAKTO_API_CLIENT_ID`
-- `CAKTO_API_CLIENT_SECRET`
-- `CAKTO_SDK_CLIENT_ID`
-- `CAKTO_WEBHOOK_SECRET`
-- `CAKTO_PIX_EXPIRES_IN` (opcional)
+- `MP_PUBLIC_KEY`
+- `MP_ACCESS_TOKEN`
+- `MP_WEBHOOK_SECRET`
+- `PUBLIC_URL=https://legitbaratinho.xyz`
+
+Webhook do Mercado Pago:
+
+`https://legitbaratinho.xyz/api/webhooks/mercadopago`
+
+Habilite notificações de Pagamentos. O acesso só é ativado quando o pagamento fica `approved`.

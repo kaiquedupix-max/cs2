@@ -292,7 +292,7 @@ async function initDb() {
     CREATE TABLE IF NOT EXISTS checkout_payments (
       id BIGSERIAL PRIMARY KEY,
       user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      provider TEXT NOT NULL DEFAULT 'cakto',
+      provider TEXT NOT NULL DEFAULT 'mercadopago',
       idempotency_key TEXT UNIQUE NOT NULL,
       provider_order_id TEXT UNIQUE NULL,
       provider_ref_id TEXT NULL,
@@ -324,7 +324,6 @@ async function initDb() {
       ADD COLUMN IF NOT EXISTS plan_name TEXT NULL,
       ADD COLUMN IF NOT EXISTS plan_days INTEGER NULL,
       ADD COLUMN IF NOT EXISTS plan_lifetime BOOLEAN NOT NULL DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS offer_id TEXT NULL,
       ADD COLUMN IF NOT EXISTS expected_amount NUMERIC(12,2) NULL;
 
     CREATE INDEX IF NOT EXISTS idx_checkout_payments_user_created
