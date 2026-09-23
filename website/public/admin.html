@@ -112,6 +112,50 @@
         </div>
       </article>
 
+      <article class="admin-card support-admin-card">
+        <div class="table-title">
+          <div>
+            <div class="section-label">SUPORTE</div>
+            <h2>Conversas do site</h2>
+          </div>
+          <button id="refreshSupportBtn" class="button ghost small">Atualizar</button>
+        </div>
+
+        <div class="admin-support-layout">
+          <aside class="admin-support-list">
+            <div class="admin-support-list-head">
+              <strong>Conversas</strong>
+              <span id="supportUnreadTotal">0 pendentes</span>
+            </div>
+            <div id="supportConversationList" class="support-conversation-list"></div>
+          </aside>
+
+          <section class="admin-support-chat">
+            <div id="supportChatEmpty" class="admin-support-empty">
+              <strong>Selecione uma conversa</strong>
+              <span>As mensagens enviadas pelo balão do site aparecem aqui.</span>
+            </div>
+
+            <div id="supportChatActive" class="hidden">
+              <div class="admin-support-chat-head">
+                <div>
+                  <small>ATENDIMENTO</small>
+                  <strong id="supportChatTitle">Visitante</strong>
+                </div>
+                <button id="toggleSupportStatusBtn" class="button ghost small" type="button">Encerrar</button>
+              </div>
+
+              <div id="supportAdminMessages" class="admin-support-messages"></div>
+
+              <form id="supportReplyForm" class="admin-support-reply">
+                <textarea id="supportReplyInput" maxlength="1200" rows="2" placeholder="Digite sua resposta..." required></textarea>
+                <button class="button primary" type="submit">Enviar resposta</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </article>
+
       <article class="admin-card">
         <div class="table-title">
           <div>
@@ -129,6 +173,6 @@
       </article>
     </section>
   </main>
-  <script src="/admin.js?v=20260918-0610"></script>
+  <script src="/admin.js?v=20260923-support"></script>
 </body>
 </html>
