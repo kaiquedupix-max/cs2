@@ -564,6 +564,26 @@ namespace Mac1ota_Menu.Classes
                 Ps(
                     scriptPath);
 
+            string psBackup =
+                Ps(
+                    currentExe +
+                    ".previous.exe");
+
+            string psLogDirectory =
+                Ps(
+                    Path.Combine(
+                        Environment.GetFolderPath(
+                            Environment.SpecialFolder.LocalApplicationData),
+                        "legitbaratinho.xyz"));
+
+            string psLog =
+                Ps(
+                    Path.Combine(
+                        Environment.GetFolderPath(
+                            Environment.SpecialFolder.LocalApplicationData),
+                        "legitbaratinho.xyz",
+                        "updater.log"));
+
             var sb =
                 new StringBuilder();
 
@@ -571,39 +591,163 @@ namespace Mac1ota_Menu.Classes
                 "$ErrorActionPreference = 'Stop'");
 
             sb.AppendLine(
+                "$logDir = '" +
+                psLogDirectory +
+                "'");
+
+            sb.AppendLine(
+                "$log = '" +
+                psLog +
+                "'");
+
+            sb.AppendLine(
+                "New-Item -ItemType Directory -Path $logDir -Force | Out-Null");
+
+            sb.AppendLine(
+                "function Write-UpdaterLog([string]$message) { Add-Content -LiteralPath $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff') + ' ' + $message) -Encoding UTF8 }");
+
+            sb.AppendLine(
+                "$exe = '" +
+                psExe +
+                "'");
+
+            sb.AppendLine(
+                "$backup = '" +
+                psBackup +
+                "'");
+
+            sb.AppendLine(
+                "$downloaded = '" +
+                psDownloaded +
+                "'");
+
+            sb.AppendLine(
+                "$work = '" +
+                psWorking +
+                "'");
+
+            sb.AppendLine(
+                "$temp = '" +
+                psTemp +
+                "'");
+
+            sb.AppendLine(
+                "$script = '" +
+                psScript +
+                "'");
+
+            sb.AppendLine(
+                "Write-UpdaterLog 'Updater iniciado.'");
+
+            sb.AppendLine(
                 "try { Wait-Process -Id " +
                 processId +
                 " -ErrorAction SilentlyContinue } catch {}");
 
             sb.AppendLine(
-                "Start-Sleep -Milliseconds 650");
+                "Start-Sleep -Milliseconds 900");
 
             sb.AppendLine(
-                "Copy-Item -LiteralPath '" +
-                psDownloaded +
-                "' -Destination '" +
-                psExe +
-                "' -Force");
+                "try {");
 
             sb.AppendLine(
-                "Start-Process -FilePath '" +
-                psExe +
-                "' -WorkingDirectory '" +
-                psWorking +
-                "'");
+                "  if (Test-Path -LiteralPath $backup) { Remove-Item -LiteralPath $backup -Force -ErrorAction SilentlyContinue }");
 
             sb.AppendLine(
-                "Start-Sleep -Milliseconds 350");
+                "  Copy-Item -LiteralPath $exe -Destination $backup -Force");
 
             sb.AppendLine(
-                "Remove-Item -LiteralPath '" +
-                psTemp +
-                "' -Recurse -Force -ErrorAction SilentlyContinue");
+                "  $copied = $false");
 
             sb.AppendLine(
-                "Remove-Item -LiteralPath '" +
-                psScript +
-                "' -Force -ErrorAction SilentlyContinue");
+                "  for ($i = 0; $i -lt 12 -and -not $copied; $i++) {");
+
+            sb.AppendLine(
+                "    try { Copy-Item -LiteralPath $downloaded -Destination $exe -Force; $copied = $true } catch { Write-UpdaterLog ('Falha ao substituir executavel, tentativa ' + ($i + 1) + ': ' + $_.Exception.Message); Start-Sleep -Milliseconds 500 }");
+
+            sb.AppendLine(
+                "  }");
+
+            sb.AppendLine(
+                "  if (-not $copied) { throw 'Nao foi possivel substituir o executavel atual.' }");
+
+            sb.AppendLine(
+                "  Write-UpdaterLog 'Executavel atualizado. Iniciando nova versao.'");
+
+            sb.AppendLine(
+                "  $newProcess = Start-Process -FilePath $exe -WorkingDirectory $work -PassThru -ErrorAction Stop");
+
+            sb.AppendLine(
+                "  Start-Sleep -Seconds 6");
+
+            sb.AppendLine(
+                "  if ($newProcess.HasExited) {");
+
+            sb.AppendLine(
+                "    $exitCode = $newProcess.ExitCode");
+
+            sb.AppendLine(
+                "    Write-UpdaterLog ('Nova versao encerrou cedo. ExitCode=' + $exitCode + '. Restaurando versao anterior.')");
+
+            sb.AppendLine(
+                "    Copy-Item -LiteralPath $backup -Destination $exe -Force");
+
+            sb.AppendLine(
+                "    Start-Process -FilePath $exe -WorkingDirectory $work | Out-Null");
+
+            sb.AppendLine(
+                "    throw ('Nova versao nao permaneceu aberta. ExitCode=' + $exitCode)");
+
+            sb.AppendLine(
+                "  }");
+
+            sb.AppendLine(
+                "  Write-UpdaterLog ('Nova versao iniciou com sucesso. PID=' + $newProcess.Id)");
+
+            sb.AppendLine(
+                "  Remove-Item -LiteralPath $backup -Force -ErrorAction SilentlyContinue");
+
+            sb.AppendLine(
+                "} catch {");
+
+            sb.AppendLine(
+                "  Write-UpdaterLog ('ERRO: ' + $_.Exception.Message)");
+
+            sb.AppendLine(
+                "  try {");
+
+            sb.AppendLine(
+                "    if (Test-Path -LiteralPath $backup) {");
+
+            sb.AppendLine(
+                "      Copy-Item -LiteralPath $backup -Destination $exe -Force");
+
+            sb.AppendLine(
+                "      $alreadyRunning = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe }");
+
+            sb.AppendLine(
+                "      if (-not $alreadyRunning) { Start-Process -FilePath $exe -WorkingDirectory $work | Out-Null }");
+
+            sb.AppendLine(
+                "    }");
+
+            sb.AppendLine(
+                "  } catch { Write-UpdaterLog ('Falha no rollback: ' + $_.Exception.Message) }");
+
+            sb.AppendLine(
+                "} finally {");
+
+            sb.AppendLine(
+                "  Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue");
+
+            sb.AppendLine(
+                "  Remove-Item -LiteralPath $backup -Force -ErrorAction SilentlyContinue");
+
+            sb.AppendLine(
+                "  Remove-Item -LiteralPath $script -Force -ErrorAction SilentlyContinue");
+
+            sb.AppendLine(
+                "}");
 
             return sb.ToString();
         }
