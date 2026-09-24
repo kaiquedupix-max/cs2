@@ -27,6 +27,7 @@ namespace Mac1ota_Menu.Classes
         private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/hikarii-dev/veloria-cs2-dumper/main/schemas/";
         private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
         private const string OffsetsUrl = PrimaryBaseUrl + "offsets.cs";
+        private const string FreshOffsetsUrl = "https://raw.githubusercontent.com/hikarii-dev/veloria-cs2-dumper/main/offsets/offsets.cs";
         private const string SecondaryOffsetsUrl = SecondaryBaseUrl + "offsets.cs";
         private const string ClientDllUrl = PrimaryBaseUrl + "client_dll.cs";
         private const string SecondaryClientDllUrl = SecondaryBaseUrl + "client_dll.cs";
@@ -38,6 +39,7 @@ namespace Mac1ota_Menu.Classes
         private const string SecondaryAnimationSystemUrl = SecondaryBaseUrl + "animationsystem_dll.cs";
 
         private static string OffsetsContent = string.Empty;
+        private static string FreshOffsetsContent = string.Empty;
         private static string ClientDllContent = string.Empty;
         private static string ButtonsContent = string.Empty;
         private static string Engine2Content = string.Empty;
@@ -54,12 +56,12 @@ namespace Mac1ota_Menu.Classes
 
         private static readonly Dictionary<string, List<Offset>> FieldNameMappings = new()
         {
-            { "dwViewMatrix", new() { new Offset("dwViewMatrix") } },
-            { "dwEntityList", new() { new Offset("dwEntityList") } },
+            { "dwViewMatrix", new() { new Offset("dwViewMatrix"), new Offset("ViewMatrix") } },
+            { "dwEntityList", new() { new Offset("dwEntityList"), new Offset("GlobalEntityList") } },
             { "dwLocalPlayerPawn", new() { new Offset("dwLocalPlayerPawn") } },
-            { "dwLocalPlayerController", new() { new Offset("dwLocalPlayerController") } },
+            { "dwLocalPlayerController", new() { new Offset("dwLocalPlayerController"), new Offset("LocalController") } },
             { "dwViewAngles", new() { new Offset("dwViewAngles") } },
-            { "dwGlobalVars", new() { new Offset("dwGlobalVars") } },
+            { "dwGlobalVars", new() { new Offset("dwGlobalVars"), new Offset("Globals") } },
             { "dwPlantedC4", new() { new Offset("dwPlantedC4") } },
             { "dwGameRules", new() { new Offset("dwGameRules") } },
             { "dwSensitivity", new() { new Offset("dwSensitivity") } },
@@ -195,12 +197,16 @@ namespace Mac1ota_Menu.Classes
 
                 // download and cache
                 OffsetsContent = await DownloadFile(OffsetsUrl);
+                FreshOffsetsContent = await DownloadFile(FreshOffsetsUrl);
                 ClientDllContent = await DownloadFile(ClientDllUrl);
                 ButtonsContent = await DownloadFile(ButtonsUrl);
                 Engine2Content = await DownloadFile(Engine2Url);
                 AnimationSystemContent = await DownloadFile(AnimationSystemUrl);
 
                 ParseOffsetsFile(OffsetsContent);
+                // The action-generated offsets/offsets.cs is newer than schemas/offsets.cs.
+                // Parse it second so fresh global addresses override the schema snapshot.
+                ParseOffsetsFile(FreshOffsetsContent);
                 ParseClientDllFile(ClientDllContent);
                 ParseButtonsFile(ButtonsContent);
                 ParseEngine2File(Engine2Content);
