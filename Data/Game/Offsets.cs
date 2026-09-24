@@ -2,25 +2,24 @@ namespace Mac1ota_Menu.Data.Game
 {
     public class Offsets
     {
-        // Refreshed against hikarii-dev/veloria-cs2-dumper build 25492732 (2026-09-24).
-        // Runtime OffsetGetter still overlays newer values when available.
-        public static int dwCSGOInput = 0x222B8E8;
-        public static int dwEntityList = 0x2711048;
-        public static int dwGameEntitySystem = 0x2711048;
-        public static int dwGameEntitySystem_highestEntityIndex = 0x2090;
-        public static int dwGameRules = 0x255BA98;
-        public static int dwGlobalVars = 0x2227F08;
+        // Primary runtime source: Davuksl/cs2-offsets.\n        // If one of its generated files is older, OffsetGetter safely falls back to the newer a2x dump.
+        public static int dwCSGOInput = 0x2570A80;
+        public static int dwEntityList = 0x2710038;
+        public static int dwGameEntitySystem = 0x2710038;
+        public static int dwGameEntitySystem_highestEntityIndex = 0x2120;
+        public static int dwGameRules = 0x255AA88;
+        public static int dwGlobalVars = 0x2226F08;
         public static int dwGlowManager = 0x25577A0;
-        public static int dwLocalPlayerController = 0x25334D8;
+        public static int dwLocalPlayerController = 0x25324D8;
         public static int dwLocalPlayerPawn = 0x255B598;
-        public static int dwPlantedC4 = 0x24C4E20;
+        public static int dwPlantedC4 = 0x24C3D28;
         public static int dwPrediction = 0x255B4A0;
         public static int dwSensitivity = 0x233BB68;
         public static int dwSensitivity_sensitivity = 0x58;
         public static int dwViewAngles = 0x2571108;
-        public static int dwViewMatrix = 0x25618F0;
-        public static int dwViewRender = 0x25621B0;
-        public static int dwWeaponC4 = 0x21B7FA0;
+        public static int dwViewMatrix = 0x25608E0;
+        public static int dwViewRender = 0x25611A0;
+        public static int dwWeaponC4 = 0x24BF400;
 
         public static int m_pCameraServices = 0x11E0;
         public static int m_iFOV = 0x210;
@@ -45,8 +44,8 @@ namespace Mac1ota_Menu.Data.Game
         public static int m_Item = 0x50;
         public static int m_iItemDefinitionIndex = 0x1BA;
         public static int m_AttributeManager = 0x1148;
-        public static int attack = 0x222B040;
-        public static int jump = 0x222B550;
+        public static int attack = 0x222C040;
+        public static int jump = 0x222C550;
         public static int m_bSpottedByMask = 0xC;
         public static int m_pWeaponServices = 0x11A8;
         public static int m_hActiveWeapon = 0x58;

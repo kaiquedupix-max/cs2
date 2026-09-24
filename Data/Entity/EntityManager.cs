@@ -34,16 +34,7 @@ namespace Mac1ota_Menu.Data.Entity
                 if (listEntry == IntPtr.Zero)
                     return [];
 
-                IntPtr localControllerAddress = memory.ReadPointer(client + Offsets.dwLocalPlayerController);
-                LocalController = localControllerAddress;
-
-                int localPawnHandle = localControllerAddress != IntPtr.Zero
-                    ? memory.ReadInt(localControllerAddress, Offsets.m_hPlayerPawn)
-                    : 0;
-
-                IntPtr localPlayerPawnAddress = localPawnHandle > 0
-                    ? GetPlayerPawn(EntityList, localPawnHandle)
-                    : IntPtr.Zero;
+                IntPtr localPlayerPawnAddress = memory.ReadPointer(client + Offsets.dwLocalPlayerPawn);
 
                 for (int i = 0; i < 64; i++) // loop through all entities
                 {
