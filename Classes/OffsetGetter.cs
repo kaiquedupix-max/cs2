@@ -24,23 +24,17 @@ namespace Mac1ota_Menu.Classes
             }
         }
         // urls to pull the dumper outputs from
-        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/Davuksl/cs2-offsets/main/output/";
-        private const string UpstreamBaseUrl = "https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/";
+        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
         private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
         private const string OffsetsUrl = PrimaryBaseUrl + "offsets.cs";
-        private const string UpstreamOffsetsUrl = UpstreamBaseUrl + "offsets.cs";
         private const string SecondaryOffsetsUrl = SecondaryBaseUrl + "offsets.cs";
         private const string ClientDllUrl = PrimaryBaseUrl + "client_dll.cs";
-        private const string UpstreamClientDllUrl = UpstreamBaseUrl + "client_dll.cs";
         private const string SecondaryClientDllUrl = SecondaryBaseUrl + "client_dll.cs";
         private const string ButtonsUrl = PrimaryBaseUrl + "buttons.cs";
-        private const string UpstreamButtonsUrl = UpstreamBaseUrl + "buttons.cs";
         private const string SecondaryButtonsUrl = SecondaryBaseUrl + "buttons.cs";
         private const string Engine2Url = PrimaryBaseUrl + "engine2_dll.cs";
-        private const string UpstreamEngine2Url = UpstreamBaseUrl + "engine2_dll.cs";
         private const string SecondaryEngine2Url = SecondaryBaseUrl + "engine2_dll.cs";
         private const string AnimationSystemUrl = PrimaryBaseUrl + "animationsystem_dll.cs";
-        private const string UpstreamAnimationSystemUrl = UpstreamBaseUrl + "animationsystem_dll.cs";
         private const string SecondaryAnimationSystemUrl = SecondaryBaseUrl + "animationsystem_dll.cs";
 
         private static string OffsetsContent = string.Empty;
@@ -200,11 +194,11 @@ namespace Mac1ota_Menu.Classes
                 offsets.Clear();
 
                 // download and cache
-                OffsetsContent = await DownloadFreshestFile(OffsetsUrl, UpstreamOffsetsUrl);
-                ClientDllContent = await DownloadFreshestFile(ClientDllUrl, UpstreamClientDllUrl);
-                ButtonsContent = await DownloadFreshestFile(ButtonsUrl, UpstreamButtonsUrl);
-                Engine2Content = await DownloadFreshestFile(Engine2Url, UpstreamEngine2Url);
-                AnimationSystemContent = await DownloadFreshestFile(AnimationSystemUrl, UpstreamAnimationSystemUrl);
+                OffsetsContent = await DownloadFile(OffsetsUrl);
+                ClientDllContent = await DownloadFile(ClientDllUrl);
+                ButtonsContent = await DownloadFile(ButtonsUrl);
+                Engine2Content = await DownloadFile(Engine2Url);
+                AnimationSystemContent = await DownloadFile(AnimationSystemUrl);
 
                 ParseOffsetsFile(OffsetsContent);
                 ParseClientDllFile(ClientDllContent);
@@ -230,7 +224,7 @@ namespace Mac1ota_Menu.Classes
 
             if (GameState.CS2Open() && (GameState.memory.ReadPointer(GameState.client, Offsets.dwViewMatrix) == IntPtr.Zero || GameState.memory.ReadPointer(GameState.client, Offsets.dwEntityList) == IntPtr.Zero))
             {
-                Console.WriteLine("[OFFSET FINDER] Primary/upstream offsets are invalid, trying secondary source");
+                Console.WriteLine("[OFFSET FINDER] ERROR: dom has not updated yet, trying secondary source");
                 offsets.Clear();
                 await FetchSecondarySource();
 
@@ -277,47 +271,6 @@ namespace Mac1ota_Menu.Classes
             ButtonsContent = await DownloadFile(SecondaryButtonsUrl);
             Engine2Content = await DownloadFile(SecondaryEngine2Url);
             AnimationSystemContent = await DownloadFile(SecondaryAnimationSystemUrl);
-        }
-
-        private static async Task<string> DownloadFreshestFile(string primaryUrl, string fallbackUrl)
-        {
-            string primary = await DownloadFile(primaryUrl);
-            string fallback = await DownloadFile(fallbackUrl);
-
-            if (string.IsNullOrWhiteSpace(primary))
-                return fallback;
-            if (string.IsNullOrWhiteSpace(fallback))
-                return primary;
-
-            DateTimeOffset? primaryGenerated = TryGetGeneratedTimestamp(primary);
-            DateTimeOffset? fallbackGenerated = TryGetGeneratedTimestamp(fallback);
-
-            if (primaryGenerated.HasValue && fallbackGenerated.HasValue && fallbackGenerated > primaryGenerated)
-            {
-                Console.WriteLine($"[OFFSET FINDER] Davuksl file is older ({primaryGenerated:O}); using newer upstream dump ({fallbackGenerated:O}).");
-                return fallback;
-            }
-
-            Console.WriteLine($"[OFFSET FINDER] Using Davuksl/cs2-offsets source ({primaryGenerated?.ToString("O") ?? "timestamp unavailable"}).");
-            return primary;
-        }
-
-        private static DateTimeOffset? TryGetGeneratedTimestamp(string content)
-        {
-            Match match = Regex.Match(content, @"(?m)^//\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}(?:\.\d+)?)\s+UTC\s*$");
-            if (!match.Success)
-                return null;
-
-            if (DateTimeOffset.TryParse(
-                    match.Groups[1].Value + " +00:00",
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.AllowWhiteSpaces,
-                    out DateTimeOffset parsed))
-            {
-                return parsed;
-            }
-
-            return null;
         }
 
         private static async Task<string> DownloadFile(string url)
