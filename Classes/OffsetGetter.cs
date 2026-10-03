@@ -24,7 +24,7 @@ namespace Mac1ota_Menu.Classes
             }
         }
         // urls to pull the dumper outputs from
-        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
+        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/txazyxz/CS2-Offsets/main/";
         private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
         private const string OffsetsUrl = PrimaryBaseUrl + "offsets.cs";
         private const string SecondaryOffsetsUrl = SecondaryBaseUrl + "offsets.cs";
