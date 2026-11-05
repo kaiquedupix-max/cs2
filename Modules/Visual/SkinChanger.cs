@@ -10,6 +10,7 @@ using ImGuiNET;
 using Mac1ota_Menu.Data.Entity;
 using Mac1ota_Menu.Data.Game;
 using System.Numerics;
+using SixLabors.ImageSharp;
 
 namespace Mac1ota_Menu.Modules.Visual
 {
