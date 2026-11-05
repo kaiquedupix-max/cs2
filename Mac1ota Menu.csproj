@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -12,6 +12,8 @@
 		<Platforms>AnyCPU;x64</Platforms>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<AssemblyName>legitbaratinho.xyz</AssemblyName>
+		<Version>1.15.0</Version>
+		<AssemblyVersion>1.15.0.0</AssemblyVersion>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
 		<ApplicationIcon>MenuLogo.ico</ApplicationIcon>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -23,9 +25,17 @@
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
+	<!-- This local copy must not replace itself with the site's production binary. -->
+	<PropertyGroup>
+		<LegitPreviewBuild Condition="'$(LegitPreviewBuild)' == ''">false</LegitPreviewBuild>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(LegitPreviewBuild)' == 'true'">
+		<DefineConstants>$(DefineConstants);LEGIT_PREVIEW_BUILD</DefineConstants>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<Compile Remove="Configs\**" />
+		<Compile Remove="Tests\**" />
 		<EmbeddedResource Remove="Configs\**" />
 		<None Remove="Configs\**" />
 	</ItemGroup>

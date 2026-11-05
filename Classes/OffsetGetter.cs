@@ -9,6 +9,7 @@ namespace Mac1ota_Menu.Classes
     {
         private static readonly Dictionary<string, int> offsets = []; // holds the resolved offsets
         private static readonly HttpClient httpClient = new();
+        private static Dictionary<string, Dictionary<string, int>> classOffsets = new();
         private static string _offsetRegex = @"public const nint ([\w\+]+) = (0x[0-9A-Fa-f]+);";
 
         static OffsetGetter()
@@ -73,6 +74,8 @@ namespace Mac1ota_Menu.Classes
             { "dwWeaponC4", new() { new Offset("dwWeaponC4") } },
             { "attack", new() { new Offset("attack"), new Offset("+attack") } },
             { "jump", new() { new Offset("jump"), new Offset("+jump") } },
+            { "left", new() { new Offset("left"), new Offset("+left") } },
+            { "right", new() { new Offset("right"), new Offset("+right") } },
             { "m_pCameraServices", new() { new Offset("m_pCameraServices"), new Offset("m_CameraServices") } },
             { "m_iFOV", new() { new Offset("m_iFOV"), new Offset("m_iDesiredFOV") } },
             { "m_bIsScoped", new() { new Offset("m_bIsScoped"), new Offset("m_bIsScopedIn") } },
@@ -96,13 +99,53 @@ namespace Mac1ota_Menu.Classes
             { "m_iItemDefinitionIndex", new() { new Offset("m_iItemDefinitionIndex", "C_EconItemView") } },
             { "m_iItemIDHigh", new() { new Offset("m_iItemIDHigh", "C_EconItemView") } },
             { "m_nFallbackPaintKit", new() { new Offset("m_nFallbackPaintKit", "C_EconEntity") } },
+            { "m_nFallbackStatTrak", new() { new Offset("m_nFallbackStatTrak", "C_EconEntity") } },
             { "m_nFallbackSeed", new() { new Offset("m_nFallbackSeed", "C_EconEntity") } },
             { "m_flFallbackWear", new() { new Offset("m_flFallbackWear", "C_EconEntity") } },
+            { "m_AttributeList", new() { new Offset("m_AttributeList", "C_EconItemView") } },
+            { "m_Attributes", new() { new Offset("m_Attributes", "CAttributeList") } },
+            { "m_hHudModelArms", new() { new Offset("m_hHudModelArms", "C_CSPlayerPawn") } },
+            { "m_pChild", new() { new Offset("m_pChild", "CGameSceneNode") } },
+            { "m_pNextSibling", new() { new Offset("m_pNextSibling", "CGameSceneNode") } },
+            { "m_pOwner", new() { new Offset("m_pOwner", "CGameSceneNode") } },
+            { "m_MeshGroupMask", new() { new Offset("m_MeshGroupMask", "CModelState") } },
+            { "m_iAttributeDefinitionIndex", new() { new Offset("m_iAttributeDefinitionIndex", "CEconItemAttribute") } },
+            { "m_flValue", new() { new Offset("m_flValue", "CEconItemAttribute") } },
+            { "m_flInitialValue", new() { new Offset("m_flInitialValue", "CEconItemAttribute") } },
+            { "m_iClip1", new() { new Offset("m_iClip1", "C_BasePlayerWeapon") } },
+            { "m_nNextPrimaryAttackTick", new() { new Offset("m_nNextPrimaryAttackTick", "C_BasePlayerWeapon") } },
+            { "m_nTickBase", new() { new Offset("m_nTickBase", "CBasePlayerController") } },
+            { "m_nSubclassID", new() { new Offset("m_nSubclassID", "C_BaseEntity") } },
+            { "m_EconGloves", new() { new Offset("m_EconGloves", "C_CSPlayerPawn") } },
+            { "m_nEconGlovesChanged", new() { new Offset("m_nEconGlovesChanged", "C_CSPlayerPawn") } },
+            { "m_NetworkedDynamicAttributes", new() { new Offset("m_NetworkedDynamicAttributes", "C_EconItemView") } },
+            { "m_iItemID", new() { new Offset("m_iItemID", "C_EconItemView") } },
+            { "m_iItemIDLow", new() { new Offset("m_iItemIDLow", "C_EconItemView") } },
+            { "m_iAccountID", new() { new Offset("m_iAccountID", "C_EconItemView") } },
+            { "m_OriginalOwnerXuidLow", new() { new Offset("m_OriginalOwnerXuidLow", "C_EconEntity") } },
+            { "m_bVisualsDataSet", new() { new Offset("m_bVisualsDataSet", "C_CSWeaponBase") } },
+            { "dwNetworkGameClient", new() { new Offset("dwNetworkGameClient") } },
+            { "dwNetworkGameClient_signOnState", new() { new Offset("dwNetworkGameClient_signOnState") } },
+            { "dwNetworkGameClient_deltaTick", new() { new Offset("dwNetworkGameClient_deltaTick") } },
+            { "m_bNeedToReApplyGloves", new() { new Offset("m_bNeedToReApplyGloves", "C_CSPlayerPawn") } },
+            { "m_bInitialized", new() { new Offset("m_bInitialized", "C_EconItemView") } },
+            { "m_bDisallowSOC", new() { new Offset("m_bDisallowSOC", "C_EconItemView") } },
+            { "m_iEntityQuality", new() { new Offset("m_iEntityQuality", "C_EconItemView") } },
+            { "m_iRarityOverride", new() { new Offset("m_iRarityOverride", "C_EconItemView") } },
+            { "m_szCustomNameOverride", new() { new Offset("m_szCustomNameOverride", "C_EconItemView") } },
+            { "m_szCustomNameOverride2", new() { new Offset("m_szCustomNameOverride2", "C_EconItemView") } },
+            { "m_szCustomNameOverride3", new() { new Offset("m_szCustomNameOverride3", "C_EconItemView") } },
+            { "m_szCustomName", new() { new Offset("m_szCustomName", "C_EconItemView") } },
+            { "m_bInitializedTags", new() { new Offset("m_bInitializedTags", "C_EconItemView") } },
+            { "m_SkyTint", new() { new Offset("m_vTintColor", "C_EnvSky") } },
+            { "m_SkyBrightness", new() { new Offset("m_flBrightnessScale", "C_EnvSky") } },
+            { "m_SkyDesignerName", new() { new Offset("m_designerName", "CEntityIdentity") } },
             { "m_bSpottedByMask", new() { new Offset("m_bSpottedByMask") } },
             { "m_pWeaponServices", new() { new Offset("m_pWeaponServices") } },
             { "m_hActiveWeapon", new() { new Offset("m_hActiveWeapon") } },
             { "m_vecAbsVelocity", new() { new Offset("m_vecAbsVelocity") } },
             { "m_fFlags", new() { new Offset("m_fFlags") } },
+            { "m_MoveType", new() { new Offset("m_MoveType", "C_BaseEntity") } },
             { "m_hMyWeapons", new() { new Offset("m_hMyWeapons") } },
             { "m_aimPunchAngle", new() { new Offset("m_aimPunchAngle") } },
             { "m_nCurrentTickThisFrame", new() { new Offset("m_nCurrentTickThisFrame") } },
@@ -139,7 +182,7 @@ namespace Mac1ota_Menu.Classes
             { "m_CHitboxComponent", new() { new Offset("m_CHitboxComponent") } },
             { "m_bDormant", new() { new Offset("m_bDormant") } },
             { "m_nSmokeEffectTickBegin", new() { new Offset("m_nSmokeEffectTickBegin") } },
-            { "m_pEntity", new() { new Offset("m_pEntity") } },
+            { "m_pEntity", new() { new Offset("m_pEntity", "CEntityInstance") } },
             { "m_designerName", new() { new Offset("m_designerName") } },
             { "m_bSmokeEffectSpawned", new() { new Offset("m_bSmokeEffectSpawned") } },
             { "m_bSmokeVolumeDataReceived", new() { new Offset("m_bSmokeVolumeDataReceived") } },
@@ -152,7 +195,7 @@ namespace Mac1ota_Menu.Classes
             { "m_pObserverServices", new() { new Offset("m_pObserverServices") } },
             { "m_hObserverTarget", new() { new Offset("m_hObserverTarget") } },
             { "m_hPawn", new() { new Offset("m_hPawn") } },
-            { "m_szCustomName", new() { new Offset("m_szCustomName") } },
+
             { "m_pAimPunchServices", new() { new Offset("m_pAimPunchServices") } },
             { "m_predictableBaseAngle", new() { new Offset("m_predictableBaseAngle") } },
             { "m_predictableBaseAngleVel", new() { new Offset("m_predictableBaseAngleVel") } },
@@ -190,69 +233,52 @@ namespace Mac1ota_Menu.Classes
 
         };
 
-        public static async Task UpdateOffsetsAsync()
+        private static bool triedSecondary;
+        public static async Task UpdateOffsetsAsync(Action<string>? progress = null)
         {
-            try
+            Updated = false;
+            triedSecondary = false;
+            progress?.Invoke("Baixando dados do CS2 (limite de 20 s)...");
+            string[] primary = [OffsetsUrl, ClientDllUrl, ButtonsUrl, Engine2Url, AnimationSystemUrl];
+            string[] backup = [SecondaryOffsetsUrl, SecondaryClientDllUrl, SecondaryButtonsUrl, SecondaryEngine2Url, SecondaryAnimationSystemUrl];
+            var data = await Task.WhenAll(primary.Select(DownloadFile)).ConfigureAwait(false);
+            var missing = Enumerable.Range(0, data.Length).Where(i => string.IsNullOrWhiteSpace(data[i])).ToArray();
+            if (missing.Length > 0)
             {
-                Console.WriteLine("[OFFSET FINDER] Starting The Offset Finding Process Please Wait...");
-                offsets.Clear();
-
-                // download and cache
-                OffsetsContent = await DownloadFile(OffsetsUrl);
-                ClientDllContent = await DownloadFile(ClientDllUrl);
-                ButtonsContent = await DownloadFile(ButtonsUrl);
-                Engine2Content = await DownloadFile(Engine2Url);
-                AnimationSystemContent = await DownloadFile(AnimationSystemUrl);
-
-                ParseOffsetsFile(OffsetsContent);
-                ParseClientDllFile(ClientDllContent);
-                ParseButtonsFile(ButtonsContent);
-                ParseEngine2File(Engine2Content);
-                ParseAnimationSystemFile(AnimationSystemContent);
-
-                Console.WriteLine($"[OFFSET FINDER] Found: {offsets.Count}");
-                UpdateOffsetsClass();
-
-                Console.WriteLine("[OFFSET FINDER] Offsets Updated Successfully!");
+                progress?.Invoke("Tentando a fonte alternativa de dados...");
+                var replacements = await Task.WhenAll(missing.Select(i => DownloadFile(backup[i]))).ConfigureAwait(false);
+                for (int i = 0; i < missing.Length; i++) data[missing[i]] = replacements[i];
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[OFFSETS FINDER] ERROR: {ex.Message}");
-            }
+            if (data.Any(string.IsNullOrWhiteSpace))
+                throw new InvalidOperationException("Não foi possível baixar os dados do CS2 das duas fontes. Verifique a conexão com raw.githubusercontent.com e tente novamente.");
+            OffsetsContent = data[0]; ClientDllContent = data[1]; ButtonsContent = data[2]; Engine2Content = data[3]; AnimationSystemContent = data[4];
+            progress?.Invoke("Lendo os dados do CS2...");
+            ParseCurrentSources();
+        }
+
+        private static void ParseCurrentSources()
+        {
+            offsets.Clear();
+            classOffsets = SchemaOffsets.Parse(ClientDllContent);
+            ParseOffsetsFile(OffsetsContent); ParseClientDllFile(ClientDllContent);
+            ParseButtonsFile(ButtonsContent); ParseEngine2File(Engine2Content); ParseAnimationSystemFile(AnimationSystemContent);
+            UpdateOffsetsClass();
         }
 
         public static async Task CheckIfOffsetsAreValid()
         {
-            if (GameState.memory == null)
-                return;
-
-            if (GameState.CS2Open() && (GameState.memory.ReadPointer(GameState.client, Offsets.dwViewMatrix) == IntPtr.Zero || GameState.memory.ReadPointer(GameState.client, Offsets.dwEntityList) == IntPtr.Zero))
+            var memory = GameState.memory;
+            if (memory == null || GameState.client == 0) { Updated = false; return; }
+            // ViewMatrix contains floats, not an entity pointer. A zero matrix
+            // while changing maps must not trigger endless network downloads.
+            bool Ready() => memory.TryRead(GameState.client + Offsets.dwEntityList, out nint list) && list.ToInt64() >= 0x10000;
+            if (!Ready() && !triedSecondary)
             {
-                Console.WriteLine("[OFFSET FINDER] ERROR: primary offsets appear invalid, trying secondary source");
-                offsets.Clear();
-                await FetchSecondarySource();
-
-                ParseOffsetsFile(OffsetsContent);
-                ParseClientDllFile(ClientDllContent);
-                ParseButtonsFile(ButtonsContent);
-                ParseEngine2File(Engine2Content);
-                ParseAnimationSystemFile(AnimationSystemContent);
-                UpdateOffsetsClass();
-
-                if (GameState.memory.ReadPointer(GameState.client, Offsets.dwViewMatrix) == IntPtr.Zero || GameState.memory.ReadPointer(GameState.client, Offsets.dwEntityList) == IntPtr.Zero)
-                {
-                    Console.WriteLine("Both are invalid, maybe try dumping yourself?");
-                    Updated = true;
-                    return;
-                }
-
-                Updated = true;
-                return;
+                triedSecondary = true;
+                await FetchSecondarySource().ConfigureAwait(false);
+                ParseCurrentSources();
             }
-            else
-            {
-                Updated = true;
-            }
+            Updated = Ready();
         }
 
         public static void ApplySecondarySources()
@@ -270,11 +296,12 @@ namespace Mac1ota_Menu.Classes
 
         public static async Task FetchSecondarySource()
         {
-            OffsetsContent = await DownloadFile(SecondaryOffsetsUrl);
-            ClientDllContent = await DownloadFile(SecondaryClientDllUrl);
-            ButtonsContent = await DownloadFile(SecondaryButtonsUrl);
-            Engine2Content = await DownloadFile(SecondaryEngine2Url);
-            AnimationSystemContent = await DownloadFile(SecondaryAnimationSystemUrl);
+            var data = await Task.WhenAll(new[] { SecondaryOffsetsUrl, SecondaryClientDllUrl, SecondaryButtonsUrl, SecondaryEngine2Url, SecondaryAnimationSystemUrl }.Select(DownloadFile)).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(data[0])) OffsetsContent = data[0];
+            if (!string.IsNullOrWhiteSpace(data[1])) ClientDllContent = data[1];
+            if (!string.IsNullOrWhiteSpace(data[2])) ButtonsContent = data[2];
+            if (!string.IsNullOrWhiteSpace(data[3])) Engine2Content = data[3];
+            if (!string.IsNullOrWhiteSpace(data[4])) AnimationSystemContent = data[4];
         }
 
         private static async Task<string> DownloadFile(string url)
@@ -282,7 +309,7 @@ namespace Mac1ota_Menu.Classes
             try
             {
                 Console.WriteLine($"[OFFSET FINDER] Downloading {url}");
-                string content = await httpClient.GetStringAsync(url);
+                string content = await httpClient.GetStringAsync(url).ConfigureAwait(false);
 
                 Console.WriteLine($"[OFFSET FINDER] Downloaded {url}, length={content.Length}");
                 return content;
@@ -344,25 +371,8 @@ namespace Mac1ota_Menu.Classes
 
         private static void ParseClassOffsets(string content, string className) // explicitly parse a given class
         {
-            string classPattern = $@"public\s+static\s+class\s+{className}\s*\{{([\s\S]*?)\}}";
-            var classMatch = Regex.Match(content, classPattern, RegexOptions.Multiline);
-
-            if (!classMatch.Success)
-            {
-                Console.WriteLine($"[OFFSET FINDER] Could Not Find Class {className}");
-                return;
-            }
-
-            var matches = Regex.Matches(classMatch.Groups[1].Value, _offsetRegex);
-
-            Console.WriteLine($"[OFFSET FINDER] Found {matches.Count} offsets in class {className}");
-
-            foreach (Match match in matches)
-            {
-                string name = match.Groups[1].Value;
-                int value = Convert.ToInt32(match.Groups[2].Value, 16);
-                offsets[name] = value;
-            }
+            if (!classOffsets.TryGetValue(className, out var members)) return;
+            foreach (var member in members) offsets[member.Key] = member.Value;
         }
 
         private static void ParseButtonsFile(string content)
@@ -411,7 +421,11 @@ namespace Mac1ota_Menu.Classes
                     {
                         if (source.ClassName != null)
                         {
-                            ParseClassOffsets(ClientDllContent, source.ClassName);
+                            if (classOffsets.TryGetValue(source.ClassName, out var members) && members.TryGetValue(source.Name, out int member))
+                            {
+                                field.SetValue(null, member); updatedCount++; found = true; break;
+                            }
+                            continue;
                         }
 
                         if (!offsets.TryGetValue(source.Name, out int value))

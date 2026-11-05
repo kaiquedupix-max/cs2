@@ -31,7 +31,6 @@ internal class Sections
         {
             new("Geral", 0, () =>
             {
-                RenderBoolSettingWithWarning("Pulo automático", "Bhop.Enabled", () => Bhop.BhopEnable, v => Bhop.BhopEnable = v);
                 RenderBoolSetting("Som de acerto", "HitStuff.Enabled", () => HitStuff.EnableHitSounds, v => HitStuff.EnableHitSounds = v);
                 RenderFloatSlider("Volume dos acertos", "HitStuff.Volume", ref HitStuff.Volume, 0, 1);
                 RenderIntCombo("Som selecionado", "HitStuff.CurrentHitSound", ref HitStuff.CurrentHitSound, HitStuff.HitSoundDisplays, HitStuff.HitSounds.Count, true);
@@ -65,39 +64,17 @@ internal class Sections
                 RenderBoolSetting("Verificar visibilidade", "Aimbot.VisibilityCheck", () => Aimbot.VisibilityCheck, v => Aimbot.VisibilityCheck = v);
                 RenderBoolSetting("Linha até o alvo", "Aimbot.TargetLine", () => Aimbot.TargetLine, v => Aimbot.TargetLine = v);
             }),
-            new("Mira agressiva", 6, () =>
+            new("Movimento", 8, () =>
             {
-                ImGui.TextWrapped("Preset de mira rápida baseado no Aimbot existente. Ajusta a mira real; não altera os disparos do servidor.");
-                if (ImGui.Button("Aplicar preset Rage"))
-                {
-                    Aimbot.AimbotEnable = true;
-                    Aimbot.SmoothingX = 0f;
-                    Aimbot.SmoothingY = 0f;
-                    Aimbot.UseFOV = false;
-                    Aimbot.DrawFov = false;
-                    Aimbot.VisibilityCheck = true;
-                    Aimbot.Team = false;
-                    Aimbot.ScopedOnly = false;
-                    Aimbot.CurrentBone = 0;
-                }
-                RenderBoolSetting("Ativar mira", "Rage.Aimbot.Enabled", () => Aimbot.AimbotEnable, v => Aimbot.AimbotEnable = v);
-                Keybind.RenderKeybindChooser("Tecla da mira", "Rage.Aimbot.Keybind", ref Aimbot.AimbotKey, () => Aimbot.AimbotEnable);
-                RenderIntCombo("Ponto de mira", "Rage.Aimbot.Bone", ref Aimbot.CurrentBone, [.. Aimbot.Bones], Aimbot.Bones.Length);
-                RenderBoolSetting("Verificar visibilidade", "Rage.Aimbot.Visibility", () => Aimbot.VisibilityCheck, v => Aimbot.VisibilityCheck = v);
-                RenderFloatSlider("Suavização horizontal", "Rage.Aimbot.SmoothX", ref Aimbot.SmoothingX, 0f, 20f, "%.2f");
-                RenderFloatSlider("Suavização vertical", "Rage.Aimbot.SmoothY", ref Aimbot.SmoothingY, 0f, 20f, "%.2f");
+                RenderBoolSetting("Bunny hop (Espaço)", "MovementAssist.Enabled", () => MovementAssist.Enabled, v => MovementAssist.Enabled = v);
+                RenderBoolSetting("Auto strafe", "MovementAssist.AutoStrafe", () => MovementAssist.AutoStrafe, v => MovementAssist.AutoStrafe = v);
+                ImGui.TextWrapped("Segure Espaço para repetir os saltos. O auto strafe ajusta a direção no ar; mova o mouse para escolher o lado.");
+                ImGui.TextWrapped(MovementAssist.Status);
             }),
-            new("Anti-Aim / Silent Aim / Autowall", 6, () =>
+            new("Ambiente", 8, () =>
             {
-                ImGui.TextDisabled("Indisponíveis na arquitetura atual.");
-                ImGui.Separator();
-                ImGui.TextWrapped("Anti-Aim: requer controlar separadamente os ângulos exibidos a outros jogadores.");
-                ImGui.Spacing();
-                ImGui.TextWrapped("Silent Aim: não é implementado por movimentação de mouse.");
-                ImGui.Spacing();
-                ImGui.TextWrapped("Autowall: requer cálculo confiável de penetração, superfícies e dano.");
-                ImGui.Spacing();
-                ImGui.TextDisabled("Nenhuma dessas funções será simulada por um botão sem efeito.");
+                RenderBoolSetting("Céu preto", "WorldVisuals.BlackSky", () => WorldVisuals.BlackSky, v => WorldVisuals.BlackSky = v);
+                ImGui.TextWrapped(WorldVisuals.Status);
             }),
             new("Controle de recuo", 1, () =>
             {

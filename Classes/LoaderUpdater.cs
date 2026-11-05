@@ -9,6 +9,18 @@ namespace Mac1ota_Menu.Classes
 {
     internal static class LoaderUpdater
     {
+        // Only PR test artifacts use this channel; production retains its updater.
+        internal static bool IsPreviewBuild
+        {
+            get
+            {
+#if LEGIT_PREVIEW_BUILD
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
         private static readonly HttpClient Http =
             new()
             {
@@ -64,7 +76,7 @@ namespace Mac1ota_Menu.Classes
             InstalledVersion;
 
         public static bool UpdateAvailable =>
-            Latest != null &&
+            !IsPreviewBuild && Latest != null &&
             !IsCurrentBinary(
                 Latest.Sha256);
 
@@ -141,6 +153,11 @@ namespace Mac1ota_Menu.Classes
             TryUpdateAtStartupAsync(
                 Action<string>? status = null)
         {
+            if (IsPreviewBuild)
+            {
+                status?.Invoke("Versão de teste — atualização automática pausada.");
+                return (true, false, "Versão de teste de skins.");
+            }
             status?.Invoke(
                 "Buscando atualização...");
 
@@ -200,6 +217,11 @@ namespace Mac1ota_Menu.Classes
             EnsureLatestAfterLoginAsync(
                 Action<string>? status = null)
         {
+            if (IsPreviewBuild)
+            {
+                status?.Invoke("Versão de teste de skins.");
+                return (true, false, "Versão de teste de skins.");
+            }
             status?.Invoke(
                 "Confirmando versão...");
 

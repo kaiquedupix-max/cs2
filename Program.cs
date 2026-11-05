@@ -119,6 +119,8 @@ async Task ConnectToCs2Async(
                     IntPtr.Zero ||
                 cs2Process.HasExited)
             {
+                if (updateStartup && !cs2Process.HasExited)
+                    throw new TimeoutException("O client.dll não ficou disponível em 30 segundos. Reinicie o CS2 e tente novamente.");
                 GameState.ResetConnection();
 
                 await Task.Delay(
@@ -138,7 +140,7 @@ async Task ConnectToCs2Async(
                 false;
 
             await OffsetGetter
-                .UpdateOffsetsAsync();
+                .UpdateOffsetsAsync(message => { if (updateStartup) LoaderForm.SetStartupProgress(40, message); }).ConfigureAwait(false);
 
             DateTime validationDeadline =
                 DateTime.UtcNow
@@ -162,7 +164,7 @@ async Task ConnectToCs2Async(
                 }
 
                 await OffsetGetter
-                    .CheckIfOffsetsAreValid();
+                    .CheckIfOffsetsAreValid().ConfigureAwait(false);
 
                 IntPtr entityList =
                     GameState.memory!
@@ -185,12 +187,15 @@ async Task ConnectToCs2Async(
                 await Task.Delay(
                     500);
             }
+            if (updateStartup)
+                throw new TimeoutException("Não foi possível validar os dados do CS2 em 20 segundos. A inicialização foi interrompida para evitar um loop infinito.");
         }
         catch (Exception ex)
         {
             Console.WriteLine(
                 "[CS2 CONNECT] " +
                 ex.Message);
+            if (updateStartup) throw;
         }
 
         GameState.ResetConnection();
@@ -246,11 +251,17 @@ if (!LoaderForm.ShowLogin())
     return;
 }
 
+SkinChangerService.Start();
+
 if (!ProductSelectionForm.ShowSelection())
 {
     ClientPortalApi.Clear();
     return;
 }
+
+// Modal WinForms dialogs can leave a UI context on this thread without a
+// message pump. Startup/network continuations must run on the worker pool.
+SynchronizationContext.SetSynchronizationContext(null);
 
 try
 {
@@ -265,8 +276,7 @@ try
 
     // Não cria nem inicia a overlay enquanto o CS2 estiver fechado.
     // Primeiro aguardamos o processo, client.dll e EntityList válidos.
-    await ConnectToCs2Async(
-        true);
+    await Task.Run(() => ConnectToCs2Async(true)).ConfigureAwait(false);
 
     Thread cs2ProcessWatcher =
         new(() =>
