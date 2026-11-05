@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -26,6 +26,7 @@
 
 	<ItemGroup>
 		<Compile Remove="Configs\**" />
+		<Compile Remove="Tests\**" />
 		<EmbeddedResource Remove="Configs\**" />
 		<None Remove="Configs\**" />
 	</ItemGroup>

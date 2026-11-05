@@ -98,6 +98,16 @@ namespace Mac1ota_Menu.Classes
             { "m_nFallbackPaintKit", new() { new Offset("m_nFallbackPaintKit", "C_EconEntity") } },
             { "m_nFallbackSeed", new() { new Offset("m_nFallbackSeed", "C_EconEntity") } },
             { "m_flFallbackWear", new() { new Offset("m_flFallbackWear", "C_EconEntity") } },
+            { "m_AttributeList", new() { new Offset("m_AttributeList", "C_EconItemView") } },
+            { "m_Attributes", new() { new Offset("m_Attributes", "CAttributeList") } },
+            { "m_hHudModelArms", new() { new Offset("m_hHudModelArms", "C_CSPlayerPawn") } },
+            { "m_pChild", new() { new Offset("m_pChild", "CGameSceneNode") } },
+            { "m_pNextSibling", new() { new Offset("m_pNextSibling", "CGameSceneNode") } },
+            { "m_pOwner", new() { new Offset("m_pOwner", "CGameSceneNode") } },
+            { "m_MeshGroupMask", new() { new Offset("m_MeshGroupMask", "CModelState") } },
+            { "m_iAttributeDefinitionIndex", new() { new Offset("m_iAttributeDefinitionIndex", "CEconItemAttribute") } },
+            { "m_flValue", new() { new Offset("m_flValue", "CEconItemAttribute") } },
+            { "m_flInitialValue", new() { new Offset("m_flInitialValue", "CEconItemAttribute") } },
             { "m_bSpottedByMask", new() { new Offset("m_bSpottedByMask") } },
             { "m_pWeaponServices", new() { new Offset("m_pWeaponServices") } },
             { "m_hActiveWeapon", new() { new Offset("m_hActiveWeapon") } },
@@ -412,6 +422,20 @@ namespace Mac1ota_Menu.Classes
                         if (source.ClassName != null)
                         {
                             ParseClassOffsets(ClientDllContent, source.ClassName);
+                            // New material fields must come from the exact schema class,
+                            // never a same-named field cached from an unrelated class.
+                            if (fieldName is "m_AttributeList" or "m_Attributes" or "m_hHudModelArms" or
+                                "m_pChild" or "m_pNextSibling" or "m_pOwner" or "m_MeshGroupMask" or
+                                "m_iAttributeDefinitionIndex" or "m_flValue" or "m_flInitialValue")
+                            {
+                                var block = Regex.Match(ClientDllContent,
+                                    $@"public\s+static\s+class\s+{Regex.Escape(source.ClassName)}\s*\{{([\s\S]*?)\}}");
+                                var member = Regex.Match(block.Groups[1].Value,
+                                    $@"public const nint {Regex.Escape(source.Name)} = (0x[0-9A-Fa-f]+);");
+                                field.SetValue(null, member.Success ? Convert.ToInt32(member.Groups[1].Value, 16) : 0);
+                                found = true;
+                                break;
+                            }
                         }
 
                         if (!offsets.TryGetValue(source.Name, out int value))

@@ -47,6 +47,16 @@ namespace Mac1ota_Menu.Data.Game
         public static int m_nFallbackPaintKit = 0;
         public static int m_nFallbackSeed = 0;
         public static int m_flFallbackWear = 0;
+        public static int m_AttributeList = 0;
+        public static int m_Attributes = 0;
+        public static int m_hHudModelArms = 0;
+        public static int m_pChild = 0;
+        public static int m_pNextSibling = 0;
+        public static int m_pOwner = 0;
+        public static int m_MeshGroupMask = 0;
+        public static int m_iAttributeDefinitionIndex = 0;
+        public static int m_flValue = 0;
+        public static int m_flInitialValue = 0;
         public static int m_AttributeManager = 0x1148;
         public static int attack = 0x184E8F0;
         public static int jump = 0x1850DF0;
