@@ -656,7 +656,7 @@ namespace Mac1ota_Menu
 
                         case 7: // skin changer
                             ImGui.Dummy(new Vector2(0, 4));
-                            Mac1ota_Menu.ImGUI.Widgets.Sections.BeginSection("Skins de armas", () =>
+                            Sections.BeginSection("Skins de armas", () =>
                                 SkinChanger.Render(),
                                 new Vector2(Math.Min(650f, ImGui.GetContentRegionAvail().X - 8f), 0));
                             break;
