@@ -110,6 +110,7 @@ namespace Mac1ota_Menu.Classes
                     ApplyRoundedRegion();
 
                     await RefreshAccountAsync();
+                    ShowDisplayNotice();
                 };
 
             Resize +=
@@ -810,8 +811,16 @@ namespace Mac1ota_Menu.Classes
                 !account.Product.HasAccess;
         }
 
+        private void ShowDisplayNotice()
+        {
+            string warning = AimTheme.Intensity >= .75f || Mac1ota_Menu.Modules.Combat.Rage.Enabled ? "\n\n" + AimTheme.Warning : "";
+            MessageBox.Show(this, "Para o overlay funcionar, configure o CS2 em Tela cheia em janela." + warning,
+                "Modo de exibição do CS2", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         private async Task StartProductAsync()
         {
+            ShowDisplayNotice();
             _start.Enabled =
                 false;
 

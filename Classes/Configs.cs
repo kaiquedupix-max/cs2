@@ -379,7 +379,6 @@ namespace Mac1ota_Menu.Classes
 
                 #region Bhop
                 Bhop.BhopEnable = configData["Bhop"]?["Bhop Enabled"]?.ToObject<bool>() ?? Bhop.BhopEnable;
-                Bhop.HopKey = configData["Bhop"]?["Bhop Keybind"]?.ToObject<int>() ?? Bhop.HopKey;
                 #endregion
 
                 #region Jump Hack

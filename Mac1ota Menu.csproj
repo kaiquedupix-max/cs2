@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -24,8 +24,18 @@
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
 
+	<Target Name="RequireNativeBridge" BeforeTargets="PrepareForBuild" Condition="'$(SkipNativeBridge)' != 'true'">
+		<Error Condition="!Exists('$(MSBuildProjectDirectory)\.native-build\output\legit_native.dll')" Text="Compile o módulo C++ primeiro: powershell -ExecutionPolicy Bypass -File Native/Build.ps1" />
+	</Target>
+	<PropertyGroup Condition="'$(LegitPreviewBuild)' == 'true'">
+		<DefineConstants>$(DefineConstants);LEGIT_PREVIEW_BUILD</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
+		<EmbeddedResource Include="$(MSBuildProjectDirectory)\.native-build\output\legit_native.dll" LogicalName="legit_native.dll" Condition="Exists('$(MSBuildProjectDirectory)\.native-build\output\legit_native.dll')" />
+		<EmbeddedResource Include="$(MSBuildProjectDirectory)\.native-build\output\native_notices.txt" LogicalName="native_notices.txt" Condition="Exists('$(MSBuildProjectDirectory)\.native-build\output\native_notices.txt')" />
 		<Compile Remove="Configs\**" />
+		<Compile Remove="Tests\**" />
 		<EmbeddedResource Remove="Configs\**" />
 		<None Remove="Configs\**" />
 	</ItemGroup>
