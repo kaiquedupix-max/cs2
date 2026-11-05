@@ -51,12 +51,15 @@ internal static class SkinChangerService
         if (ReferenceEquals(choices, synchronizedChoices)) return;
         lock (Gate)
         {
+            var previous = Selections.Values.Concat(knifeSelection == null ? Array.Empty<Selection>() : new[] { knifeSelection }).ToArray();
             Selections.Clear(); knifeSelection = gloveSelection = null;
             foreach (var c in (choices ?? new()).Take(128))
             {
                 if (c == null || c.Definition == 0 || c.Paint <= 0 || c.Seed is < 0 or > 1000 ||
                     !float.IsFinite(c.Wear) || c.Wear is < 0 or > 1 || c.Counter < 0 || c.Category is < 0 or > 2) continue;
-                var selection = new Selection(c.Definition, c.Paint, c.Seed, c.Wear, c.Legacy, ++revision, c.Name, c.Rarity, c.StatTrak, c.Counter);
+                var candidate = new Selection(c.Definition, c.Paint, c.Seed, c.Wear, c.Legacy, 0, c.Name, c.Rarity, c.StatTrak, c.Counter);
+                var selection = previous.FirstOrDefault(s => (s with { Revision = 0 }) == candidate)
+                    ?? candidate with { Revision = ++revision };
                 if (c.Category == 1) knifeSelection = selection;
                 else if (c.Category == 2) continue; // Saved profiles must not activate unfinished gloves.
                 else Selections[c.Definition] = selection;
@@ -73,6 +76,7 @@ internal static class SkinChangerService
         (nint Pawn, uint Handle, nint Weapon, long Revision)? lastAttempt = null;
         var appliedWeapons = new HashSet<(nint Pawn, uint Handle, nint Weapon, long Revision)>();
         var hudRefreshed = new HashSet<long>();
+        var namedWeapons = new Dictionary<uint, (nint Weapon, Selection Choice)>();
         (nint Pawn, long Revision)? lastGloves = null;
         (nint Pawn, long Revision)? failedGloves = null;
         long gloveRetryAt = 0;
@@ -92,6 +96,7 @@ internal static class SkinChangerService
                         session?.Dispose(); session = null;
                         lastAttempt = null;
                         appliedWeapons.Clear(); hudRefreshed.Clear();
+                        namedWeapons.Clear();
                         status = "Aguardando conexão com o CS2...";
                         continue;
                     }
@@ -104,6 +109,7 @@ internal static class SkinChangerService
                         lastGloves = null;
                         failedGloves = null;
                         appliedWeapons.Clear(); hudRefreshed.Clear();
+                        namedWeapons.Clear();
                         ValidateOffsets();
                         session = new(pid, client);
                     }
@@ -111,6 +117,24 @@ internal static class SkinChangerService
                     if (pawn == 0 || session.Read<int>(pawn + Offsets.m_iHealth) <= 0)
                     { lastGloves = null; failedGloves = null; lastAttempt = null; appliedWeapons.Clear(); continue; }
                     Selection? gloves;
+                    nint currentList = session.Read<nint>(client + Offsets.dwEntityList);
+                    foreach (var entry in namedWeapons.ToArray())
+                    {
+                        try
+                        {
+                            if (session.Entity(currentList, entry.Key) != entry.Value.Weapon)
+                            { namedWeapons.Remove(entry.Key); continue; }
+                            ushort namedDefinition = session.Read<ushort>(entry.Value.Weapon + Offsets.m_AttributeManager + Offsets.m_Item + Offsets.m_iItemDefinitionIndex);
+                            if (namedDefinition != entry.Value.Choice.Weapon)
+                            { namedWeapons.Remove(entry.Key); continue; }
+                            uint ownerHandle = session.Read<uint>(entry.Value.Weapon + Offsets.m_hOwnerEntity);
+                            nint owner = session.Entity(currentList, ownerHandle);
+                            if (owner != 0 && owner != pawn) { namedWeapons.Remove(entry.Key); continue; }
+                            var nameChoice = entry.Value.Choice;
+                            session.SetHudName(entry.Value.Weapon, (nameChoice.StatTrak ? "StatTrak™ " : "") + nameChoice.Name, nameChoice.Rarity);
+                        }
+                        catch (System.ComponentModel.Win32Exception) { namedWeapons.Remove(entry.Key); }
+                    }
                     lock (Gate) gloves = gloveSelection;
                     if (gloves != null && (failedGloves != (pawn, gloves.Revision) || Environment.TickCount64 >= gloveRetryAt) && (lastGloves != (pawn, gloves.Revision) ||
                         !session.GlovesMatch(pawn, gloves.Weapon, gloves.Paint, gloves.Seed, gloves.Wear)))
@@ -142,7 +166,8 @@ internal static class SkinChangerService
                         else Selections.TryGetValue(definition, out selected);
                     }
                     if (selected == null) continue;
-                    session.MaintainItemIdentity(weapon);
+                    if (namedWeapons.Count >= 128) namedWeapons.Clear();
+                    namedWeapons[handle] = (weapon, selected);
                     // Keep the name current even when material settings already match.
                     session.SetHudName(weapon, (selected.StatTrak ? "StatTrak™ " : "") + selected.Name, selected.Rarity);
                     if (!session.ModelsReady(pawn, list, weapon)) continue;
@@ -166,8 +191,8 @@ internal static class SkinChangerService
                     if (appliedWeapons.Count >= 128) appliedWeapons.Clear();
                     appliedWeapons.Add(attempt);
                     session.SetHudName(weapon, (selected.StatTrak ? "StatTrak™ " : "") + selected.Name, selected.Rarity, invalidate: true);
-                    if (!hudRefreshed.Contains(selected.Revision) && session.RequestHudRefresh())
-                        hudRefreshed.Add(selected.Revision);
+                    // Do not force a network full-update while our attribute
+                    // vectors are published: the engine may destroy the item.
                     status = $"O jogo gerou {materials} material(is) para o paint kit #{selected.Paint}. Textura visual ainda não confirmada.";
                 }
                 catch (System.ComponentModel.Win32Exception ex) when (session?.TimedOut != true)

@@ -18,6 +18,8 @@ public sealed class MovementAssist : ThreadService, IModule
     private int side = 1;
     private float? previousYaw;
     private long nextSteer;
+    private long nextJump;
+    private bool jumpDown;
     private readonly HashSet<int> ownedButtons = new();
 
     protected override void FrameAction()
@@ -51,7 +53,19 @@ public sealed class MovementAssist : ThreadService, IModule
         controlledClient = GameState.client; controlledPid = Renderer.CS2ProcessId; controlling = true;
         bool grounded = (flags & 1) != 0;
         // Release in flight so each landing produces a new press edge.
-        if (starting || grounded != wasGrounded) Button(Offsets.jump, grounded);
+        long now = Environment.TickCount64;
+        if (!grounded)
+        {
+            Button(Offsets.jump, false);
+            jumpDown = false;
+            nextJump = now;
+        }
+        else if (starting || now >= nextJump)
+        {
+            jumpDown = !jumpDown;
+            Button(Offsets.jump, jumpDown);
+            nextJump = now + 8;
+        }
         if (grounded && !wasGrounded) side = -side;
         wasGrounded = grounded;
         status = "Bunny hop ativo" + (AutoStrafe ? " + auto strafe." : ".");
@@ -69,7 +83,7 @@ public sealed class MovementAssist : ThreadService, IModule
         float delta = previousYaw.HasValue ? MovementMath.Normalize(angles.Y - previousYaw.Value) : 0;
         if (MathF.Abs(delta) > .15f) side = delta > 0 ? 1 : -1;
         float desired = MovementMath.StrafeYaw(velocity.X, velocity.Y, side);
-        float turn = Math.Clamp(MovementMath.Normalize(desired - angles.Y), -4f, 4f);
+        float turn = Math.Clamp(MovementMath.Normalize(desired - angles.Y), -1f, 1f);
         float yaw = MovementMath.Normalize(angles.Y + turn);
         Button(Offsets.left, side < 0);
         Button(Offsets.right, side > 0);
@@ -98,5 +112,6 @@ public sealed class MovementAssist : ThreadService, IModule
         if (controlling && controlledPid == Renderer.CS2ProcessId && controlledClient == GameState.client)
             foreach (int offset in ownedButtons) GameState.memory?.TryWrite(controlledClient + offset, 256);
         ownedButtons.Clear(); controlling = false; wasGrounded = false; previousYaw = null; nextSteer = 0;
+        jumpDown = false; nextJump = 0;
     }
 }

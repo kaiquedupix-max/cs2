@@ -12,8 +12,8 @@
 		<Platforms>AnyCPU;x64</Platforms>
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<AssemblyName>legitbaratinho.xyz</AssemblyName>
-		<Version>1.15.0</Version>
-		<AssemblyVersion>1.15.0.0</AssemblyVersion>
+		<Version>1.16.0</Version>
+		<AssemblyVersion>1.16.0.0</AssemblyVersion>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
 		<ApplicationIcon>MenuLogo.ico</ApplicationIcon>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -25,7 +25,7 @@
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
-	<!-- This local copy must not replace itself with the site's production binary. -->
+	<!-- Production updates stay enabled; local test builds may opt into preview mode. -->
 	<PropertyGroup>
 		<LegitPreviewBuild Condition="'$(LegitPreviewBuild)' == ''">false</LegitPreviewBuild>
 	</PropertyGroup>

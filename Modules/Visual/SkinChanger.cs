@@ -222,11 +222,16 @@ namespace Mac1ota_Menu.Modules.Visual
             ImGui.SameLine();
             if (ImGui.Button("Facas", new Vector2(95, 32))) Category(1);
             ImGui.SameLine();
-            if (ImGui.Button("Luvas — Em breve", new Vector2(155, 32))) Category(2);
+            if (ImGui.Button("Luvas", new Vector2(95, 32))) Category(2);
             ImGui.Spacing();
             if (_category == 2)
             {
-                ImGui.TextWrapped("Luvas: Em breve.");
+                ImGui.Spacing();
+                ImGui.TextColored(new Vector4(.25f, .88f, .68f, 1f), "LUVAS");
+                ImGui.TextDisabled("EM BREVE");
+                ImGui.Separator();
+                ImGui.Spacing();
+                ImGui.TextWrapped("Estamos preparando esta categoria. Armas e facas continuam disponíveis nas abas acima.");
                 return;
             }
 

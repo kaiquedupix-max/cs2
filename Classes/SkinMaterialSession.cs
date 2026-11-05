@@ -295,9 +295,7 @@ internal sealed class SkinMaterialSession : IDisposable
         nint item = weapon + Offsets.m_AttributeManager + Offsets.m_Item;
         ulong mask = legacy ? 2UL : 1UL;
         return hud != 0 && Read<ulong>(MeshAddress(weapon)) == mask && Read<ulong>(MeshAddress(hud)) == mask &&
-            Read<int>(weapon + regenerationPlan.CountA) + Read<int>(weapon + regenerationPlan.CountB) > 0 &&
-            GloveVectorMatches(item + Offsets.m_AttributeList + Offsets.m_Attributes, paint, seed, wear) &&
-            GloveVectorMatches(item + Offsets.m_NetworkedDynamicAttributes + Offsets.m_Attributes, paint, seed, wear);
+            Read<int>(weapon + regenerationPlan.CountA) + Read<int>(weapon + regenerationPlan.CountB) > 0;
     }
 
     internal bool GlovesMatch(nint pawn, ushort definition, int paint, int seed, float wear)
@@ -426,12 +424,9 @@ internal sealed class SkinMaterialSession : IDisposable
         nint vector = item + Offsets.m_AttributeList + Offsets.m_Attributes;
         ulong originalCount = Read<ulong>(vector);
         nint originalPointer = Read<nint>(vector + 8);
-        // Keep attributes alive for later model/material rebuilds. The old
-        // temporary vector was removed immediately after the first rebuild.
-        ValidateGloveVector(item, vector);
-        nint dynamicVector = Offsets.m_NetworkedDynamicAttributes > 0
-            ? item + Offsets.m_NetworkedDynamicAttributes + Offsets.m_Attributes : 0;
-        if (dynamicVector != 0) ValidateGloveVector(item, dynamicVector);
+        // Never replace/free engine-owned attributes (stickers, charms, inventory).
+        if (originalCount != 0 || originalPointer != 0)
+            throw new InvalidOperationException("Esta arma já possui atributos próprios. Teste com uma arma padrão, sem skin equipada.");
 
         byte[] attributes = SkinMaterialData.Attributes(paint, seed, wear);
         nint mesh = MeshAddress(weapon), hudMesh = MeshAddress(hud);
@@ -442,20 +437,23 @@ internal sealed class SkinMaterialSession : IDisposable
         int previousPaint = Read<int>(weapon + Offsets.m_nFallbackPaintKit);
         int previousSeed = Read<int>(weapon + Offsets.m_nFallbackSeed);
         float previousWear = Read<float>(weapon + Offsets.m_flFallbackWear);
+        nint allocation = VirtualAllocEx(process, 0, (nuint)attributes.Length, 0x3000, 0x04);
+        if (allocation == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
         nint call = 0;
         int materialCount = 0;
         bool completed = false;
+        bool published = false;
         try
         {
-            PublishGloveVector(item, vector, paint, seed, wear);
-            if (dynamicVector != 0) PublishGloveVector(item, dynamicVector, paint, seed, wear);
-            MaintainItemIdentity(weapon);
-            if (Offsets.m_bDisallowSOC > 0) Write(item + Offsets.m_bDisallowSOC, (byte)1);
+            WriteBytes(allocation, attributes);
             Write(item + Offsets.m_iItemIDHigh, -1);
             Write(weapon + Offsets.m_nFallbackPaintKit, paint);
             Write(weapon + Offsets.m_nFallbackSeed, seed);
             Write(weapon + Offsets.m_flFallbackWear, wear);
             ulong mask = legacy ? 2UL : 1UL;
+            Write(vector + 8, allocation);
+            published = true;
+            Write(vector, 3UL);
             // The console command skips stock weapons when both material vectors
             // are empty. Invoke its decoded clear/rebuild pair for THIS weapon,
             // with the same arguments, without patching the game's instructions.
@@ -497,8 +495,13 @@ internal sealed class SkinMaterialSession : IDisposable
             if (!TimedOut)
             {
                 if (call != 0) VirtualFreeEx(process, call, 0, 0x8000);
-                // Published vectors use the game allocator and remain owned by
-                // the item. Releasing them here loses the skin on model refresh.
+                // Restore only our vector, never a replacement published by the game.
+                if (published && Read<nint>(vector + 8) == allocation)
+                {
+                    Write(vector, originalCount);
+                    Write(vector + 8, originalPointer);
+                }
+                VirtualFreeEx(process, allocation, 0, 0x8000);
                 if (!completed)
                 {
                     Write(weapon + Offsets.m_nFallbackPaintKit, previousPaint);
