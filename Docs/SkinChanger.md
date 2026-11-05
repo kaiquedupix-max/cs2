@@ -2,7 +2,8 @@
 
 O botão anterior escrevia somente os campos fallback; ele não reconstruía os materiais.
 O novo caminho publica os atributos econômicos 6/7/8 (paint/seed/wear), seleciona
-o modelo antigo/novo do catálogo e chama a rotina de regeneração de client.dll.
+o modelo antigo/novo do catálogo e usa as funções de limpeza/reconstrução
+identificadas no callback registrado de `regenerate_weapon_skins` em client.dll.
 A execução ocorre fora da thread de desenho. Seleções ficam ativas nesta sessão,
 inclusive com o menu fechado, e são aplicadas a novas armas equipadas.
 
@@ -22,6 +23,10 @@ Referência de implementação e discussão original:
 - Um timeout impede novas chamadas nesse processo. A memória ainda potencialmente
   utilizada pela rotina fica alocada até o CS2 fechar.
 - Retorno da rotina não é comprovação visual. A validação final é dentro do jogo.
+- O comando de console ignora armas cujos dois vetores de materiais estão vazios.
+  A revisão 2 decodifica suas chamadas de limpeza/reconstrução e as executa para
+  a arma equipada, sem alterar as instruções do jogo. Exige que o jogo gere pelo
+  menos um material; caso contrário, informa falha em vez de sucesso.
 
 ## Verificação
 
@@ -52,3 +57,17 @@ do comando no CS2 aberto. A alteração visual ainda precisa ser validada no jog
 O deslocamento fixo `+0x52` da referência antiga foi descartado: no binário instalado
 ele está no meio de uma instrução. A referência Henrih56 usa a mesma assinatura e
 não resolve essa diferença por si só.
+
+## Revisão 2 — arma padrão ignorada
+
+O teste do usuário mostrou AK-47 padrão mesmo após retorno normal do callback.
+A inspeção somente de leitura confirmou ambos os contadores de materiais em zero.
+O fluxo original do comando testa esses contadores e pula a reconstrução quando
+ambos estão vazios. A nova sequência preserva os argumentos das duas chamadas
+identificadas nesse fluxo, valida que seus destinos estão em `.text` e reserva
+shadow space/alinhamento conforme a ABI Windows x64. O código temporário fica
+somente executável após ser preenchido; é liberado após o término da thread.
+Um timeout preserva as alocações potencialmente em uso até o CS2 encerrar.
+
+A mensagem agora informa contagem de materiais, sem afirmar confirmação visual.
+O teste dentro do jogo desta revisão fica com o usuário.

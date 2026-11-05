@@ -14,6 +14,7 @@ internal sealed class SkinMaterialSession : IDisposable
     private readonly SafeProcessHandle process;
     private readonly nint client;
     private nint regenerate;
+    private SkinMaterialData.RegenerationPlan? regenerationPlan;
     internal bool TimedOut { get; private set; }
 
     internal SkinMaterialSession(int pid, nint clientBase)
@@ -105,6 +106,7 @@ internal sealed class SkinMaterialSession : IDisposable
             // reference is now part of an instruction, NOT an attribute offset.
             if (!IsRegisteredCallback(code, client + rva, candidate, commandName))
                 throw new InvalidOperationException("Não foi possível validar a rotina de materiais desta versão do CS2.");
+            regenerationPlan = SkinMaterialData.DecodeRegenerationPlan(ReadBytes(candidate, 0x150), candidate, client + rva, client + rva + size);
             regenerate = candidate;
             return;
         }
@@ -154,7 +156,7 @@ internal sealed class SkinMaterialSession : IDisposable
         return node + Offsets.m_modelState + Offsets.m_MeshGroupMask;
     }
 
-    internal void Apply(nint pawn, nint list, uint handle, ushort expectedWeapon, int paint, int seed, float wear, bool legacy)
+    internal int Apply(nint pawn, nint list, uint handle, ushort expectedWeapon, int paint, int seed, float wear, bool legacy)
     {
         if (TimedOut) throw new InvalidOperationException("Reinicie o CS2 após o tempo limite de materiais.");
         ResolveRegenerator(); // No weapon writes before compatibility validation.
@@ -181,6 +183,8 @@ internal sealed class SkinMaterialSession : IDisposable
         float previousWear = Read<float>(weapon + Offsets.m_flFallbackWear);
         nint allocation = VirtualAllocEx(process, 0, (nuint)attributes.Length, 0x3000, 0x04);
         if (allocation == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+        nint call = 0;
+        int materialCount = 0;
         bool completed = false;
         bool published = false;
         try
@@ -196,7 +200,17 @@ internal sealed class SkinMaterialSession : IDisposable
             Write(vector + 8, allocation);
             published = true;
             Write(vector, 3UL);
-            using SafeWaitHandle thread = CreateRemoteThread(process, 0, 0, regenerate, 0, 0, out _);
+            // The console command skips stock weapons when both material vectors
+            // are empty. Invoke its decoded clear/rebuild pair for THIS weapon,
+            // with the same arguments, without patching the game's instructions.
+            byte[] invoke = SkinMaterialData.RebuildCall(weapon, regenerationPlan!);
+            call = VirtualAllocEx(process, 0, (nuint)invoke.Length, 0x3000, 0x04);
+            if (call == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+            WriteBytes(call, invoke);
+            if (!VirtualProtectEx(process, call, (nuint)invoke.Length, 0x20, out _) ||
+                !FlushInstructionCache(process, call, (nuint)invoke.Length))
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Não foi possível preparar a reconstrução de materiais.");
+            using SafeWaitHandle thread = CreateRemoteThread(process, 0, 0, call, 0, 0, out _);
             if (thread.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "Falha ao iniciar a atualização de materiais.");
             uint wait = WaitForSingleObject(thread, 10000);
             if (wait != 0)
@@ -207,12 +221,26 @@ internal sealed class SkinMaterialSession : IDisposable
             }
             if (!GetExitCodeThread(thread, out uint exit) || exit >= 0x80000000)
                 throw new InvalidOperationException($"A rotina de materiais falhou (0x{exit:X8}).");
+            DateTime deadline = DateTime.UtcNow.AddSeconds(2);
+            do
+            {
+                int countA = Read<int>(weapon + regenerationPlan!.CountA);
+                int countB = Read<int>(weapon + regenerationPlan.CountB);
+                if (countA is < 0 or > 4096 || countB is < 0 or > 4096)
+                    throw new InvalidOperationException("O jogo retornou uma lista de materiais inválida.");
+                materialCount = countA + countB;
+                if (materialCount > 0) break;
+                Thread.Sleep(50);
+            } while (DateTime.UtcNow < deadline);
+            if (materialCount == 0)
+                throw new InvalidOperationException("Skin não confirmada: o jogo não gerou materiais para a arma. Nenhum sucesso foi confirmado.");
             completed = true;
         }
         finally
         {
             if (!TimedOut)
             {
+                if (call != 0) VirtualFreeEx(process, call, 0, 0x8000);
                 // Restore only our vector, never a replacement published by the game.
                 if (published && Read<nint>(vector + 8) == allocation)
                 {
@@ -231,6 +259,7 @@ internal sealed class SkinMaterialSession : IDisposable
                 }
             }
         }
+        return materialCount;
     }
 
     public void Dispose() => process.Dispose();
@@ -240,6 +269,8 @@ internal sealed class SkinMaterialSession : IDisposable
     [DllImport("kernel32.dll", SetLastError = true)] private static extern bool WriteProcessMemory(SafeProcessHandle process, nint address, byte[] buffer, nuint size, out nuint written);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern nint VirtualAllocEx(SafeProcessHandle process, nint address, nuint size, uint type, uint protection);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern bool VirtualFreeEx(SafeProcessHandle process, nint address, nuint size, uint type);
+    [DllImport("kernel32.dll", SetLastError = true)] private static extern bool VirtualProtectEx(SafeProcessHandle process, nint address, nuint size, uint protection, out uint previous);
+    [DllImport("kernel32.dll", SetLastError = true)] private static extern bool FlushInstructionCache(SafeProcessHandle process, nint address, nuint size);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern SafeWaitHandle CreateRemoteThread(SafeProcessHandle process, nint attributes, nuint stack, nint start, nint parameter, uint flags, out uint id);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern uint WaitForSingleObject(SafeWaitHandle handle, uint milliseconds);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern bool GetExitCodeThread(SafeWaitHandle handle, out uint code);

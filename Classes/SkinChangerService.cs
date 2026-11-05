@@ -76,8 +76,8 @@ internal static class SkinChangerService
                     if (lastAttempt == attempt) continue;
                     lastAttempt = attempt;
                     status = "Reconstruindo os materiais da arma...";
-                    session.Apply(pawn, list, handle, definition, selected.Paint, selected.Seed, selected.Wear, selected.Legacy);
-                    status = $"Atualização de materiais concluída: paint kit #{selected.Paint}. Confira a arma no jogo.";
+                    int materials = session.Apply(pawn, list, handle, definition, selected.Paint, selected.Seed, selected.Wear, selected.Legacy);
+                    status = $"O jogo gerou {materials} material(is) para o paint kit #{selected.Paint}. Textura visual ainda não confirmada.";
                 }
                 catch (Exception ex)
                 {

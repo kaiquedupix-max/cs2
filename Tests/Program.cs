@@ -48,6 +48,28 @@ Check(!SkinMaterialSession.IsRegisteredCallback(registration, 0x1000, 0x2000, 0x
 Check(!SkinMaterialSession.IsRegisteredCallback(new byte[128], 0x1000, 0x2000, 0x3000), "Reject missing registration");
 Console.WriteLine("PASS: native attribute ABI, invalid inputs, signature bounds/ambiguity, named callback identity.");
 
+// The named console command skips a stock weapon with two empty material vectors.
+// Fixture: its exact conditional/clear/rebuild instruction sequence, with relocated
+// helper addresses. Reject changed control flow rather than calling guessed code.
+byte[] dispatch = Convert.FromHexString("83BBB00A0000007F0983BBC80A0000007E18488D8B10060000B201E80000000033D2488BCBE800000000");
+BitConverter.GetBytes(0x2000 - 0x1100 - 32).CopyTo(dispatch, 28);
+BitConverter.GetBytes(0x3000 - 0x1100 - 42).CopyTo(dispatch, 38);
+var plan = SkinMaterialData.DecodeRegenerationPlan(dispatch, 0x1100, 0x1000, 0x5000);
+Check(plan.Clear == 0x2000 && plan.Rebuild == 0x3000 && plan.Component == 0x610, "Relocated material helpers");
+Check(plan.CountA == 0xAB0 && plan.CountB == 0xAC8, "Material gate offsets decoded from callback");
+Throws<InvalidOperationException>(() => SkinMaterialData.DecodeRegenerationPlan([], 0x1100, 0x1000, 0x5000));
+Throws<InvalidOperationException>(() => SkinMaterialData.DecodeRegenerationPlan(dispatch.Concat(dispatch).ToArray(), 0x1100, 0x1000, 0x5000));
+Throws<InvalidOperationException>(() => SkinMaterialData.DecodeRegenerationPlan(dispatch, 0x1100, 0x1000, 0x2500));
+byte[] changedBranch = (byte[])dispatch.Clone(); changedBranch[17] = 0x17;
+Throws<InvalidOperationException>(() => SkinMaterialData.DecodeRegenerationPlan(changedBranch, 0x1100, 0x1000, 0x5000));
+byte[] call = SkinMaterialData.RebuildCall(0x100000, plan);
+Check(call.Length == 62 && call.AsSpan(0, 4).SequenceEqual(new byte[] { 0x48, 0x83, 0xEC, 0x28 }), "x64 shadow space and alignment");
+Check(BitConverter.ToInt64(call, 6) == 0x100610 && BitConverter.ToInt64(call, 33) == 0x100000, "Component and econ entity arguments");
+Check(BitConverter.ToInt64(call, 21) == 0x2000 && BitConverter.ToInt64(call, 45) == 0x3000, "Clear/rebuild call targets");
+Check(call[^1] == 0xC3, "Material dispatch returns to its caller");
+Throws<ArgumentOutOfRangeException>(() => SkinMaterialData.RebuildCall(0, plan));
+Console.WriteLine("PASS: stock-weapon dispatch decoding, bounded helper targets and Windows x64 call ABI.");
+
 if (args.Contains("--analyze"))
 {
     using var game = Process.GetProcessesByName("cs2").First();
