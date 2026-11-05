@@ -95,7 +95,12 @@ internal static class SkinChangerService
                         status = "Aguardando conexão com o CS2...";
                         continue;
                     }
-                    if (currentPid == blockedProcess) continue;
+                    if (currentPid == blockedProcess)
+                    {
+                        status = "Aplicação suspensa neste processo do CS2. Reinicie o jogo para tentar novamente.";
+                        await Task.Delay(1000);
+                        continue;
+                    }
                     if (session == null || currentPid != pid || client != GameState.client)
                     {
                         session?.Dispose(); session = null;
@@ -177,11 +182,21 @@ internal static class SkinChangerService
                 }
                 catch (Exception ex)
                 {
-                    status = ex.Message;
-                    // Never repeatedly call a changed/failed engine routine in one process.
-                    if (session?.TimedOut == true) blockedProcess = pid;
-                    if (session?.TimedOut == true) { session.Dispose(); session = null; }
-                    Enabled = false;
+                    // A runtime failure must not clear the user's automatic-apply preference.
+                    // Timeouts can indicate that the game's material routine is no longer safe
+                    // to call in this process, so suspend retries until CS2 is restarted.
+                    if (session?.TimedOut == true)
+                    {
+                        blockedProcess = pid;
+                        session.Dispose();
+                        session = null;
+                        status = "Aplicação suspensa após tempo limite. Reinicie o CS2: " + ex.Message;
+                    }
+                    else
+                    {
+                        status = "Falha ao aplicar skin; nova tentativa em 1 segundo: " + ex.Message;
+                        await Task.Delay(1000);
+                    }
                 }
             }
         }
