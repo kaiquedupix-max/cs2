@@ -24,6 +24,10 @@
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(LegitPreviewBuild)' == 'true'">
+		<DefineConstants>$(DefineConstants);LEGIT_PREVIEW_BUILD</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<Compile Remove="Configs\**" />
 		<Compile Remove="Tests\**" />

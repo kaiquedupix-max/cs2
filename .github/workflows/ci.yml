@@ -37,10 +37,10 @@ jobs:
       run: dotnet run --project Tests/SkinMaterialChecks.csproj -c Release
 
     - name: Build
-      run: dotnet build ".\Mac1ota Menu.csproj" --no-restore -c Release -p:Platform=x64 -r win-x64
+      run: dotnet build ".\Mac1ota Menu.csproj" --no-restore -c Release -p:Platform=x64 -p:LegitPreviewBuild=${{ github.event_name == 'pull_request' }} -r win-x64
 
     - name: Publish single-file
-      run: dotnet publish ".\Mac1ota Menu.csproj" --no-restore -c Release -r win-x64 -p:Platform=x64 -o ".\publish"
+      run: dotnet publish ".\Mac1ota Menu.csproj" --no-restore -c Release -r win-x64 -p:Platform=x64 -p:LegitPreviewBuild=${{ github.event_name == 'pull_request' }} -o ".\publish"
 
     - name: Verify single-file output
       shell: pwsh

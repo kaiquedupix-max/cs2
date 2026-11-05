@@ -25,6 +25,11 @@ Referência de implementação e discussão original:
 
 ## Verificação
 
+O artefato de pull request usa `LegitPreviewBuild=true`: a atualização automática
+fica pausada apenas nesse executável de teste, evitando sua substituição pela versão
+de produção antes do teste. Login, assinatura e vínculo de dispositivo continuam
+obrigatórios. Builds de produção mantêm o atualizador normal.
+
 ```powershell
 dotnet run --project Tests/SkinMaterialChecks.csproj -c Release
 # Somente leitura; requer CS2 aberto. Não aplica skins:
