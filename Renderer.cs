@@ -545,6 +545,7 @@ namespace Mac1ota_Menu
                     RenderTabButton("\uF15E", "Visuais", 2);
                     RenderTabButton("\uF1BC", "Mira", 1);
                     RenderTabButton("\uF0E7", "Rage", 6);
+                    RenderTabButton("\uF1B9", "Skin Changer", 7);
                     RenderTabButton("\uF35A", "Perfis", 3);
                     RenderTabButton("\uF0C0", "Comunidade", 5);
                     RenderTabButton("\uF3DC", "Ajustes", 4);
@@ -607,7 +608,8 @@ namespace Mac1ota_Menu
                             "Perfis",
                             "Ajustes",
                             "Configs da comunidade",
-                            "Rage"
+                            "Rage",
+                            "Skin Changer"
                         }[_selectedTab]);
                     ImGui.SameLine();
                     ImGui.TextDisabled(" / legitbaratinho.xyz");
@@ -650,6 +652,13 @@ namespace Mac1ota_Menu
                             ImGui.SetCursorPosY(Math.Max(leftColBottom, rightColBottom));
                             // Submit an item after moving the cursor so ImGui records the layout extent.
                             ImGui.Dummy(Vector2.Zero);
+                            break;
+
+                        case 7: // skin changer
+                            ImGui.Dummy(new Vector2(0, 4));
+                            Mac1ota_Menu.ImGUI.Widgets.Sections.BeginSection("Skins de armas", () =>
+                                SkinChanger.Render(),
+                                new Vector2(Math.Min(650f, ImGui.GetContentRegionAvail().X - 8f), 0));
                             break;
 
                         case 4: // ajustes
