@@ -579,9 +579,6 @@ namespace Mac1ota_Menu.Classes
                 async (_, _) =>
                     await RefreshAccountAsync();
 
-            var cosmetics = new Button { Parent = _panel, Text = "SKINS E CONFIGURAÇÕES" };
-            StyleSecondaryButton(cosmetics, new Point(45, 584), new Size(504, 40));
-            cosmetics.Click += (_, _) => { using var form = new CosmeticLoadoutForm(); form.ShowDialog(this); };
             var note =
                 MakeLabel(
                     "Após comprar no site, clique em ATUALIZAR para sincronizar.",
@@ -589,7 +586,7 @@ namespace Mac1ota_Menu.Classes
                     FontStyle.Regular,
                     TextSecondary,
                     45,
-                    640);
+                    600);
 
             note.Parent =
                 _panel;

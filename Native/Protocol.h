@@ -25,4 +25,5 @@ bool installInput(Shared*);
 void installRoundMessages(Shared*);
 void updatePrecision(bool, bool force = false);
 void updateInputLifecycle();
+void maintainCosmetics();
 }

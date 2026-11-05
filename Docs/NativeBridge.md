@@ -14,7 +14,7 @@ A ponte entre C# e C++, o protocolo, a integração das configurações e a adap
 ## Implementação
 
 - Cosméticos: troca o caminho de fallback por identidades/atributos no inventário local e callbacks de decode. O HUD obtém os nomes localizados e a raridade do item, em vez de transformar o nome da skin em uma name tag.
-- Corrige também o mapeamento ausente de `m_szCustomName` do caminho externo anterior.
+- A correção da entrada duplicada de inicialização e a reaplicação após respawn estão descritas em [Loader-v6.md](Loader-v6.md).
 - Luvas: SOC/identidade reais no cliente, reaplicação ao mudar o item. Faixas/Hand Wraps 5032 têm rótulo explícito em português. Armas seguradas pelo jogador são identificadas pelo proprietário atual, incluindo armas adquiridas de outros jogadores/mapas de treino.
 - StatTrak: atributos de kills/contador no item do inventário, qualidade adequada e evento de morte do módulo nativo. Contagens do inventário local são mantidas ao alterar opções de câmera/anti-aim. Salvar um perfil do C# ainda grava o contador escolhido no menu, não uma leitura de volta das kills acumuladas no C++.
 - Spinbot: altera yaw/pitch dos comandos e históricos, corrige o movimento e preserva os ângulos usados pela câmera local. Suspende durante ataque/uso e com granadas. Não usa a rotação visível externa da câmera.

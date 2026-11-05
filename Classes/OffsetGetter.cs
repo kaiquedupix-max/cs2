@@ -9,6 +9,7 @@ namespace Mac1ota_Menu.Classes
     {
         private static readonly Dictionary<string, int> offsets = []; // holds the resolved offsets
         private static readonly HttpClient httpClient = new();
+        private static Dictionary<string, Dictionary<string, int>> classOffsets = new();
         private static string _offsetRegex = @"public const nint ([\w\+]+) = (0x[0-9A-Fa-f]+);";
 
         static OffsetGetter()
@@ -180,7 +181,7 @@ namespace Mac1ota_Menu.Classes
             { "m_pObserverServices", new() { new Offset("m_pObserverServices") } },
             { "m_hObserverTarget", new() { new Offset("m_hObserverTarget") } },
             { "m_hPawn", new() { new Offset("m_hPawn") } },
-            { "m_szCustomName", new() { new Offset("m_szCustomName", "C_EconItemView") } },
+
             { "m_pAimPunchServices", new() { new Offset("m_pAimPunchServices") } },
             { "m_predictableBaseAngle", new() { new Offset("m_predictableBaseAngle") } },
             { "m_predictableBaseAngleVel", new() { new Offset("m_predictableBaseAngleVel") } },
@@ -218,69 +219,52 @@ namespace Mac1ota_Menu.Classes
 
         };
 
-        public static async Task UpdateOffsetsAsync()
+        private static bool triedSecondary;
+        public static async Task UpdateOffsetsAsync(Action<string>? progress = null)
         {
-            try
+            Updated = false;
+            triedSecondary = false;
+            progress?.Invoke("Baixando dados do CS2 (limite de 20 s)...");
+            string[] primary = [OffsetsUrl, ClientDllUrl, ButtonsUrl, Engine2Url, AnimationSystemUrl];
+            string[] backup = [SecondaryOffsetsUrl, SecondaryClientDllUrl, SecondaryButtonsUrl, SecondaryEngine2Url, SecondaryAnimationSystemUrl];
+            var data = await Task.WhenAll(primary.Select(DownloadFile)).ConfigureAwait(false);
+            var missing = Enumerable.Range(0, data.Length).Where(i => string.IsNullOrWhiteSpace(data[i])).ToArray();
+            if (missing.Length > 0)
             {
-                Console.WriteLine("[OFFSET FINDER] Starting The Offset Finding Process Please Wait...");
-                offsets.Clear();
-
-                // download and cache
-                OffsetsContent = await DownloadFile(OffsetsUrl);
-                ClientDllContent = await DownloadFile(ClientDllUrl);
-                ButtonsContent = await DownloadFile(ButtonsUrl);
-                Engine2Content = await DownloadFile(Engine2Url);
-                AnimationSystemContent = await DownloadFile(AnimationSystemUrl);
-
-                ParseOffsetsFile(OffsetsContent);
-                ParseClientDllFile(ClientDllContent);
-                ParseButtonsFile(ButtonsContent);
-                ParseEngine2File(Engine2Content);
-                ParseAnimationSystemFile(AnimationSystemContent);
-
-                Console.WriteLine($"[OFFSET FINDER] Found: {offsets.Count}");
-                UpdateOffsetsClass();
-
-                Console.WriteLine("[OFFSET FINDER] Offsets Updated Successfully!");
+                progress?.Invoke("Tentando a fonte alternativa de dados...");
+                var replacements = await Task.WhenAll(missing.Select(i => DownloadFile(backup[i]))).ConfigureAwait(false);
+                for (int i = 0; i < missing.Length; i++) data[missing[i]] = replacements[i];
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[OFFSETS FINDER] ERROR: {ex.Message}");
-            }
+            if (data.Any(string.IsNullOrWhiteSpace))
+                throw new InvalidOperationException("Não foi possível baixar os dados do CS2 das duas fontes. Verifique a conexão com raw.githubusercontent.com e tente novamente.");
+            OffsetsContent = data[0]; ClientDllContent = data[1]; ButtonsContent = data[2]; Engine2Content = data[3]; AnimationSystemContent = data[4];
+            progress?.Invoke("Lendo os dados do CS2...");
+            ParseCurrentSources();
+        }
+
+        private static void ParseCurrentSources()
+        {
+            offsets.Clear();
+            classOffsets = SchemaOffsets.Parse(ClientDllContent);
+            ParseOffsetsFile(OffsetsContent); ParseClientDllFile(ClientDllContent);
+            ParseButtonsFile(ButtonsContent); ParseEngine2File(Engine2Content); ParseAnimationSystemFile(AnimationSystemContent);
+            UpdateOffsetsClass();
         }
 
         public static async Task CheckIfOffsetsAreValid()
         {
-            if (GameState.memory == null)
-                return;
-
-            if (GameState.CS2Open() && (GameState.memory.ReadPointer(GameState.client, Offsets.dwViewMatrix) == IntPtr.Zero || GameState.memory.ReadPointer(GameState.client, Offsets.dwEntityList) == IntPtr.Zero))
+            var memory = GameState.memory;
+            if (memory == null || GameState.client == 0) { Updated = false; return; }
+            // ViewMatrix contains floats, not an entity pointer. A zero matrix
+            // while changing maps must not trigger endless network downloads.
+            bool Ready() => memory.TryRead(GameState.client + Offsets.dwEntityList, out nint list) && list.ToInt64() >= 0x10000;
+            if (!Ready() && !triedSecondary)
             {
-                Console.WriteLine("[OFFSET FINDER] ERROR: primary offsets appear invalid, trying secondary source");
-                offsets.Clear();
-                await FetchSecondarySource();
-
-                ParseOffsetsFile(OffsetsContent);
-                ParseClientDllFile(ClientDllContent);
-                ParseButtonsFile(ButtonsContent);
-                ParseEngine2File(Engine2Content);
-                ParseAnimationSystemFile(AnimationSystemContent);
-                UpdateOffsetsClass();
-
-                if (GameState.memory.ReadPointer(GameState.client, Offsets.dwViewMatrix) == IntPtr.Zero || GameState.memory.ReadPointer(GameState.client, Offsets.dwEntityList) == IntPtr.Zero)
-                {
-                    Console.WriteLine("Both are invalid, maybe try dumping yourself?");
-                    Updated = true;
-                    return;
-                }
-
-                Updated = true;
-                return;
+                triedSecondary = true;
+                await FetchSecondarySource().ConfigureAwait(false);
+                ParseCurrentSources();
             }
-            else
-            {
-                Updated = true;
-            }
+            Updated = Ready();
         }
 
         public static void ApplySecondarySources()
@@ -298,11 +282,12 @@ namespace Mac1ota_Menu.Classes
 
         public static async Task FetchSecondarySource()
         {
-            OffsetsContent = await DownloadFile(SecondaryOffsetsUrl);
-            ClientDllContent = await DownloadFile(SecondaryClientDllUrl);
-            ButtonsContent = await DownloadFile(SecondaryButtonsUrl);
-            Engine2Content = await DownloadFile(SecondaryEngine2Url);
-            AnimationSystemContent = await DownloadFile(SecondaryAnimationSystemUrl);
+            var data = await Task.WhenAll(new[] { SecondaryOffsetsUrl, SecondaryClientDllUrl, SecondaryButtonsUrl, SecondaryEngine2Url, SecondaryAnimationSystemUrl }.Select(DownloadFile)).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(data[0])) OffsetsContent = data[0];
+            if (!string.IsNullOrWhiteSpace(data[1])) ClientDllContent = data[1];
+            if (!string.IsNullOrWhiteSpace(data[2])) ButtonsContent = data[2];
+            if (!string.IsNullOrWhiteSpace(data[3])) Engine2Content = data[3];
+            if (!string.IsNullOrWhiteSpace(data[4])) AnimationSystemContent = data[4];
         }
 
         private static async Task<string> DownloadFile(string url)
@@ -310,7 +295,7 @@ namespace Mac1ota_Menu.Classes
             try
             {
                 Console.WriteLine($"[OFFSET FINDER] Downloading {url}");
-                string content = await httpClient.GetStringAsync(url);
+                string content = await httpClient.GetStringAsync(url).ConfigureAwait(false);
 
                 Console.WriteLine($"[OFFSET FINDER] Downloaded {url}, length={content.Length}");
                 return content;
@@ -372,25 +357,8 @@ namespace Mac1ota_Menu.Classes
 
         private static void ParseClassOffsets(string content, string className) // explicitly parse a given class
         {
-            string classPattern = $@"public\s+static\s+class\s+{className}\s*\{{([\s\S]*?)\}}";
-            var classMatch = Regex.Match(content, classPattern, RegexOptions.Multiline);
-
-            if (!classMatch.Success)
-            {
-                Console.WriteLine($"[OFFSET FINDER] Could Not Find Class {className}");
-                return;
-            }
-
-            var matches = Regex.Matches(classMatch.Groups[1].Value, _offsetRegex);
-
-            Console.WriteLine($"[OFFSET FINDER] Found {matches.Count} offsets in class {className}");
-
-            foreach (Match match in matches)
-            {
-                string name = match.Groups[1].Value;
-                int value = Convert.ToInt32(match.Groups[2].Value, 16);
-                offsets[name] = value;
-            }
+            if (!classOffsets.TryGetValue(className, out var members)) return;
+            foreach (var member in members) offsets[member.Key] = member.Value;
         }
 
         private static void ParseButtonsFile(string content)
@@ -439,25 +407,11 @@ namespace Mac1ota_Menu.Classes
                     {
                         if (source.ClassName != null)
                         {
-                            ParseClassOffsets(ClientDllContent, source.ClassName);
-                            // New material fields must come from the exact schema class,
-                            // never a same-named field cached from an unrelated class.
-                            if (fieldName is "m_AttributeList" or "m_Attributes" or "m_hHudModelArms" or
-                                "m_pChild" or "m_pNextSibling" or "m_pOwner" or "m_MeshGroupMask" or
-                                "m_iAttributeDefinitionIndex" or "m_flValue" or "m_flInitialValue" or
-                                "m_iClip1" or "m_nNextPrimaryAttackTick" or "m_nTickBase" or
-                                "m_nSubclassID" or "m_EconGloves" or "m_bNeedToReApplyGloves" or "m_bInitialized" or
-                                "m_bDisallowSOC" or "m_iEntityQuality" or "m_iRarityOverride" or "m_szCustomNameOverride" or
-                                "m_bInitializedTags" or "m_SkyTint" or "m_SkyBrightness" or "m_SkyDesignerName" or "m_szCustomName" or "m_nFallbackStatTrak")
+                            if (classOffsets.TryGetValue(source.ClassName, out var members) && members.TryGetValue(source.Name, out int member))
                             {
-                                var block = Regex.Match(ClientDllContent,
-                                    $@"public\s+static\s+class\s+{Regex.Escape(source.ClassName)}\s*\{{([\s\S]*?)\}}");
-                                var member = Regex.Match(block.Groups[1].Value,
-                                    $@"public const nint {Regex.Escape(source.Name)} = (0x[0-9A-Fa-f]+);");
-                                field.SetValue(null, member.Success ? Convert.ToInt32(member.Groups[1].Value, 16) : 0);
-                                found = true;
-                                break;
+                                field.SetValue(null, member); updatedCount++; found = true; break;
                             }
+                            continue;
                         }
 
                         if (!offsets.TryGetValue(source.Name, out int value))

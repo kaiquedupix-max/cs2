@@ -22,6 +22,7 @@ if (args.Contains("--embedded"))
     string path = args[Array.IndexOf(args, "--embedded") + 1];
     string nativePath = args[Array.IndexOf(args, "--native") + 1];
     var assembly = Assembly.LoadFile(Path.GetFullPath(path));
+    System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(assembly.GetType("Mac1ota_Menu.Classes.OffsetGetter")!.TypeHandle);
     using var resource = assembly.GetManifestResourceStream("legit_native.dll");
     Check(resource != null, "Native module embedded in loader");
     using var binary = new MemoryStream(); resource!.CopyTo(binary);
@@ -29,6 +30,25 @@ if (args.Contains("--embedded"))
     using var notices = assembly.GetManifestResourceStream("native_notices.txt");
     Check(notices != null && notices.Length > 1000, "Native third-party notices embedded");
     Console.WriteLine("PASS: loader embeds the checked C++ module and third-party notices.");
+}
+
+if (args.Contains("--offsets-assembly"))
+{
+    var app = Assembly.LoadFile(Path.GetFullPath(args[Array.IndexOf(args, "--offsets-assembly") + 1]));
+    var updater = app.GetType("Mac1ota_Menu.Classes.OffsetGetter")!;
+    var clock = Stopwatch.StartNew();
+    TextWriter original = Console.Out;
+    try
+    {
+        Console.SetOut(TextWriter.Null);
+        var task = (Task)updater.GetMethod("UpdateOffsetsAsync")!.Invoke(null, new object?[] { null })!;
+        await task.WaitAsync(TimeSpan.FromSeconds(25));
+    }
+    finally { Console.SetOut(original); }
+    var resolved = app.GetType("Mac1ota_Menu.Data.Game.Offsets")!;
+    foreach (string field in new[] { "dwCSGOInput", "dwEntityList", "m_iHealth", "m_hOwnerEntity", "m_szCustomName", "m_AttributeManager" })
+        Check((int)resolved.GetField(field)!.GetValue(null)! > 0, "Startup resolved " + field);
+    Console.WriteLine($"PASS: actual offset download/parser completed in {clock.Elapsed.TotalSeconds:F2}s (no game access).");
 }
 
 byte[] attributes = SkinMaterialData.Attributes(344, 42, 0.125f);
@@ -53,6 +73,12 @@ Check(BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(12)) == 2 && B
 Check(BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(84)) == 7 && BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(108)) == 1 && BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(112)) == 123, "Native cosmetic field ABI");
 Throws<InvalidOperationException>(() => NativeBridgeData.Config(Enumerable.Repeat(firstChoice, 65).ToList(), new(true,false,false,false,false,false,false,false,720,120,1,2,3,4,5,6,7)));
 Console.WriteLine("PASS: C# to C++ packet ABI, generation, feature flags and StatTrak payload.");
+var cfg = new Newtonsoft.Json.Linq.JObject { ["Visual"] = new Newtonsoft.Json.Linq.JObject { ["CosmeticLoadout"] = new Newtonsoft.Json.Linq.JObject { ["Choices"] = Newtonsoft.Json.Linq.JToken.FromObject(restored) } } };
+var cfgChoices = Newtonsoft.Json.Linq.JObject.Parse(cfg.ToString())["Visual"]!["CosmeticLoadout"]!["Choices"]!.ToObject<List<Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choice>>()!;
+Check(cfgChoices[0] == restored[0], "Actual CFG serializer preserves selected skin, wear, seed and StatTrak");
+var indexedSchema = SchemaOffsets.Parse("public static class One { public const nint field = 0x10; } public static class Two { public const nint field = 0x20; }");
+Check(indexedSchema["One"]["field"] == 0x10 && indexedSchema["Two"]["field"] == 0x20, "Schema fields resolved by class without name collisions");
+Console.WriteLine("PASS: actual CFG skin serialization and indexed schema parsing.");
 Console.WriteLine("PASS: bounded UTF-8 names, knife metadata, rarity, loadout replacement and profile round trip.");
 Check(attributes.Length == 216, "Native attribute array size");
 for (int i = 0; i < 3; i++)

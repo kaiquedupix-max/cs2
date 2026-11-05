@@ -3,6 +3,7 @@
 #include <iostream>
 #include "Protocol.h"
 #include "InputMath.h"
+#include "CosmeticRefresh.h"
 int main() {
  using namespace legit;
  static_assert(sizeof(Config)==2132 && sizeof(Shared)==2696);
@@ -20,5 +21,13 @@ int main() {
   if(!std::isfinite(move.forward)||!std::isfinite(move.left)||std::abs(move.forward)>1||std::abs(move.left)>1) return 2;
  }
  if(std::abs(math::spin(123456,720))>180) return 3;
+ SkinRefreshKey skin{515,415,0,100,.01f,false,false}; SkinRefreshLatch latch;
+ if(!latch.wants(skin,false,0)) return 4;
+ latch.completed(skin,0); if(latch.wants(skin,false,100)) return 5;
+ auto newHud=skin;newHud.hud=101; if(!latch.wants(newHud,false,100)) return 6;
+ if(latch.wants(skin,true,100)||!latch.wants(skin,true,1000)) return 7;
+ if(!latch.wants(skin,false,1000)) return 9;
+ latch={}; if(!latch.wants(skin,false,200)) return 8;
+ std::cout << "PASS: respawn invalidation, recreated HUD reapplication, material-loss retry and throttling.\n";
  std::cout << "PASS: C++/C# protocol layout, movement preservation under spin, bounded air movement and angles.\n";
 }

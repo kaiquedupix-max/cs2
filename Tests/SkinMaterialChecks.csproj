@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="../Classes/CosmeticModels.cs" Link="CosmeticModels.cs" />
     <Compile Include="../Classes/NativeBridgeData.cs" Link="NativeBridgeData.cs" />
+    <Compile Include="../Classes/SchemaOffsets.cs" Link="SchemaOffsets.cs" />
     <Compile Include="../Modules/IModule.cs" Link="IModule.cs" />
     <Compile Include="../Modules/Visual/CosmeticLoadout.cs" Link="CosmeticLoadout.cs" />
     <Compile Include="../Classes/SkinMaterialData.cs" Link="SkinMaterialData.cs" />
@@ -16,5 +17,6 @@
     <Compile Include="../Data/Game/Offsets.cs" Link="Offsets.cs" />
     <Compile Include="../Modules/Combat/RageMath.cs" Link="RageMath.cs" />
   </ItemGroup>
+  <ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13.0.4" /></ItemGroup>
 </Project>
 

@@ -233,7 +233,16 @@ namespace Mac1ota_Menu.Modules.Visual
             }
             _weaponIndex = Math.Clamp(_weaponIndex, 0, models.Length - 1);
             if (!ReferenceEquals(_lastChoices, CosmeticLoadout.Choices))
-            { _lastChoices = CosmeticLoadout.Choices; RestoreChoice(models[_weaponIndex].Id); }
+            {
+                _lastChoices = CosmeticLoadout.Choices;
+                var saved = CosmeticLoadout.Find(_category, models[_weaponIndex].Id);
+                if (_category != 0 && saved != null)
+                {
+                    int restoredModel = Array.FindIndex(models, m => m.Id == saved.Definition);
+                    if (restoredModel >= 0) _weaponIndex = restoredModel;
+                }
+                RestoreChoice(models[_weaponIndex].Id);
+            }
 
             ImGui.PushItemWidth(245);
             if (ImGui.BeginCombo(_category == 0 ? "Arma" : "Modelo", models[_weaponIndex].Name))

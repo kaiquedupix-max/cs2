@@ -29,6 +29,7 @@ void sync(void*) {
  scheduled = false;
  if (!shared || !running) return;
  legit::updateInputLifecycle();
+ legit::maintainCosmetics();
  legit::Config cfg = shared->config;
  MemoryBarrier();
  if (cfg.generation == 0 || cfg.generation & 1 || cfg.generation != shared->config.generation || cfg.magic != legit::Magic || cfg.version != legit::Version || cfg.size != sizeof(cfg) || cfg.count > legit::MaxChoices || applied == cfg.generation) return;
