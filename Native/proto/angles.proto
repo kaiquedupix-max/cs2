@@ -1,0 +1,3 @@
+syntax = "proto2";
+message CMsgQAngle { optional float x = 1; optional float y = 2; optional float z = 3; }
+message CMsgVector { optional float x = 1; optional float y = 2; optional float z = 3; }

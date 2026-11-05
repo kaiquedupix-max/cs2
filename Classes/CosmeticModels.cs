@@ -4,6 +4,14 @@ namespace Mac1ota_Menu.Classes;
 
 internal static class CosmeticModels
 {
+    internal static string ModelLabel(ushort id, string fallback) => id switch
+    {
+        5032 => "Faixas (Hand Wraps)", 5030 => "Luvas esportivas", 5031 => "Luvas de motorista",
+        5033 => "Luvas de motociclista", 5034 => "Luvas de especialista", 5027 => "Luvas Bloodhound",
+        5035 => "Luvas Hydra", 4725 => "Luvas Presa Quebrada",
+        515 => "Canivete Borboleta", 507 => "Karambit", 500 => "Baioneta", 508 => "Baioneta M9",
+        _ => fallback
+    };
     internal static bool IsKnife(ushort id) => id is 42 or 59 || id is >= 500 and <= 526;
     internal static string KnifePath(ushort id)
     {

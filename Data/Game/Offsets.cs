@@ -82,6 +82,7 @@ namespace Mac1ota_Menu.Data.Game
         public static int m_hActiveWeapon = 0x58;
         public static int m_vecAbsVelocity = 0x3F0;
         public static int m_fFlags = 0x3EC;
+        public static int m_MoveType = 0;
         // im giving some offsets 0x0 cause my offset getter will fill them in either way.
         public static int m_hMyWeapons = 0x0;
         public static int m_nCurrentTickThisFrame = 0x0;

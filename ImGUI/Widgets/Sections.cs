@@ -67,6 +67,10 @@ internal class Sections
             new("Rage — seleção de alvo", 6, () =>
             {
                 RenderBoolSetting("Ativar Rage", "Rage.Enabled", () => Rage.Enabled, v => Rage.Enabled = v);
+                RenderBoolSetting("Mira silenciosa (C++)", "Rage.Silent", () => Rage.Silent, v => Rage.Silent = v);
+                RenderBoolSetting("Parar para atirar", "Rage.AutoStop", () => Rage.AutoStop, v => Rage.AutoStop = v);
+                RenderBoolSetting("Sem dispersão (servidor local)", "Rage.NoSpreadLocal", () => Rage.NoSpreadLocal, v => Rage.NoSpreadLocal = v);
+                if (Rage.NoSpreadLocal) ImGui.TextWrapped("Exige sv_cheats 1 no servidor local. Não elimina a dispersão em matchmaking.");
                 Keybind.RenderKeybindChooser("Tecla de ativação", "Rage.Key", ref Rage.ActivationKey, () => Rage.Enabled);
                 RenderIntCombo("Prioridade", "Rage.Priority", ref Rage.Priority, ["Mais próximo da mira", "Menor vida", "Menor distância"], 3);
                 RenderBoolSetting("Manter o alvo", "Rage.KeepTarget", () => Rage.KeepTarget, v => Rage.KeepTarget = v);
@@ -97,10 +101,25 @@ internal class Sections
                 RenderBoolSetting("Disparar somente parado", "Rage.Still", () => Rage.FireOnlyStill, v => Rage.FireOnlyStill = v);
                 if (Rage.FireOnlyStill) RenderFloatSlider("Velocidade máxima", "Rage.Speed", ref Rage.MaxFireSpeed, 0, 250, "%.0f");
             }),
+            new("Anti-aim nativo", 6, () =>
+            {
+                RenderBoolSetting("Spinbot", "NativeBridge.Spinbot", () => NativeBridge.Spinbot, v => NativeBridge.Spinbot = v);
+                RenderFloatSlider("Giro (graus/segundo)", "NativeBridge.SpinSpeed", ref NativeBridge.SpinSpeed, 90, 1440, "%.0f");
+                ImGui.TextWrapped("Altera os comandos enviados. A câmera local usa seus ângulos normais.");
+                ImGui.TextWrapped(NativeBridge.InputStatus);
+            }),
             new("Movimentação", 8, () =>
             {
                 RenderBoolSetting("Auto Bhop", "Bhop.Enabled", () => Bhop.BhopEnable, v => Bhop.BhopEnable = v);
-                ImGui.TextWrapped("Segure Espaço para repetir o salto ao tocar o chão. A direção continua sob seu controle.");
+                RenderBoolSetting("Movimento aéreo automático", "Bhop.AutoStrafe", () => Bhop.AutoStrafe, v => Bhop.AutoStrafe = v);
+                ImGui.TextWrapped("Segure Espaço. O módulo C++ controla os saltos e o movimento aéreo nos comandos do jogo.");
+                ImGui.TextWrapped(NativeBridge.InputStatus);
+            }),
+            new("Câmera e chat", 8, () =>
+            {
+                RenderBoolSetting("Terceira pessoa", "NativeBridge.ThirdPerson", () => NativeBridge.ThirdPerson, v => NativeBridge.ThirdPerson = v);
+                RenderFloatSlider("Distância da câmera", "NativeBridge.ThirdDistance", ref NativeBridge.ThirdDistance, 40, 250, "%.0f");
+                RenderBoolSetting("Spam no início e fim do round", "NativeBridge.ChatSpam", () => NativeBridge.ChatSpam, v => NativeBridge.ChatSpam = v);
             }),
             new("Ambiente", 8, () =>
             {

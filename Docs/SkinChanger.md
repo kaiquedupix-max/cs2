@@ -103,3 +103,7 @@ O tópico técnico original de UnknownCheats permaneceu inacessível pelo leitor
 web nesta sessão. Foi consultada também a discussão de falhas no Steam:
 https://steamcommunity.com/app/730/discussions/0/759555730939489818/
 Ela é relato de usuário; não foi tratada como implementação validada.
+
+
+## Atualização v5
+O padrão agora é o inventário local nativo/SOC para luvas, HUD e StatTrak. Consulte [NativeBridge.md](NativeBridge.md) para procedência, build e limitações. O fallback anterior continua no código, mas não roda junto do inventário nativo.

@@ -33,11 +33,28 @@ jobs:
     - name: Restore
       run: dotnet restore ".\Mac1ota Menu.csproj" -r win-x64
 
+    - name: Cache pinned native dependencies
+      uses: actions/cache@v4
+      with:
+        path: .native-build/_deps
+        key: ${{ runner.os }}-native-oc-a8779e932438fc83268d69150f245eaf871c2aee-v1
+
+    - name: Build and check C++ module
+      shell: pwsh
+      run: ./Native/Build.ps1
+
     - name: Check skin material ABI and callback validation
       run: dotnet run --project Tests/SkinMaterialChecks.csproj -c Release
 
     - name: Build
       run: dotnet build ".\Mac1ota Menu.csproj" --no-restore -c Release -p:Platform=x64 -p:LegitPreviewBuild=${{ github.event_name == 'pull_request' }} -r win-x64
+
+    - name: Verify embedded native module
+      shell: pwsh
+      run: |
+        $assembly = Get-ChildItem bin -Recurse -Filter legitbaratinho.xyz.dll | Select-Object -First 1
+        if (!$assembly) { throw "Loader assembly missing" }
+        dotnet run --project Tests/SkinMaterialChecks.csproj -c Release -- --embedded $assembly.FullName --native .native-build/output/legit_native.dll
 
     - name: Publish single-file
       run: dotnet publish ".\Mac1ota Menu.csproj" --no-restore -c Release -r win-x64 -p:Platform=x64 -p:LegitPreviewBuild=${{ github.event_name == 'pull_request' }} -o ".\publish"

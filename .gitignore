@@ -362,3 +362,11 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 .dotnet-local/
+
+.native-deps/
+.native-build/
+github-loader-v*/
+build-v*.log
+
+Native/proto/*.pb.*
+native-build.log

@@ -276,6 +276,30 @@ internal sealed class SkinMaterialSession : IDisposable
         if (Offsets.m_bInitializedTags > 0) Write(item + Offsets.m_bInitializedTags, (byte)0);
     }
 
+    internal void LoadBridge(string path)
+    {
+        nint library = NativeLibrary.Load("kernel32.dll");
+        try
+        {
+            nint function = NativeLibrary.GetExport(library, "LoadLibraryW");
+            using var local = Process.GetCurrentProcess();
+            var module = local.Modules.Cast<ProcessModule>().Single(m => function >= m.BaseAddress && function < m.BaseAddress + m.ModuleMemorySize);
+            using var target = Process.GetProcessById(processId);
+            var remote = target.Modules.Cast<ProcessModule>().Single(m => m.ModuleName.Equals(module.ModuleName, StringComparison.OrdinalIgnoreCase));
+            nint remoteFunction = remote.BaseAddress + (function - module.BaseAddress);
+            byte[] bytes = Encoding.Unicode.GetBytes(Path.GetFullPath(path) + "\0");
+            nint data = VirtualAllocEx(process, 0, (nuint)bytes.Length, 0x3000, 0x04);
+            if (data == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+            try
+            {
+                WriteBytes(data, bytes);
+                if (CallNative(remoteFunction, data) == 0) throw new InvalidOperationException("O jogo recusou o módulo nativo.");
+            }
+            finally { if (!TimedOut) VirtualFreeEx(process, data, 0, 0x8000); }
+        }
+        finally { NativeLibrary.Free(library); }
+    }
+
     internal void SetStatTrak(nint weapon, bool enabled, int counter, bool knife)
     {
         if (Offsets.m_nFallbackStatTrak <= 0 || Offsets.m_iEntityQuality <= 0)

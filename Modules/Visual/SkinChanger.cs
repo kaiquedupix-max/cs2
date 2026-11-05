@@ -101,6 +101,8 @@ namespace Mac1ota_Menu.Modules.Visual
                         !weaponData.TryGetProperty("weapon_id", out var definitionData) || !definitionData.TryGetUInt16(out ushort definition)) continue;
                     string categoryName = GetString(entry, "category");
                     int category = categoryName == "Gloves" ? 2 : CosmeticModels.IsKnife(definition) ? 1 : 0;
+                    string translated = CosmeticModels.ModelLabel(definition, weapon);
+                    if (translated != weapon) { name = name.Replace(weapon, translated, StringComparison.Ordinal); weapon = translated; }
                     if (string.IsNullOrWhiteSpace(weapon) || string.IsNullOrWhiteSpace(name)) continue;
                     bool legacy = entry.TryGetProperty("legacy_model", out var model) && model.ValueKind == JsonValueKind.True;
                     float min = entry.TryGetProperty("min_float", out var minFloat) && minFloat.ValueKind == JsonValueKind.Number && minFloat.TryGetSingle(out var minValue) ? minValue : 0f;

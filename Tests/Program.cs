@@ -17,6 +17,20 @@ static void Throws<T>(Action action) where T : Exception
     throw new Exception("Expected " + typeof(T).Name);
 }
 
+if (args.Contains("--embedded"))
+{
+    string path = args[Array.IndexOf(args, "--embedded") + 1];
+    string nativePath = args[Array.IndexOf(args, "--native") + 1];
+    var assembly = Assembly.LoadFile(Path.GetFullPath(path));
+    using var resource = assembly.GetManifestResourceStream("legit_native.dll");
+    Check(resource != null, "Native module embedded in loader");
+    using var binary = new MemoryStream(); resource!.CopyTo(binary);
+    Check(System.Security.Cryptography.SHA256.HashData(binary.ToArray()).SequenceEqual(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(nativePath))), "Embedded native module matches checked build");
+    using var notices = assembly.GetManifestResourceStream("native_notices.txt");
+    Check(notices != null && notices.Length > 1000, "Native third-party notices embedded");
+    Console.WriteLine("PASS: loader embeds the checked C++ module and third-party notices.");
+}
+
 byte[] attributes = SkinMaterialData.Attributes(344, 42, 0.125f);
 Check(CosmeticModels.KnifePath(507) == "weapons/models/knife/knife_karambit/weapon_knife_karambit.vmdl", "Karambit model path");
 Throws<ArgumentException>(() => CosmeticModels.KnifePath(7));
@@ -32,6 +46,13 @@ Check(snapshot[0].Paint == 474 && Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Ch
 string profileJson = System.Text.Json.JsonSerializer.Serialize(Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choices);
 var restored = System.Text.Json.JsonSerializer.Deserialize<List<Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choice>>(profileJson)!;
 Check(restored[0].StatTrak && restored[0].Counter == 123 && restored[0].Paint == 801, "Cosmetic profile round trip");
+Check(CosmeticModels.ModelLabel(5032, "Hand Wraps").StartsWith("Faixas"), "Hand wraps translation");
+var nativePacket = NativeBridgeData.Config(restored, new(true, true, true, false, true, true, true, true, 720, 120, 1, 2, 3, 4, 5, 6, 7), 2);
+Check(nativePacket.Length == 2132 && BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(8)) == 2132, "Native config size ABI");
+Check(BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(12)) == 2 && BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(28)) == 1, "Native generation and command feature ABI");
+Check(BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(84)) == 7 && BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(108)) == 1 && BinaryPrimitives.ReadUInt32LittleEndian(nativePacket.AsSpan(112)) == 123, "Native cosmetic field ABI");
+Throws<InvalidOperationException>(() => NativeBridgeData.Config(Enumerable.Repeat(firstChoice, 65).ToList(), new(true,false,false,false,false,false,false,false,720,120,1,2,3,4,5,6,7)));
+Console.WriteLine("PASS: C# to C++ packet ABI, generation, feature flags and StatTrak payload.");
 Console.WriteLine("PASS: bounded UTF-8 names, knife metadata, rarity, loadout replacement and profile round trip.");
 Check(attributes.Length == 216, "Native attribute array size");
 for (int i = 0; i < 3; i++)

@@ -49,3 +49,7 @@ não há controles inativos fingindo que estão presentes.
 
 Compilação e testes matemáticos podem ser executados sem abrir o jogo. Os
 testes de comportamento dentro do CS2 ficam com o usuário.
+
+
+## Atualização v5
+O caminho C++ de comandos e suas referências/limitações estão em [NativeBridge.md](NativeBridge.md). Inclui spinbot, mira silenciosa e auto stop para testes; não é o port integral do Rage Axion/Asphyxia.

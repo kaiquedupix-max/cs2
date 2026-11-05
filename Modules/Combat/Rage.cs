@@ -11,6 +11,9 @@ namespace Mac1ota_Menu.Modules.Combat;
 public class Rage : ThreadService, IModule
 {
     public static bool Enabled = false;
+    public static bool Silent = false;
+    public static bool AutoStop = false;
+    public static bool NoSpreadLocal = false;
     public static int ActivationKey = 0x04;
     public static int Priority = 0;
     public static bool KeepTarget = true;
@@ -48,7 +51,7 @@ public class Rage : ThreadService, IModule
         catch (Exception ex) { status = "Rage: " + ex.Message; ResetTarget(); }
     }
 
-    private static void ResetTarget() { lockedPawn = 0; acquiredAt = 0; }
+    private static void ResetTarget() { lockedPawn = 0; acquiredAt = 0; NativeBridge.ClearAim(); }
 
     private static void Run()
     {
@@ -106,7 +109,7 @@ public class Rage : ThreadService, IModule
             ResetTarget(); return;
         }
         long now = Environment.TickCount64;
-        if (lockedPawn != target.Pawn) { lockedPawn = target.Pawn; acquiredAt = now; }
+        if (lockedPawn != target.Pawn) { NativeBridge.ClearAim(); lockedPawn = target.Pawn; acquiredAt = now; }
         bool sniper = definition is 9 or 11 or 38 or 40;
         if (AutoScope && sniper && !local.IsScoped && now - lastScope > 800)
         {
@@ -119,12 +122,15 @@ public class Rage : ThreadService, IModule
         if (CompensateRecoil && local.ShotsFired > 0 && RageMath.Finite(local.AimPunchAngle))
             desired -= new Vector3(local.AimPunchAngle.X, local.AimPunchAngle.Y, 0) * 2f;
         desired = RageMath.Step(view, desired, MaxTurnDegrees);
-        if (!mem.TryWrite(GameState.client + Offsets.dwViewAngles, desired))
+        if (Silent && !NativeBridge.InputAvailable)
+        { NativeBridge.ClearAim(); status = NativeBridge.InputStatus; return; }
+        NativeBridge.PublishAim(desired);
+        if (!Silent && !mem.TryWrite(GameState.client + Offsets.dwViewAngles, desired))
         { status = "Não foi possível ajustar os ângulos."; return; }
         status = $"Alvo: {target.Region} | {target.Distance:F0} m | {target.Health} HP";
         if (!AutoFire || now - acquiredAt < Math.Clamp(TargetDelayMs, 0, 1000) ||
             now - lastShot < Math.Clamp(ShotIntervalMs, 50, 2000) || (sniper && FireOnlyScoped && !local.IsScoped)) return;
-        if (FireOnlyStill && new Vector2(local.Velocity.X, local.Velocity.Y).Length() > Math.Clamp(MaxFireSpeed, 0, 250)) return;
+        if ((FireOnlyStill || AutoStop) && new Vector2(local.Velocity.X, local.Velocity.Y).Length() > Math.Clamp(MaxFireSpeed, 0, 250)) return;
         if (FireOnlyGrounded && (!mem.TryRead(local.PawnAddress + Offsets.m_fFlags, out uint flags) || (flags & 1) == 0)) return;
         if (!VisibilityCheck.Visible(eye, target.Position)) { status = "Disparo bloqueado: ponto sem visibilidade."; return; }
         if (Offsets.m_iClip1 <= 0 || Offsets.m_nNextPrimaryAttackTick <= 0 || Offsets.m_nTickBase <= 0)
@@ -133,15 +139,18 @@ public class Rage : ThreadService, IModule
             !mem.TryRead(weapon + Offsets.m_nNextPrimaryAttackTick, out int nextAttack) ||
             !mem.TryRead(GameState.client + Offsets.dwLocalPlayerController, out nint controller) || controller == 0 ||
             !mem.TryRead(controller + Offsets.m_nTickBase, out int tick) || tick <= 0 || nextAttack > tick) return;
-        if (!mem.TryRead(GameState.client + Offsets.dwViewAngles, out Vector3 actual)) return;
+        Vector3 actual = desired;
+        if (!Silent && !mem.TryRead(GameState.client + Offsets.dwViewAngles, out actual)) return;
         Vector3 shotAngles = actual;
         if (RageMath.Finite(local.AimPunchAngle)) shotAngles += new Vector3(local.AimPunchAngle.X, local.AimPunchAngle.Y, 0) * 2f;
         if (RageMath.AngleError(shotAngles, target.Angles) > Math.Clamp(ShotToleranceDegrees, .05f, 2f)) return;
         // Require the game's crosshair entity to agree with the scanned target.
-        if (!mem.TryRead(local.PawnAddress + Offsets.m_iIDEntIndex, out uint crosshair) ||
+        if (!Silent && (!mem.TryRead(local.PawnAddress + Offsets.m_iIDEntIndex, out uint crosshair) ||
             crosshair is 0 or uint.MaxValue ||
-            EntityManager.GetPlayerPawn(list, (nint)crosshair) != target.Pawn || !OwnsAim) return;
-        User32.Click(); lastShot = now;
+            EntityManager.GetPlayerPawn(list, (nint)crosshair) != target.Pawn)) return;
+        if (!OwnsAim) return;
+        if (Silent) NativeBridge.PublishAim(desired, true); else User32.Click();
+        lastShot = now;
         status = "Disparo enviado ao alvo selecionado.";
     }
 }

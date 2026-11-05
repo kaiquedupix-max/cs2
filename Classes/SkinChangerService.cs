@@ -13,7 +13,7 @@ internal static class SkinChangerService
     private static long revision;
     private static int blockedProcess;
     private static volatile string status = "Escolha uma skin e clique em Aplicar.";
-    internal static string Status => status;
+    internal static string Status => NativeBridge.UseNativeCosmetics ? NativeBridge.Status : status;
     internal static bool Enabled { get => CosmeticLoadout.Automatic; set => CosmeticLoadout.Automatic = value; }
     private static List<CosmeticLoadout.Choice>? synchronizedChoices;
     internal static void Start() { lock (Gate) worker ??= Task.Run(RunAsync); }
@@ -64,6 +64,7 @@ internal static class SkinChangerService
             {
                 await Task.Delay(300);
                 Synchronize();
+                if (NativeBridge.UseNativeCosmetics) continue;
                 if (!Enabled || (Selections.Count == 0 && knifeSelection == null && gloveSelection == null)) { lastAttempt = null; continue; }
                 try
                 {
