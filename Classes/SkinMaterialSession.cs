@@ -19,6 +19,11 @@ internal sealed class SkinMaterialSession : IDisposable
     private nint setModel, updateSubclass, gameAlloc;
     private readonly Dictionary<nint, nint> gloveAttributes = new();
     private readonly Dictionary<(nint Weapon, nint Hud), ushort> knifeModels = new();
+    internal void InvalidateEntityCaches()
+    {
+        knifeModels.Clear();
+        gloveAttributes.Clear();
+    }
 
     internal void MaintainItemIdentity(nint weapon)
     {
@@ -288,6 +293,26 @@ internal sealed class SkinMaterialSession : IDisposable
         return hud != 0 && Read<nint>(weapon + Offsets.m_pGameSceneNode) != 0 && Read<nint>(hud + Offsets.m_pGameSceneNode) != 0;
     }
 
+    internal CosmeticTarget CaptureTarget(nint pawn, nint list, uint handle, long revision)
+    {
+        nint weapon = Entity(list, handle);
+        byte team = Read<byte>(pawn + Offsets.m_iTeamNum);
+        if (weapon == 0 || team is not (2 or 3) || Read<int>(pawn + Offsets.m_iHealth) <= 0 ||
+            Read<nint>(client + Offsets.dwLocalPlayerPawn) != pawn ||
+            Read<byte>(pawn + Offsets.m_bIsBuyMenuOpen) != 0 ||
+            Entity(list, Read<uint>(weapon + Offsets.m_hOwnerEntity)) != pawn)
+            throw new InvalidOperationException("Aguardando arma equipada e jogador estável.");
+        nint services = Read<nint>(pawn + Offsets.m_pWeaponServices);
+        if (services == 0 || Read<uint>(services + Offsets.m_hActiveWeapon) != handle)
+            throw new InvalidOperationException("A arma equipada mudou.");
+        nint hud = HudWeapon(pawn, list, weapon);
+        nint worldNode = Read<nint>(weapon + Offsets.m_pGameSceneNode);
+        nint hudNode = hud == 0 ? 0 : Read<nint>(hud + Offsets.m_pGameSceneNode);
+        if (hud == 0 || worldNode == 0 || hudNode == 0)
+            throw new InvalidOperationException("Aguardando os modelos da arma.");
+        return new(pawn, team, handle, weapon, hud, worldNode, hudNode, revision);
+    }
+
     internal bool MaterialsMatch(nint pawn, nint list, nint weapon, int paint, int seed, float wear, bool legacy)
     {
         if (regenerationPlan == null) return false;
@@ -421,6 +446,7 @@ internal sealed class SkinMaterialSession : IDisposable
             throw new InvalidOperationException("Equipe a arma selecionada antes de aplicar.");
         nint hud = HudWeapon(pawn, list, weapon);
         if (hud == 0) throw new InvalidOperationException("Modelo em primeira pessoa indisponível. Equipe a arma e tente novamente.");
+        var target = CaptureTarget(pawn, list, handle, 0);
         nint vector = item + Offsets.m_AttributeList + Offsets.m_Attributes;
         ulong originalCount = Read<ulong>(vector);
         nint originalPointer = Read<nint>(vector + 8);
@@ -445,6 +471,8 @@ internal sealed class SkinMaterialSession : IDisposable
         bool published = false;
         try
         {
+            if (CaptureTarget(pawn, list, handle, 0) != target)
+                throw new InvalidOperationException("Equipamento alterado antes da aplicação.");
             WriteBytes(allocation, attributes);
             Write(item + Offsets.m_iItemIDHigh, -1);
             Write(weapon + Offsets.m_nFallbackPaintKit, paint);
@@ -464,6 +492,8 @@ internal sealed class SkinMaterialSession : IDisposable
             if (!VirtualProtectEx(process, call, (nuint)invoke.Length, 0x20, out _) ||
                 !FlushInstructionCache(process, call, (nuint)invoke.Length))
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "Não foi possível preparar a reconstrução de materiais.");
+            if (CaptureTarget(pawn, list, handle, 0) != target)
+                throw new InvalidOperationException("Equipamento alterado durante a preparação.");
             using SafeWaitHandle thread = CreateRemoteThread(process, 0, 0, call, 0, 0, out _);
             if (thread.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "Falha ao iniciar a atualização de materiais.");
             uint wait = WaitForSingleObject(thread, 10000);

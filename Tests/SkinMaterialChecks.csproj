@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Classes/CosmeticModels.cs" Link="CosmeticModels.cs" />
+    <Compile Include="../Classes/CosmeticTargetStability.cs" Link="CosmeticTargetStability.cs" />
+    <Compile Include="../Classes/MovementMath.cs" Link="MovementMath.cs" />
+    <Compile Include="../Classes/HopTiming.cs" Link="HopTiming.cs" />
+    <Compile Include="../Classes/SchemaOffsets.cs" Link="SchemaOffsets.cs" />
+    <Compile Include="../Modules/IModule.cs" Link="IModule.cs" />
+    <Compile Include="../Modules/Visual/CosmeticLoadout.cs" Link="CosmeticLoadout.cs" />
+    <Compile Include="../Classes/SkinMaterialData.cs" Link="SkinMaterialData.cs" />
+    <Compile Include="../Classes/SkinMaterialSession.cs" Link="SkinMaterialSession.cs" />
+    <Compile Include="../Data/Game/Offsets.cs" Link="Offsets.cs" />
+  </ItemGroup>
+  <ItemGroup><PackageReference Include="Newtonsoft.Json" Version="13.0.4" /></ItemGroup>
+</Project>
+

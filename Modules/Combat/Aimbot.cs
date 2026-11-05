@@ -40,7 +40,7 @@ namespace Mac1ota_Menu.Modules.Combat
         {
             try
             {
-                if (!AimbotEnable || Entities.Count == 0 || LocalPlayer == null || GameState.renderer == null || GameState.LocalPlayer.Health == 0 || (ScopedOnly && !GameState.LocalPlayer.IsScoped) || (FlashCheck && GameState.LocalPlayer.IsFlashed))
+                if (!AimbotEnable || Renderer.DrawWindow || !User32.IsWindowFocused(Renderer.CS2ProcessId) || Entities.Count == 0 || LocalPlayer == null || GameState.renderer == null || GameState.LocalPlayer.Health == 0 || (ScopedOnly && !GameState.LocalPlayer.IsScoped) || (FlashCheck && GameState.LocalPlayer.IsFlashed))
                 {
                     RandomChosen = false;
                     return;
@@ -80,7 +80,8 @@ namespace Mac1ota_Menu.Modules.Combat
                     if (CurrentBone != 5 && RandomChosen)
                         RandomChosen = false;
 
-                    bool useHeadPosition = _target?.Bones?[CurrentBoneIndex].Position != Vector3.Zero;
+                    if (CurrentBoneIndex < 0 || CurrentBoneIndex >= _target.Bones.Count) return;
+                    bool useHeadPosition = _target.Bones[CurrentBoneIndex].Position != Vector3.Zero;
                     if (useHeadPosition) //bone pos first
                     {
                         if (_target?.Bones?[CurrentBoneIndex] != null && _target.Bones.Count > CurrentBoneIndex)

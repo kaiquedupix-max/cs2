@@ -80,6 +80,12 @@ internal static class SkinChangerService
         (nint Pawn, long Revision)? lastGloves = null;
         (nint Pawn, long Revision)? failedGloves = null;
         long gloveRetryAt = 0;
+        nint alivePawn = 0;
+        long readyAfter = 0;
+        long retryAfter = 0;
+        var failures = new Dictionary<(nint Pawn, uint Handle, nint Weapon, long Revision), int>();
+        var targetStability = new CosmeticTargetStability();
+        byte aliveTeam = 0;
         try
         {
             while (true)
@@ -115,7 +121,23 @@ internal static class SkinChangerService
                     }
                     nint pawn = session.Read<nint>(client + Offsets.dwLocalPlayerPawn);
                     if (pawn == 0 || session.Read<int>(pawn + Offsets.m_iHealth) <= 0)
-                    { lastGloves = null; failedGloves = null; lastAttempt = null; appliedWeapons.Clear(); continue; }
+                    {
+                        alivePawn = 0; retryAfter = 0;
+                        targetStability.Reset(); aliveTeam = 0;
+                        lastGloves = null; failedGloves = null; lastAttempt = null;
+                        appliedWeapons.Clear(); namedWeapons.Clear(); failures.Clear();
+                        continue;
+                    }
+                    byte team = session.Read<byte>(pawn + Offsets.m_iTeamNum);
+                    if (alivePawn != pawn || aliveTeam != team)
+                    {
+                        aliveTeam = team; targetStability.Reset();
+                        alivePawn = pawn; readyAfter = Environment.TickCount64 + 750; retryAfter = 0;
+                        appliedWeapons.Clear(); namedWeapons.Clear(); failures.Clear();
+                        session.InvalidateEntityCaches();
+                        status = "Renascimento detectado. Aguardando os modelos das armas...";
+                    }
+                    if (Environment.TickCount64 < readyAfter || Environment.TickCount64 < retryAfter) continue;
                     Selection? gloves;
                     nint currentList = session.Read<nint>(client + Offsets.dwEntityList);
                     foreach (var entry in namedWeapons.ToArray())
@@ -165,13 +187,22 @@ internal static class SkinChangerService
                         if (CosmeticModels.IsKnife(definition)) selected = knifeSelection;
                         else Selections.TryGetValue(definition, out selected);
                     }
-                    if (selected == null) continue;
+                    if (selected == null) { targetStability.Reset(); continue; }
+                    try
+                    {
+                        var target = session.CaptureTarget(pawn, list, handle, selected.Revision);
+                        if (!targetStability.Ready(target, Environment.TickCount64)) continue;
+                    }
+                    catch (InvalidOperationException ex)
+                    { targetStability.Reset(); status = ex.Message; continue; }
                     if (namedWeapons.Count >= 128) namedWeapons.Clear();
                     namedWeapons[handle] = (weapon, selected);
                     // Keep the name current even when material settings already match.
                     session.SetHudName(weapon, (selected.StatTrak ? "StatTrak™ " : "") + selected.Name, selected.Rarity);
                     if (!session.ModelsReady(pawn, list, weapon)) continue;
                     var attempt = (pawn, handle, weapon, selected.Revision);
+                    if (failures.TryGetValue(attempt, out int failureCount) && failureCount >= 3)
+                    { status = "Esta arma falhou após 3 tentativas. Outras armas continuam ativas; altere a skin ou renasça para tentar novamente."; continue; }
                     if (appliedWeapons.Contains(attempt) &&
                         session.MaterialsMatch(pawn, list, weapon, selected.Paint, selected.Seed, selected.Wear, selected.Legacy) &&
                         (!CosmeticModels.IsKnife(definition) || definition == selected.Weapon) &&
@@ -186,7 +217,16 @@ internal static class SkinChangerService
                     }
                     session.SetStatTrak(weapon, selected.StatTrak, selected.Counter, CosmeticModels.IsKnife(definition));
 
-                    int materials = session.Apply(pawn, list, handle, definition, selected.Paint, selected.Seed, selected.Wear, selected.Legacy);
+                    int materials;
+                    try { materials = session.Apply(pawn, list, handle, definition, selected.Paint, selected.Seed, selected.Wear, selected.Legacy); }
+                    catch (InvalidOperationException ex) when (!session.TimedOut)
+                    {
+                        failures[attempt] = failures.GetValueOrDefault(attempt) + 1;
+                        retryAfter = Environment.TickCount64 + 2000;
+                        status = "Reaplicação pendente: " + ex.Message;
+                        continue;
+                    }
+                    failures.Remove(attempt);
                     lastAttempt = attempt;
                     if (appliedWeapons.Count >= 128) appliedWeapons.Clear();
                     appliedWeapons.Add(attempt);
@@ -206,7 +246,8 @@ internal static class SkinChangerService
                     // Never repeatedly call a changed/failed engine routine in one process.
                     if (session?.TimedOut == true) blockedProcess = pid;
                     if (session?.TimedOut == true) { session.Dispose(); session = null; }
-                    Enabled = false;
+                    if (session?.TimedOut == true || session == null) Enabled = false;
+                    else retryAfter = Environment.TickCount64 + 2000;
                 }
             }
         }
@@ -218,6 +259,7 @@ internal static class SkinChangerService
         if (Offsets.m_iAttributeDefinitionIndex != 0x30 || Offsets.m_flValue != 0x34 || Offsets.m_flInitialValue != 0x38)
             throw new InvalidOperationException("O formato de atributos mudou nesta versão do CS2. Aplicação cancelada.");
         int[] required = [Offsets.dwLocalPlayerPawn, Offsets.dwEntityList, Offsets.m_iHealth,
+            Offsets.m_iTeamNum, Offsets.m_bIsBuyMenuOpen,
             Offsets.m_pWeaponServices, Offsets.m_hActiveWeapon, Offsets.m_AttributeManager,
             Offsets.m_Item, Offsets.m_iItemDefinitionIndex, Offsets.m_iItemIDHigh,
             Offsets.m_nFallbackPaintKit, Offsets.m_nFallbackSeed, Offsets.m_flFallbackWear,

@@ -91,6 +91,7 @@ namespace Mac1ota_Menu.Data.Game
         public static int jump = 0x1850DF0;
         public static int left = 0;
         public static int right = 0;
+        public static int forward = 0;
         public static int m_bSpottedByMask = 0xC;
         public static int m_pWeaponServices = 0x11A8;
         public static int m_hActiveWeapon = 0x58;

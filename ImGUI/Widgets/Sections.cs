@@ -67,9 +67,22 @@ internal class Sections
             new("Movimento", 8, () =>
             {
                 RenderBoolSetting("Bunny hop (Espaço)", "MovementAssist.Enabled", () => MovementAssist.Enabled, v => MovementAssist.Enabled = v);
+                RenderBoolSetting("Avançar reto com Espaço", "MovementAssist.StraightForward", () => MovementAssist.StraightForward, v => MovementAssist.StraightForward = v);
+                ImGui.BeginDisabled(MovementAssist.StraightForward);
                 RenderBoolSetting("Auto strafe", "MovementAssist.AutoStrafe", () => MovementAssist.AutoStrafe, v => MovementAssist.AutoStrafe = v);
-                ImGui.TextWrapped("Segure Espaço para repetir os saltos. O auto strafe ajusta a direção no ar; mova o mouse para escolher o lado.");
+                ImGui.EndDisabled();
+                ImGui.TextWrapped(MovementAssist.StraightForward
+                    ? "Segure Espaço para avançar e pular. Sem giro automático da câmera. S interrompe o avanço assistido."
+                    : "Segure Espaço para repetir os saltos. O auto strafe ajusta a direção no ar; A/D tem prioridade.");
                 ImGui.TextWrapped(MovementAssist.Status);
+            }),
+            new("Chat", 8, () =>
+            {
+                ImGui.TextWrapped(ManualChat.Message);
+                ImGui.BeginDisabled(ManualChat.Busy);
+                if (ImGui.Button("Enviar mensagem no chat")) ManualChat.SendOnce();
+                ImGui.EndDisabled();
+                ImGui.TextWrapped(ManualChat.Status);
             }),
             new("Ambiente", 8, () =>
             {

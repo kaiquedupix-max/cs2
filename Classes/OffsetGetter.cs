@@ -76,6 +76,7 @@ namespace Mac1ota_Menu.Classes
             { "jump", new() { new Offset("jump"), new Offset("+jump") } },
             { "left", new() { new Offset("left"), new Offset("+left") } },
             { "right", new() { new Offset("right"), new Offset("+right") } },
+            { "forward", new() { new Offset("forward"), new Offset("+forward") } },
             { "m_pCameraServices", new() { new Offset("m_pCameraServices"), new Offset("m_CameraServices") } },
             { "m_iFOV", new() { new Offset("m_iFOV"), new Offset("m_iDesiredFOV") } },
             { "m_bIsScoped", new() { new Offset("m_bIsScoped"), new Offset("m_bIsScopedIn") } },
