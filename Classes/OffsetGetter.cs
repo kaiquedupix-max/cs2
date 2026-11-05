@@ -24,8 +24,8 @@ namespace Mac1ota_Menu.Classes
             }
         }
         // urls to pull the dumper outputs from
-        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/txazyxz/CS2-Offsets/main/";
-        private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
+        private const string PrimaryBaseUrl = "https://raw.githubusercontent.com/sezzyaep/CS2-OFFSETS/main/";
+        private const string SecondaryBaseUrl = "https://raw.githubusercontent.com/txazyxz/CS2-Offsets/main/";
         private const string OffsetsUrl = PrimaryBaseUrl + "offsets.cs";
         private const string SecondaryOffsetsUrl = SecondaryBaseUrl + "offsets.cs";
         private const string ClientDllUrl = PrimaryBaseUrl + "client_dll.cs";
@@ -224,7 +224,7 @@ namespace Mac1ota_Menu.Classes
 
             if (GameState.CS2Open() && (GameState.memory.ReadPointer(GameState.client, Offsets.dwViewMatrix) == IntPtr.Zero || GameState.memory.ReadPointer(GameState.client, Offsets.dwEntityList) == IntPtr.Zero))
             {
-                Console.WriteLine("[OFFSET FINDER] ERROR: dom has not updated yet, trying secondary source");
+                Console.WriteLine("[OFFSET FINDER] ERROR: primary offsets appear invalid, trying secondary source");
                 offsets.Clear();
                 await FetchSecondarySource();
 
