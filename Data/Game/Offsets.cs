@@ -42,6 +42,11 @@ namespace Mac1ota_Menu.Data.Game
         public static int m_iszPlayerName = 0x660;
         public static int m_Item = 0x50;
         public static int m_iItemDefinitionIndex = 0x1BA;
+        // Runtime-resolved skin fields; zero means unavailable until fetched.
+        public static int m_iItemIDHigh = 0;
+        public static int m_nFallbackPaintKit = 0;
+        public static int m_nFallbackSeed = 0;
+        public static int m_flFallbackWear = 0;
         public static int m_AttributeManager = 0x1148;
         public static int attack = 0x184E8F0;
         public static int jump = 0x1850DF0;
