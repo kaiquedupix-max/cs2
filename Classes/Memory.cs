@@ -146,6 +146,25 @@ namespace Mac1ota_Menu.Classes.Memory
             return MemoryMarshal.Read<T>(buf.AsSpan(0, size));
         }
 
+        public bool TryRead<T>(IntPtr address, out T value) where T : unmanaged
+        {
+            value = default;
+            if (address == IntPtr.Zero || handle == IntPtr.Zero) return false;
+            int size = Marshal.SizeOf<T>();
+            byte[] bytes = new byte[size];
+            if (!ReadProcessMemory(handle, address, bytes, size, out int read) || read != size) return false;
+            value = MemoryMarshal.Read<T>(bytes);
+            return true;
+        }
+
+        public bool TryWrite<T>(IntPtr address, T value) where T : unmanaged
+        {
+            if (address == IntPtr.Zero || handle == IntPtr.Zero) return false;
+            byte[] bytes = new byte[Marshal.SizeOf<T>()];
+            MemoryMarshal.Write(bytes, in value);
+            return WriteProcessMemory(handle, address, bytes, bytes.Length, out int written) && written == bytes.Length;
+        }
+
         public T Read<T>(ulong addr) where T : struct
         {
             int size = Marshal.SizeOf<T>();

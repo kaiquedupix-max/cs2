@@ -71,3 +71,35 @@ Um timeout preserva as alocações potencialmente em uso até o CS2 encerrar.
 
 A mensagem agora informa contagem de materiais, sem afirmar confirmação visual.
 O teste dentro do jogo desta revisão fica com o usuário.
+
+## Revisão 3 — notificação do modelo e reconstrução forçada
+
+A revisão 2 gerou um material, mas o usuário não viu a textura mudar.
+Comparação adicional das referências mostrou que gravar `m_MeshGroupMask`
+sozinho não equivale a `SetMeshGroupMask`: a função nativa marca o modelo
+como alterado e atualiza dados usados pelo renderizador. A análise estática
+de client.dll confirmou tanto o retorno antecipado quando o campo já tem o
+valor solicitado quanto as chamadas de notificação que a gravação direta pulava.
+
+A revisão atual encontra a função por assinatura única e valida seus offsets
+de modelState e MeshGroupMask contra o schema antes de escrever. Usa a função
+nos nós da arma e da arma em primeira pessoa, antes/depois da reconstrução,
+força a atualização e preserva o fallback paint/seed/wear selecionado.
+Caso um campo seja sobrescrito pelo jogo, a seleção é reaplicada.
+O teste visual continua pendente com o usuário.
+
+Referências adicionais estudadas:
+- https://github.com/Henrih56/cs2-skin-changer — máscara no modelo e estado dirty.
+- https://github.com/arrpt/nerv/blob/master/features/skin_changer/skin_changer.cpp —
+  setter nativo de máscara e atualização forçada de skin.
+- https://github.com/arrpt/nerv/blob/master/valve/classes/c_cs_player_pawn.hpp —
+  assinatura do setter; nenhum índice de vtable antigo foi copiado.
+- https://github.com/Mavrom/cs2-skinchanger/blob/master/Source/Features/SkinChanger.h —
+  rotina de fallback e enumeração de armas; seus offsets fixos não foram importados.
+- https://github.com/realmaximg/OpenChanger/blob/main/src/features/changer/skins/decoded.cpp —
+  atualizações do modelo associadas à decodificação de entidades.
+
+O tópico técnico original de UnknownCheats permaneceu inacessível pelo leitor
+web nesta sessão. Foi consultada também a discussão de falhas no Steam:
+https://steamcommunity.com/app/730/discussions/0/759555730939489818/
+Ela é relato de usuário; não foi tratada como implementação validada.

@@ -10,5 +10,6 @@
     <Compile Include="../Classes/SkinMaterialData.cs" Link="SkinMaterialData.cs" />
     <Compile Include="../Classes/SkinMaterialSession.cs" Link="SkinMaterialSession.cs" />
     <Compile Include="../Data/Game/Offsets.cs" Link="Offsets.cs" />
+    <Compile Include="../Modules/Combat/RageMath.cs" Link="RageMath.cs" />
   </ItemGroup>
 </Project>

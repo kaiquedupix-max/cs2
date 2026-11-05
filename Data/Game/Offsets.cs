@@ -57,6 +57,9 @@ namespace Mac1ota_Menu.Data.Game
         public static int m_iAttributeDefinitionIndex = 0;
         public static int m_flValue = 0;
         public static int m_flInitialValue = 0;
+        public static int m_iClip1 = 0;
+        public static int m_nNextPrimaryAttackTick = 0;
+        public static int m_nTickBase = 0;
         public static int m_AttributeManager = 0x1148;
         public static int attack = 0x184E8F0;
         public static int jump = 0x1850DF0;

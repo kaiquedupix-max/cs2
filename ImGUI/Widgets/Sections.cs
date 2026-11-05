@@ -65,39 +65,38 @@ internal class Sections
                 RenderBoolSetting("Verificar visibilidade", "Aimbot.VisibilityCheck", () => Aimbot.VisibilityCheck, v => Aimbot.VisibilityCheck = v);
                 RenderBoolSetting("Linha até o alvo", "Aimbot.TargetLine", () => Aimbot.TargetLine, v => Aimbot.TargetLine = v);
             }),
-            new("Mira agressiva", 6, () =>
+            new("Rage — seleção de alvo", 6, () =>
             {
-                ImGui.TextWrapped("Preset de mira rápida baseado no Aimbot existente. Ajusta a mira real; não altera os disparos do servidor.");
-                if (ImGui.Button("Aplicar preset Rage"))
-                {
-                    Aimbot.AimbotEnable = true;
-                    Aimbot.SmoothingX = 0f;
-                    Aimbot.SmoothingY = 0f;
-                    Aimbot.UseFOV = false;
-                    Aimbot.DrawFov = false;
-                    Aimbot.VisibilityCheck = true;
-                    Aimbot.Team = false;
-                    Aimbot.ScopedOnly = false;
-                    Aimbot.CurrentBone = 0;
-                }
-                RenderBoolSetting("Ativar mira", "Rage.Aimbot.Enabled", () => Aimbot.AimbotEnable, v => Aimbot.AimbotEnable = v);
-                Keybind.RenderKeybindChooser("Tecla da mira", "Rage.Aimbot.Keybind", ref Aimbot.AimbotKey, () => Aimbot.AimbotEnable);
-                RenderIntCombo("Ponto de mira", "Rage.Aimbot.Bone", ref Aimbot.CurrentBone, [.. Aimbot.Bones], Aimbot.Bones.Length);
-                RenderBoolSetting("Verificar visibilidade", "Rage.Aimbot.Visibility", () => Aimbot.VisibilityCheck, v => Aimbot.VisibilityCheck = v);
-                RenderFloatSlider("Suavização horizontal", "Rage.Aimbot.SmoothX", ref Aimbot.SmoothingX, 0f, 20f, "%.2f");
-                RenderFloatSlider("Suavização vertical", "Rage.Aimbot.SmoothY", ref Aimbot.SmoothingY, 0f, 20f, "%.2f");
+                RenderBoolSetting("Ativar Rage", "Rage.Enabled", () => Rage.Enabled, v => Rage.Enabled = v);
+                Keybind.RenderKeybindChooser("Tecla de ativação", "Rage.Key", ref Rage.ActivationKey, () => Rage.Enabled);
+                RenderIntCombo("Prioridade", "Rage.Priority", ref Rage.Priority, ["Mais próximo da mira", "Menor vida", "Menor distância"], 3);
+                RenderBoolSetting("Manter o alvo", "Rage.KeepTarget", () => Rage.KeepTarget, v => Rage.KeepTarget = v);
+                RenderBoolSetting("Somente pontos visíveis", "Rage.Visible", () => Rage.OnlyVisible, v => Rage.OnlyVisible = v);
+                RenderFloatSlider("Campo de mira (graus)", "Rage.FOV", ref Rage.FovDegrees, 1, 180, "%.1f");
+                RenderFloatSlider("Alcance (metros)", "Rage.Distance", ref Rage.MaxDistanceMeters, 5, 500, "%.0f");
+                RenderFloatSlider("Giro por atualização", "Rage.Turn", ref Rage.MaxTurnDegrees, 1, 180, "%.1f°");
+                ImGui.Spacing(); ImGui.TextWrapped(Rage.Status);
             }),
-            new("Anti-Aim / Silent Aim / Autowall", 6, () =>
+            new("Rage — varredura do corpo", 6, () =>
             {
-                ImGui.TextDisabled("Indisponíveis na arquitetura atual.");
-                ImGui.Separator();
-                ImGui.TextWrapped("Anti-Aim: requer controlar separadamente os ângulos exibidos a outros jogadores.");
-                ImGui.Spacing();
-                ImGui.TextWrapped("Silent Aim: não é implementado por movimentação de mouse.");
-                ImGui.Spacing();
-                ImGui.TextWrapped("Autowall: requer cálculo confiável de penetração, superfícies e dano.");
-                ImGui.Spacing();
-                ImGui.TextDisabled("Nenhuma dessas funções será simulada por um botão sem efeito.");
+                RenderBoolSetting("Cabeça", "Rage.Head", () => Rage.Head, v => Rage.Head = v);
+                RenderBoolSetting("Pescoço", "Rage.Neck", () => Rage.Neck, v => Rage.Neck = v);
+                RenderBoolSetting("Peito", "Rage.Chest", () => Rage.Chest, v => Rage.Chest = v);
+                RenderBoolSetting("Pelve", "Rage.Pelvis", () => Rage.Pelvis, v => Rage.Pelvis = v);
+                RenderIntSlider("Priorizar corpo abaixo de HP", "Rage.BodyHP", ref Rage.BodyBelowHealth, 0, 100, "%d");
+                RenderBoolSetting("Compensar recuo", "Rage.Recoil", () => Rage.CompensateRecoil, v => Rage.CompensateRecoil = v);
+            }),
+            new("Rage — disparo", 6, () =>
+            {
+                RenderBoolSetting("Disparo automático", "Rage.AutoFire", () => Rage.AutoFire, v => Rage.AutoFire = v);
+                RenderIntSlider("Tempo no alvo (ms)", "Rage.Delay", ref Rage.TargetDelayMs, 0, 500, "%d");
+                RenderIntSlider("Intervalo entre disparos (ms)", "Rage.Interval", ref Rage.ShotIntervalMs, 50, 1000, "%d");
+                RenderFloatSlider("Tolerância de mira (graus)", "Rage.Tolerance", ref Rage.ShotToleranceDegrees, .05f, 2f, "%.2f");
+                RenderBoolSetting("Abrir luneta automaticamente", "Rage.Scope", () => Rage.AutoScope, v => Rage.AutoScope = v);
+                RenderBoolSetting("Sniper: disparar com luneta", "Rage.Scoped", () => Rage.FireOnlyScoped, v => Rage.FireOnlyScoped = v);
+                RenderBoolSetting("Disparar somente no chão", "Rage.Grounded", () => Rage.FireOnlyGrounded, v => Rage.FireOnlyGrounded = v);
+                RenderBoolSetting("Disparar somente parado", "Rage.Still", () => Rage.FireOnlyStill, v => Rage.FireOnlyStill = v);
+                if (Rage.FireOnlyStill) RenderFloatSlider("Velocidade máxima", "Rage.Speed", ref Rage.MaxFireSpeed, 0, 250, "%.0f");
             }),
             new("Controle de recuo", 1, () =>
             {

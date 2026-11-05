@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Mac1ota_Menu.Classes;
 using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Modules.Combat;
+using System.Numerics;
 
 static void Check(bool condition, string message)
 {
@@ -63,12 +65,34 @@ Throws<InvalidOperationException>(() => SkinMaterialData.DecodeRegenerationPlan(
 byte[] changedBranch = (byte[])dispatch.Clone(); changedBranch[17] = 0x17;
 Throws<InvalidOperationException>(() => SkinMaterialData.DecodeRegenerationPlan(changedBranch, 0x1100, 0x1000, 0x5000));
 byte[] call = SkinMaterialData.RebuildCall(0x100000, plan);
-Check(call.Length == 62 && call.AsSpan(0, 4).SequenceEqual(new byte[] { 0x48, 0x83, 0xEC, 0x28 }), "x64 shadow space and alignment");
+Check(call.Length == 65 && call.AsSpan(0, 4).SequenceEqual(new byte[] { 0x48, 0x83, 0xEC, 0x28 }), "x64 shadow space and alignment");
 Check(BitConverter.ToInt64(call, 6) == 0x100610 && BitConverter.ToInt64(call, 33) == 0x100000, "Component and econ entity arguments");
-Check(BitConverter.ToInt64(call, 21) == 0x2000 && BitConverter.ToInt64(call, 45) == 0x3000, "Clear/rebuild call targets");
+Check(BitConverter.ToInt64(call, 21) == 0x2000 && BitConverter.ToInt64(call, 48) == 0x3000, "Clear/rebuild call targets");
+Check(call.AsSpan(41, 5).SequenceEqual(new byte[] { 0xBA, 1, 0, 0, 0 }), "Force rebuild argument");
 Check(call[^1] == 0xC3, "Material dispatch returns to its caller");
 Throws<ArgumentOutOfRangeException>(() => SkinMaterialData.RebuildCall(0, plan));
 Console.WriteLine("PASS: stock-weapon dispatch decoding, bounded helper targets and Windows x64 call ABI.");
+byte[] setter = Convert.FromHexString("48895C24084889742410574883EC20488D9940010000488B7130488BFA48399308020000");
+Check(SkinMaterialData.FindMeshSetter(setter, 0x7000, 0x140, 0x208) == 0x7000, "Native mesh setter with matching schema");
+Throws<InvalidOperationException>(() => SkinMaterialData.FindMeshSetter(setter, 0x7000, 0x170, 0x208));
+Throws<InvalidOperationException>(() => SkinMaterialData.FindMeshSetter(setter, 0x7000, 0x140, 0x210));
+byte[] fullCall = SkinMaterialData.ApplyCall(0x100000, 0x110000, 0x120000, 2, 0x7000, plan);
+Check(fullCall.Length == 321, "Native mesh notifications before and after forced rebuild");
+Check(BitConverter.ToInt64(fullCall, 6) == 0x110000 && BitConverter.ToUInt64(fullCall, 16) == 1, "Force refresh stale legacy netvar through alternate group");
+Throws<ArgumentException>(() => SkinMaterialData.ApplyCall(0x100000, 0, 0x120000, 2, 0x7000, plan));
+Check(Vector3.Distance(RageMath.AimAngles(Vector3.Zero, new(100, 0, 0)), Vector3.Zero) < .001f, "Aim along X axis");
+Check(Math.Abs(RageMath.AngleError(new(0, 179, 0), new(0, -179, 0)) - 2) < .01f, "FOV wraps yaw boundary");
+Check(Math.Abs(RageMath.Step(new(0, 179, 0), new(0, -179, 0), 1).Y - 180) < .01f, "Shortest turn across yaw boundary");
+Throws<ArgumentException>(() => RageMath.AimAngles(Vector3.Zero, Vector3.Zero));
+Throws<ArgumentException>(() => RageMath.Step(new(float.NaN, 0, 0), Vector3.Zero, 1));
+var nearAim = new RageMath.Point(1, 100, Vector3.One, Vector3.Zero, 1, 20, "Head");
+var lowHealth = new RageMath.Point(2, 10, Vector3.One, Vector3.Zero, 5, 10, "Chest");
+Check(RageMath.Select([nearAim, lowHealth], 0, 0)?.Pawn == 1, "Angular target priority");
+Check(RageMath.Select([nearAim, lowHealth], 1, 0)?.Pawn == 2, "Health target priority");
+Check(RageMath.Select([nearAim, lowHealth], 2, 0)?.Pawn == 2, "Distance target priority");
+Check(RageMath.Select([nearAim, lowHealth], 0, 2)?.Pawn == 2, "Retain eligible locked target");
+Check(RageMath.Select([nearAim, lowHealth with { Health = 0 }], 0, 2)?.Pawn == 1, "Release dead target");
+Console.WriteLine("PASS: native render notifications, aim geometry, target priorities and target lock.");
 
 if (args.Contains("--analyze"))
 {
@@ -116,7 +140,8 @@ if (args.Contains("--probe"))
     var classes = new Dictionary<string, string>
     {
         ["m_AttributeManager"] = "C_EconEntity", ["m_Item"] = "C_AttributeContainer",
-        ["m_AttributeList"] = "C_EconItemView", ["m_Attributes"] = "CAttributeList"
+        ["m_AttributeList"] = "C_EconItemView", ["m_Attributes"] = "CAttributeList",
+        ["m_modelState"] = "CSkeletonInstance", ["m_MeshGroupMask"] = "CModelState"
     };
     foreach (var (field, type) in classes)
     {

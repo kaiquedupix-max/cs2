@@ -108,6 +108,9 @@ namespace Mac1ota_Menu.Classes
             { "m_iAttributeDefinitionIndex", new() { new Offset("m_iAttributeDefinitionIndex", "CEconItemAttribute") } },
             { "m_flValue", new() { new Offset("m_flValue", "CEconItemAttribute") } },
             { "m_flInitialValue", new() { new Offset("m_flInitialValue", "CEconItemAttribute") } },
+            { "m_iClip1", new() { new Offset("m_iClip1", "C_BasePlayerWeapon") } },
+            { "m_nNextPrimaryAttackTick", new() { new Offset("m_nNextPrimaryAttackTick", "C_BasePlayerWeapon") } },
+            { "m_nTickBase", new() { new Offset("m_nTickBase", "CBasePlayerController") } },
             { "m_bSpottedByMask", new() { new Offset("m_bSpottedByMask") } },
             { "m_pWeaponServices", new() { new Offset("m_pWeaponServices") } },
             { "m_hActiveWeapon", new() { new Offset("m_hActiveWeapon") } },
@@ -426,7 +429,8 @@ namespace Mac1ota_Menu.Classes
                             // never a same-named field cached from an unrelated class.
                             if (fieldName is "m_AttributeList" or "m_Attributes" or "m_hHudModelArms" or
                                 "m_pChild" or "m_pNextSibling" or "m_pOwner" or "m_MeshGroupMask" or
-                                "m_iAttributeDefinitionIndex" or "m_flValue" or "m_flInitialValue")
+                                "m_iAttributeDefinitionIndex" or "m_flValue" or "m_flInitialValue" or
+                                "m_iClip1" or "m_nNextPrimaryAttackTick" or "m_nTickBase")
                             {
                                 var block = Regex.Match(ClientDllContent,
                                     $@"public\s+static\s+class\s+{Regex.Escape(source.ClassName)}\s*\{{([\s\S]*?)\}}");

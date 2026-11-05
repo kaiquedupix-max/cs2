@@ -13,6 +13,7 @@ namespace Mac1ota_Menu.Modules.Combat
         private static int StartBullet = 1;
         public static void RunRCS()
         {
+            if (Rage.Enabled) { OldPunch = Vector3.Zero; return; }
             if (!Enabled || GameState.LocalPlayer == null || GameState.LocalPlayer.Health <= 0 || (User32.GetAsyncKeyState(0x01) & 0x8000) == 0)
                 return;
 

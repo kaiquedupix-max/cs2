@@ -14,6 +14,7 @@ internal sealed class SkinMaterialSession : IDisposable
     private readonly SafeProcessHandle process;
     private readonly nint client;
     private nint regenerate;
+    private nint meshSetter;
     private SkinMaterialData.RegenerationPlan? regenerationPlan;
     internal bool TimedOut { get; private set; }
 
@@ -107,6 +108,7 @@ internal sealed class SkinMaterialSession : IDisposable
             if (!IsRegisteredCallback(code, client + rva, candidate, commandName))
                 throw new InvalidOperationException("Não foi possível validar a rotina de materiais desta versão do CS2.");
             regenerationPlan = SkinMaterialData.DecodeRegenerationPlan(ReadBytes(candidate, 0x150), candidate, client + rva, client + rva + size);
+            meshSetter = SkinMaterialData.FindMeshSetter(code, client + rva, Offsets.m_modelState, Offsets.m_MeshGroupMask);
             regenerate = candidate;
             return;
         }
@@ -176,6 +178,8 @@ internal sealed class SkinMaterialSession : IDisposable
 
         byte[] attributes = SkinMaterialData.Attributes(paint, seed, wear);
         nint mesh = MeshAddress(weapon), hudMesh = MeshAddress(hud);
+        nint worldNode = Read<nint>(weapon + Offsets.m_pGameSceneNode);
+        nint hudNode = Read<nint>(hud + Offsets.m_pGameSceneNode);
         ulong previousMesh = Read<ulong>(mesh), previousHudMesh = Read<ulong>(hudMesh);
         int previousId = Read<int>(item + Offsets.m_iItemIDHigh);
         int previousPaint = Read<int>(weapon + Offsets.m_nFallbackPaintKit);
@@ -195,15 +199,13 @@ internal sealed class SkinMaterialSession : IDisposable
             Write(weapon + Offsets.m_nFallbackSeed, seed);
             Write(weapon + Offsets.m_flFallbackWear, wear);
             ulong mask = legacy ? 2UL : 1UL;
-            Write(mesh, mask);
-            Write(hudMesh, mask);
             Write(vector + 8, allocation);
             published = true;
             Write(vector, 3UL);
             // The console command skips stock weapons when both material vectors
             // are empty. Invoke its decoded clear/rebuild pair for THIS weapon,
             // with the same arguments, without patching the game's instructions.
-            byte[] invoke = SkinMaterialData.RebuildCall(weapon, regenerationPlan!);
+            byte[] invoke = SkinMaterialData.ApplyCall(weapon, worldNode, hudNode, mask, meshSetter, regenerationPlan!);
             call = VirtualAllocEx(process, 0, (nuint)invoke.Length, 0x3000, 0x04);
             if (call == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
             WriteBytes(call, invoke);
@@ -248,9 +250,9 @@ internal sealed class SkinMaterialSession : IDisposable
                     Write(vector + 8, originalPointer);
                 }
                 VirtualFreeEx(process, allocation, 0, 0x8000);
-                Write(weapon + Offsets.m_nFallbackPaintKit, completed ? -1 : previousPaint);
                 if (!completed)
                 {
+                    Write(weapon + Offsets.m_nFallbackPaintKit, previousPaint);
                     Write(item + Offsets.m_iItemIDHigh, previousId);
                     Write(weapon + Offsets.m_nFallbackSeed, previousSeed);
                     Write(weapon + Offsets.m_flFallbackWear, previousWear);

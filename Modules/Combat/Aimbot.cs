@@ -38,6 +38,7 @@ namespace Mac1ota_Menu.Modules.Combat
 
         public static void EnableAimbot() // TODO: return to old pos setting #7
         {
+            if (Rage.Enabled) return;
             try
             {
                 if (!AimbotEnable || Entities.Count == 0 || LocalPlayer == null || GameState.renderer == null || GameState.LocalPlayer.Health == 0 || (ScopedOnly && !GameState.LocalPlayer.IsScoped) || (FlashCheck && GameState.LocalPlayer.IsFlashed))

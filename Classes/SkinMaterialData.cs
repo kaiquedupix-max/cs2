@@ -31,20 +31,57 @@ internal static class SkinMaterialData
     }
 
     internal static byte[] RebuildCall(nint weapon, RegenerationPlan plan)
+        => ApplyCall(weapon, 0, 0, 0, 0, plan);
+
+    internal static nint FindMeshSetter(byte[] code, nint codeBase, int modelState, int meshMask)
+    {
+        byte?[] pattern = [0x48, 0x89, 0x5C, 0x24, null, 0x48, 0x89, 0x74, 0x24, null,
+            0x57, 0x48, 0x83, 0xEC, null, 0x48, 0x8D, 0x99, null, null, null, null,
+            0x48, 0x8B, 0x71];
+        int at = UniqueMatch(code, pattern);
+        if (at < 0 || at + 36 > code.Length || BitConverter.ToInt32(code, at + 18) != modelState ||
+            code[at + 29] != 0x48 || code[at + 30] != 0x39 || code[at + 31] != 0x93 ||
+            BitConverter.ToInt32(code, at + 32) != meshMask)
+            throw new InvalidOperationException("A atualização nativa do modelo não foi validada para esta versão do CS2.");
+        return codeBase + at;
+    }
+
+    internal static byte[] ApplyCall(nint weapon, nint worldNode, nint hudNode, ulong mask, nint meshSetter, RegenerationPlan plan)
     {
         if (weapon == 0) throw new ArgumentOutOfRangeException(nameof(weapon));
         using var stream = new MemoryStream();
         using var writer = new BinaryWriter(stream);
         // Windows x64 ABI: preserve stack alignment and reserve shadow space.
         writer.Write(new byte[] { 0x48, 0x83, 0xEC, 0x28 });
+        void Mesh(nint node, ulong value)
+        {
+            writer.Write(new byte[] { 0x48, 0xB9 }); writer.Write((long)node);
+            writer.Write(new byte[] { 0x48, 0xBA }); writer.Write(value);
+            writer.Write(new byte[] { 0x48, 0xB8 }); writer.Write((long)meshSetter);
+            writer.Write(new byte[] { 0xFF, 0xD0 });
+        }
+        void RefreshMeshes()
+        {
+            if (meshSetter == 0) return;
+            if (worldNode == 0 || hudNode == 0 || mask is not (1UL or 2UL))
+                throw new ArgumentException("Modelo de skin inválido.");
+            // Earlier builds wrote the netvar without notifying the renderer.
+            // Changing to the other legal group first defeats the setter's
+            // early return when that stale netvar already equals the new mask.
+            Mesh(worldNode, mask == 1 ? 2UL : 1UL); Mesh(worldNode, mask);
+            Mesh(hudNode, mask == 1 ? 2UL : 1UL); Mesh(hudNode, mask);
+        }
+        RefreshMeshes();
         writer.Write(new byte[] { 0x48, 0xB9 }); writer.Write((long)(weapon + plan.Component));
         writer.Write(new byte[] { 0xBA, 1, 0, 0, 0 });
         writer.Write(new byte[] { 0x48, 0xB8 }); writer.Write((long)plan.Clear);
         writer.Write(new byte[] { 0xFF, 0xD0 });
         writer.Write(new byte[] { 0x48, 0xB9 }); writer.Write((long)weapon);
-        writer.Write(new byte[] { 0x33, 0xD2 });
+        writer.Write(new byte[] { 0xBA, 1, 0, 0, 0 }); // force rebuild
         writer.Write(new byte[] { 0x48, 0xB8 }); writer.Write((long)plan.Rebuild);
-        writer.Write(new byte[] { 0xFF, 0xD0, 0x48, 0x83, 0xC4, 0x28, 0x33, 0xC0, 0xC3 });
+        writer.Write(new byte[] { 0xFF, 0xD0 });
+        RefreshMeshes();
+        writer.Write(new byte[] { 0x48, 0x83, 0xC4, 0x28, 0x33, 0xC0, 0xC3 });
         return stream.ToArray();
     }
 

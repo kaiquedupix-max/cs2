@@ -29,6 +29,7 @@ namespace Mac1ota_Menu.Modules.Combat
 
         public static void RunTriggerBot()
         {
+            if (Rage.Enabled) { ClearTargetState(); return; }
             try
             {
                 if (!Enabled || GameState.LocalPlayer == null || GameState.memory == null || (TriggerKey != 0 && (GetAsyncKeyState(TriggerKey) & 0x8000) == 0) || GameState.LocalPlayer.Health <= 0)

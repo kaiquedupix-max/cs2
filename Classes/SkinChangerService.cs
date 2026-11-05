@@ -73,7 +73,10 @@ internal static class SkinChangerService
                     lock (Gate) Selections.TryGetValue(definition, out selected);
                     if (selected == null) continue;
                     var attempt = (pawn, handle, weapon, selected.Revision);
-                    if (lastAttempt == attempt) continue;
+                    if (lastAttempt == attempt &&
+                        session.Read<int>(weapon + Offsets.m_nFallbackPaintKit) == selected.Paint &&
+                        session.Read<int>(weapon + Offsets.m_nFallbackSeed) == selected.Seed &&
+                        System.Math.Abs(session.Read<float>(weapon + Offsets.m_flFallbackWear) - selected.Wear) < .001f) continue;
                     lastAttempt = attempt;
                     status = "Reconstruindo os materiais da arma...";
                     int materials = session.Apply(pawn, list, handle, definition, selected.Paint, selected.Seed, selected.Wear, selected.Legacy);
