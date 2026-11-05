@@ -13,6 +13,11 @@ internal sealed class SkinMaterialSession : IDisposable
 {
     private readonly SafeProcessHandle process;
     private readonly nint client;
+    private readonly int processId;
+    private byte[]? clientCode;
+    private nint clientCodeBase;
+    private nint setModel, updateSubclass, gameAlloc;
+    private readonly Dictionary<nint, nint> gloveAttributes = new();
     private nint regenerate;
     private nint meshSetter;
     private SkinMaterialData.RegenerationPlan? regenerationPlan;
@@ -24,6 +29,7 @@ internal sealed class SkinMaterialSession : IDisposable
         if (target.HasExited || !target.ProcessName.Equals("cs2", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("O processo do CS2 não está disponível.");
         client = clientBase;
+        processId = pid;
         process = OpenProcess(0x10043A, false, pid);
         if (process.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "Não foi possível acessar o CS2.");
     }
@@ -99,6 +105,7 @@ internal sealed class SkinMaterialSession : IDisposable
             if (size is <= 0 or > 128 * 1024 * 1024 || rva <= 0)
                 throw new InvalidOperationException("Seção de materiais inválida.");
             byte[] code = ReadBytes(client + rva, size);
+            clientCode = code; clientCodeBase = client + rva;
             int match = SkinMaterialData.UniqueMatch(code, signature);
             if (match < 0) break;
             nint candidate = client + rva + match;
@@ -149,6 +156,163 @@ internal sealed class SkinMaterialSession : IDisposable
             child = Read<nint>(child + Offsets.m_pNextSibling);
         }
         return 0;
+    }
+
+    private nint FindFunction(byte?[] pattern)
+    {
+        ResolveRegenerator();
+        int at = SkinMaterialData.UniqueMatch(clientCode!, pattern);
+        if (at < 0) throw new InvalidOperationException("A função nativa do modelo não está disponível nesta versão do CS2.");
+        return clientCodeBase + at;
+    }
+
+    private nint CallNative(nint function, nint first = 0, nint second = 0)
+    {
+        if (TimedOut || function == 0) throw new InvalidOperationException("Chamada de cosmético indisponível.");
+        nint block = VirtualAllocEx(process, 0, 8192, 0x3000, 0x04);
+        if (block == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            using var stream = new MemoryStream(); using var writer = new BinaryWriter(stream);
+            writer.Write(new byte[] { 0x48, 0x83, 0xEC, 0x28, 0x48, 0xB9 }); writer.Write((long)first);
+            writer.Write(new byte[] { 0x48, 0xBA }); writer.Write((long)second);
+            writer.Write(new byte[] { 0x48, 0xB8 }); writer.Write((long)function);
+            writer.Write(new byte[] { 0xFF, 0xD0, 0x48, 0xB9 }); writer.Write((long)(block + 4096));
+            writer.Write(new byte[] { 0x48, 0x89, 0x01, 0x48, 0x83, 0xC4, 0x28, 0x33, 0xC0, 0xC3 });
+            byte[] code = stream.ToArray(); WriteBytes(block, code);
+            if (!VirtualProtectEx(process, block, 4096, 0x20, out _) || !FlushInstructionCache(process, block, (nuint)code.Length))
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            using var thread = CreateRemoteThread(process, 0, 0, block, 0, 0, out _);
+            if (thread.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (WaitForSingleObject(thread, 10000) != 0)
+            { TimedOut = true; throw new InvalidOperationException("Cosmético excedeu o tempo limite. Reinicie o CS2."); }
+            if (!GetExitCodeThread(thread, out uint codeResult) || codeResult >= 0x80000000)
+                throw new InvalidOperationException("A função nativa do cosmético falhou.");
+            return Read<nint>(block + 4096);
+        }
+        finally { if (!TimedOut) VirtualFreeEx(process, block, 0, 0x8000); }
+    }
+
+    private nint GameAlloc()
+    {
+        if (gameAlloc != 0) return gameAlloc;
+        using var target = Process.GetProcessById(processId);
+        var module = target.Modules.Cast<ProcessModule>().Single(m => m.ModuleName.Equals("tier0.dll", StringComparison.OrdinalIgnoreCase));
+        nint start = module.BaseAddress;
+        int pe = Read<int>(start + 0x3C);
+        if (pe is < 64 or > 0x100000 || Read<uint>(start + pe) != 0x4550) throw new InvalidOperationException("tier0.dll inválida.");
+        int exportRva = Read<int>(start + pe + 0x88), exportSize = Read<int>(start + pe + 0x8C);
+        nint exports = start + exportRva;
+        int count = Read<int>(exports + 24);
+        if (count is < 1 or > 100000) throw new InvalidOperationException("Exportações de tier0.dll inválidas.");
+        nint names = start + Read<int>(exports + 32), ordinals = start + Read<int>(exports + 36), functions = start + Read<int>(exports + 28);
+        for (int i = 0; i < count; i++)
+        {
+            nint name = start + Read<int>(names + i * 4);
+            byte[] bytes = ReadBytes(name, 64); int end = Array.IndexOf(bytes, (byte)0);
+            if (end < 0 || Encoding.ASCII.GetString(bytes, 0, end) != "MemAlloc_AllocFunc") continue;
+            ushort ordinal = Read<ushort>(ordinals + i * 2);
+            int rva = Read<int>(functions + ordinal * 4);
+            if (rva <= 0 || rva >= module.ModuleMemorySize || (rva >= exportRva && rva < exportRva + exportSize)) break;
+            return gameAlloc = start + rva;
+        }
+        throw new InvalidOperationException("O alocador de atributos do jogo não foi encontrado.");
+    }
+
+    internal void ChangeKnife(nint pawn, nint list, uint handle, ushort definition)
+    {
+        string path = CosmeticModels.KnifePath(definition);
+        if (Offsets.m_nSubclassID <= 0 || Offsets.m_iEntityQuality <= 0) throw new InvalidOperationException("Dados do modelo da faca indisponíveis.");
+        nint weapon = Entity(list, handle);
+        nint item = weapon + Offsets.m_AttributeManager + Offsets.m_Item;
+        if (weapon == 0 || !CosmeticModels.IsKnife(Read<ushort>(item + Offsets.m_iItemDefinitionIndex)))
+            throw new InvalidOperationException("Equipe sua faca antes de aplicar o modelo.");
+        nint hud = HudWeapon(pawn, list, weapon);
+        if (hud == 0) throw new InvalidOperationException("Modelo da faca em primeira pessoa indisponível.");
+        if (setModel == 0) setModel = FindFunction([0x40, 0x53, 0x48, 0x83, 0xEC, null, 0x48, 0x8B, 0xD9, 0x4C, 0x8B, 0xC2, 0x48, 0x8B, 0x0D, null, null, null, null, 0x48, 0x8D, 0x54, 0x24, 0x40]);
+        if (updateSubclass == 0) updateSubclass = FindFunction([0x4C, 0x8B, 0xDC, 0x53, 0x48, 0x81, 0xEC, null, null, null, null, 0x48, 0x8B, 0x41]);
+        nint text = VirtualAllocEx(process, 0, 4096, 0x3000, 0x04);
+        if (text == 0) throw new Win32Exception(Marshal.GetLastWin32Error());
+        try
+        {
+            WriteBytes(text, Encoding.UTF8.GetBytes(path + "\0"));
+            Write(item + Offsets.m_iItemDefinitionIndex, definition);
+            Write(item + Offsets.m_iEntityQuality, 3);
+            Write(weapon + Offsets.m_nSubclassID, CosmeticModels.SubclassHash(definition));
+            CallNative(updateSubclass, weapon);
+            CallNative(setModel, weapon, text); CallNative(setModel, hud, text);
+        }
+        finally { if (!TimedOut) VirtualFreeEx(process, text, 0, 0x8000); }
+    }
+
+    internal bool ModelsReady(nint pawn, nint list, nint weapon)
+    {
+        nint hud = HudWeapon(pawn, list, weapon);
+        return hud != 0 && Read<nint>(weapon + Offsets.m_pGameSceneNode) != 0 && Read<nint>(hud + Offsets.m_pGameSceneNode) != 0;
+    }
+
+    internal bool GlovesMatch(nint pawn, ushort definition, int paint, int seed, float wear)
+    {
+        if (Offsets.m_EconGloves <= 0) return false;
+        nint item = pawn + Offsets.m_EconGloves;
+        if (Read<ushort>(item + Offsets.m_iItemDefinitionIndex) != definition) return false;
+        nint vector = item + Offsets.m_AttributeList + Offsets.m_Attributes;
+        if (Read<ulong>(vector) != 3) return false;
+        nint data = Read<nint>(vector + 8);
+        return data != 0 && Read<float>(data + 0x34) == paint && Read<float>(data + 0x48 + 0x34) == seed &&
+            System.Math.Abs(Read<float>(data + 0x90 + 0x34) - wear) < .0001f;
+    }
+
+    internal void SetHudName(nint weapon, string name, int rarity)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return;
+        if (Offsets.m_szCustomName <= 0 || Offsets.m_szCustomNameOverride <= 0 || Offsets.m_iRarityOverride <= 0)
+            throw new InvalidOperationException("Dados do nome da skin indisponíveis.");
+        nint item = weapon + Offsets.m_AttributeManager + Offsets.m_Item;
+        byte[] bytes = CosmeticModels.NameBytes(name);
+        WriteBytes(item + Offsets.m_szCustomName, bytes);
+        WriteBytes(item + Offsets.m_szCustomNameOverride, bytes);
+        Write(item + Offsets.m_iRarityOverride, System.Math.Clamp(rarity, 0, 7));
+        if (Offsets.m_bInitializedTags > 0) Write(item + Offsets.m_bInitializedTags, (byte)0);
+    }
+
+    internal void SetStatTrak(nint weapon, bool enabled, int counter, bool knife)
+    {
+        if (Offsets.m_nFallbackStatTrak <= 0 || Offsets.m_iEntityQuality <= 0)
+            throw new InvalidOperationException("Dados de StatTrak indisponíveis nesta versão do CS2.");
+        Write(weapon + Offsets.m_nFallbackStatTrak, enabled ? System.Math.Max(0, counter) : -1);
+        Write(weapon + Offsets.m_AttributeManager + Offsets.m_Item + Offsets.m_iEntityQuality, enabled ? 9 : knife ? 3 : 4);
+    }
+
+    internal void ApplyGloves(nint pawn, ushort definition, int paint, int seed, float wear)
+    {
+        if (!(definition == 4725 || definition is >= 5027 and <= 5035) || Offsets.m_EconGloves <= 0 || Offsets.m_bNeedToReApplyGloves <= 0 ||
+            Offsets.m_bInitialized <= 0 || Offsets.m_bDisallowSOC <= 0 || Offsets.m_iEntityQuality <= 0)
+            throw new InvalidOperationException("Modelo ou dados das luvas indisponíveis.");
+        nint item = pawn + Offsets.m_EconGloves;
+        nint vector = item + Offsets.m_AttributeList + Offsets.m_Attributes;
+        ulong count = Read<ulong>(vector); nint pointer = Read<nint>(vector + 8);
+        bool ours = gloveAttributes.TryGetValue(item, out nint owned) && owned == pointer && count == 3;
+        if (!ours && count == 3 && pointer != 0 && Read<byte>(item + Offsets.m_bDisallowSOC) == 1 &&
+            Read<ushort>(pointer + 0x30) == 6 && Read<ushort>(pointer + 0x48 + 0x30) == 7 &&
+            Read<ushort>(pointer + 0x90 + 0x30) == 8) ours = true;
+        if (count != 0 && !ours) throw new InvalidOperationException("As luvas atuais possuem atributos próprios. Use luvas padrão antes de substituir.");
+        if (!ours)
+        {
+            pointer = CallNative(GameAlloc(), (nint)(SkinMaterialData.AttributeSize * 3));
+            if (pointer.ToInt64() < 65536) throw new InvalidOperationException("Falha ao alocar atributos das luvas.");
+        }
+        Write(item + Offsets.m_bInitialized, (byte)0);
+        WriteBytes(pointer, SkinMaterialData.Attributes(paint, seed, wear));
+        Write(vector + 8, pointer); Write(vector, 3UL); gloveAttributes[item] = pointer;
+        Write(item + Offsets.m_iItemDefinitionIndex, definition);
+        Write(item + Offsets.m_iItemIDHigh, -1);
+        Write(item + Offsets.m_iEntityQuality, 3);
+        Write(item + Offsets.m_bDisallowSOC, (byte)1);
+        Write(item + Offsets.m_bInitialized, (byte)1);
+        Write(pawn + Offsets.m_bNeedToReApplyGloves, (byte)1);
+        // The vector uses tier0's allocator. The game owns its lifetime and may
+        // release it normally when the pawn/econ item is destroyed.
     }
 
     private nint MeshAddress(nint entity)

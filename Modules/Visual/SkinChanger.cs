@@ -17,7 +17,7 @@ namespace Mac1ota_Menu.Modules.Visual
     // Catalogue + material regeneration through SkinChangerService.
     internal static class SkinChanger
     {
-        internal sealed record Skin(string Name, string Weapon, int PaintKit, string ImageUrl, string Rarity, bool Legacy, float MinWear, float MaxWear);
+        internal sealed record Skin(string Name, string Weapon, ushort Definition, int Category, int PaintKit, string ImageUrl, string Rarity, bool Legacy, float MinWear, float MaxWear, bool SupportsStatTrak);
         private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(16) };
         private static readonly (string Name, ushort Id)[] Weapons =
         {
@@ -42,7 +42,26 @@ namespace Mac1ota_Menu.Modules.Visual
         private static int _category;
         private static float _wear = 0.01f;
         private static int _seed;
+        private static bool _statTrak;
+        private static int _counter;
+        private static List<CosmeticLoadout.Choice>? _lastChoices;
         private static string _search = "";
+
+        internal static async Task<IReadOnlyList<Skin>> GetCatalogAsync()
+        {
+            _catalogTask ??= Task.Run(LoadCatalogAsync);
+            await _catalogTask;
+            if (_catalog.Count == 0) throw new InvalidOperationException(_status);
+            return _catalog;
+        }
+
+        private static void RestoreChoice(ushort definition)
+        {
+            var choice = CosmeticLoadout.Find(_category, definition);
+            if (choice == null) return;
+            _selectedPaint = choice.Paint; _seed = choice.Seed; _wear = choice.Wear;
+            _statTrak = choice.StatTrak; _counter = choice.Counter;
+        }
 
         private static string GetString(JsonElement parent, string name)
         {
@@ -78,11 +97,16 @@ namespace Mac1ota_Menu.Modules.Visual
                     string weapon = GetString(entry, "weapon");
                     string image = GetString(entry, "image");
                     string rarity = GetString(entry, "rarity");
+                    if (!entry.TryGetProperty("weapon", out var weaponData) ||
+                        !weaponData.TryGetProperty("weapon_id", out var definitionData) || !definitionData.TryGetUInt16(out ushort definition)) continue;
+                    string categoryName = GetString(entry, "category");
+                    int category = categoryName == "Gloves" ? 2 : CosmeticModels.IsKnife(definition) ? 1 : 0;
                     if (string.IsNullOrWhiteSpace(weapon) || string.IsNullOrWhiteSpace(name)) continue;
                     bool legacy = entry.TryGetProperty("legacy_model", out var model) && model.ValueKind == JsonValueKind.True;
-                    float min = entry.TryGetProperty("min_float", out var minFloat) && minFloat.TryGetSingle(out var minValue) ? minValue : 0f;
-                    float max = entry.TryGetProperty("max_float", out var maxFloat) && maxFloat.TryGetSingle(out var maxValue) ? maxValue : 1f;
-                    skins.Add(new Skin(name, weapon, id, image, rarity, legacy, min, max));
+                    float min = entry.TryGetProperty("min_float", out var minFloat) && minFloat.ValueKind == JsonValueKind.Number && minFloat.TryGetSingle(out var minValue) ? minValue : 0f;
+                    float max = entry.TryGetProperty("max_float", out var maxFloat) && maxFloat.ValueKind == JsonValueKind.Number && maxFloat.TryGetSingle(out var maxValue) ? maxValue : 1f;
+                    bool statTrak = entry.TryGetProperty("stattrak", out var st) && st.ValueKind == JsonValueKind.True;
+                    skins.Add(new Skin(name, weapon, definition, category, id, image, rarity, legacy, min, max, statTrak));
                 }
                 _catalog = skins.GroupBy(s => (s.Weapon, s.PaintKit))
                     .Select(group => group.First()).OrderBy(s => s.Name).ToList();
@@ -173,7 +197,7 @@ namespace Mac1ota_Menu.Modules.Visual
                 ImGui.TextWrapped(skin.Name.Length > 24 ? skin.Name[..24] + "…" : skin.Name);
                 ImGui.TextDisabled("Paint kit #" + skin.PaintKit);
                 if (ImGui.Selectable(selected ? "Selecionada##choose" : "Selecionar##choose", selected))
-                    _selectedPaint = skin.PaintKit;
+                { _selectedPaint = skin.PaintKit; if (!skin.SupportsStatTrak) _statTrak = false; }
             }
             ImGui.EndChild();
             ImGui.PopStyleVar();
@@ -190,30 +214,35 @@ namespace Mac1ota_Menu.Modules.Visual
             ImGui.Separator();
             ImGui.Spacing();
 
-            if (ImGui.Button("Armas", new Vector2(110, 32))) _category = 0;
+            void Category(int value) { if (_category != value) { _category = value; _lastChoices = null; _weaponIndex = 0; _selectedPaint = 0; _search = ""; } }
+            if (ImGui.Button("Armas", new Vector2(110, 32))) Category(0);
             ImGui.SameLine();
-            if (ImGui.Button("Facas", new Vector2(95, 32))) _category = 1;
+            if (ImGui.Button("Facas", new Vector2(95, 32))) Category(1);
             ImGui.SameLine();
-            if (ImGui.Button("Luvas", new Vector2(95, 32))) _category = 2;
-            ImGui.SameLine();
-            if (ImGui.Button("Kits musicais", new Vector2(125, 32))) _category = 3;
+            if (ImGui.Button("Luvas", new Vector2(95, 32))) Category(2);
             ImGui.Spacing();
 
-            if (_category != 0)
+            var models = _category == 0 ? Weapons : _catalog.Where(s => s.Category == _category)
+                .Select(s => (Name: s.Weapon, Id: s.Definition)).Distinct().OrderBy(m => m.Name).ToArray();
+            if (models.Length == 0)
             {
-                ImGui.TextWrapped("Essa categoria ainda não dispõe de aplicação no CS2 nesta versão.");
-                ImGui.TextDisabled("A aplicação de skins está disponível para armas.");
+                ImGui.TextWrapped(_status);
                 return;
             }
+            _weaponIndex = Math.Clamp(_weaponIndex, 0, models.Length - 1);
+            if (!ReferenceEquals(_lastChoices, CosmeticLoadout.Choices))
+            { _lastChoices = CosmeticLoadout.Choices; RestoreChoice(models[_weaponIndex].Id); }
 
             ImGui.PushItemWidth(245);
-            if (ImGui.BeginCombo("Arma", Weapons[_weaponIndex].Name))
+            if (ImGui.BeginCombo(_category == 0 ? "Arma" : "Modelo", models[_weaponIndex].Name))
             {
-                for (int i = 0; i < Weapons.Length; i++)
-                    if (ImGui.Selectable(Weapons[i].Name, i == _weaponIndex))
+                for (int i = 0; i < models.Length; i++)
+                    if (ImGui.Selectable(models[i].Name, i == _weaponIndex))
                     {
                         _weaponIndex = i;
                         _selectedPaint = 0;
+                        _statTrak = false; _counter = 0;
+                        RestoreChoice(models[i].Id);
                     }
                 ImGui.EndCombo();
             }
@@ -225,10 +254,10 @@ namespace Mac1ota_Menu.Modules.Visual
             ImGui.TextDisabled(_status);
 
             var available = _catalog.Where(s =>
-                s.Weapon.Equals(Weapons[_weaponIndex].Name, StringComparison.OrdinalIgnoreCase) &&
+                s.Category == _category && s.Definition == models[_weaponIndex].Id &&
                 s.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)).ToArray();
 
-            ImGui.BeginChild("skinGrid", new Vector2(0, -156f), ImGuiChildFlags.None);
+            ImGui.BeginChild("skinGrid", new Vector2(0, -184f), ImGuiChildFlags.None);
             {
                 float space = ImGui.GetContentRegionAvail().X;
                 const float gap = 10f;
@@ -251,6 +280,14 @@ namespace Mac1ota_Menu.Modules.Visual
             _seed = Math.Clamp(_seed, 0, 1000);
             ImGui.PopItemWidth();
 
+            var chosen = available.FirstOrDefault(s => s.PaintKit == _selectedPaint);
+            bool supportsStatTrak = chosen?.SupportsStatTrak == true && _category != 2;
+            if (!supportsStatTrak) _statTrak = false;
+            ImGui.BeginDisabled(!supportsStatTrak);
+            ImGui.Checkbox("StatTrak", ref _statTrak);
+            if (_statTrak) { ImGui.SameLine(); ImGui.SetNextItemWidth(130); ImGui.InputInt("Contador", ref _counter); _counter = Math.Max(0, _counter); }
+            ImGui.EndDisabled();
+
             if (ImGui.Button("Aplicar skin", new Vector2(265, 34)))
             {
                 var selected = available.FirstOrDefault(s => s.PaintKit == _selectedPaint);
@@ -260,7 +297,8 @@ namespace Mac1ota_Menu.Modules.Visual
                     try
                     {
                         _wear = Math.Clamp(_wear, selected.MinWear, selected.MaxWear);
-                        SkinChangerService.Select(Weapons[_weaponIndex].Id, selected.PaintKit, _seed, _wear, selected.Legacy);
+                        SkinChangerService.Select(selected.Definition, selected.PaintKit, _seed, _wear, selected.Legacy,
+                            selected.Name, CosmeticModels.Rarity(selected.Rarity), selected.Category, _statTrak, _counter);
                     }
                     catch (Exception ex) { _status = ex.Message; }
                 }
@@ -269,9 +307,10 @@ namespace Mac1ota_Menu.Modules.Visual
             if (ImGui.Button("Recarregar lista") && _catalogTask?.IsCompleted == true)
                 _catalogTask = Task.Run(LoadCatalogAsync);
             bool enabled = SkinChangerService.Enabled;
-            if (ImGui.Checkbox("Manter skins selecionadas nesta sessão", ref enabled)) SkinChangerService.Enabled = enabled;
+            if (ImGui.Checkbox("Aplicar escolhas automaticamente ao equipar", ref enabled)) SkinChangerService.Enabled = enabled;
             ImGui.TextWrapped(SkinChangerService.Status);
         }
 
     }
 }
+

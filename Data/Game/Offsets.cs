@@ -45,6 +45,7 @@ namespace Mac1ota_Menu.Data.Game
         // Runtime-resolved skin fields; zero means unavailable until fetched.
         public static int m_iItemIDHigh = 0;
         public static int m_nFallbackPaintKit = 0;
+        public static int m_nFallbackStatTrak = 0;
         public static int m_nFallbackSeed = 0;
         public static int m_flFallbackWear = 0;
         public static int m_AttributeList = 0;
@@ -60,6 +61,19 @@ namespace Mac1ota_Menu.Data.Game
         public static int m_iClip1 = 0;
         public static int m_nNextPrimaryAttackTick = 0;
         public static int m_nTickBase = 0;
+        public static int m_nSubclassID = 0;
+        public static int m_EconGloves = 0;
+        public static int m_bNeedToReApplyGloves = 0;
+        public static int m_bInitialized = 0;
+        public static int m_bDisallowSOC = 0;
+        public static int m_iEntityQuality = 0;
+        public static int m_iRarityOverride = 0;
+        public static int m_szCustomNameOverride = 0;
+        public static int m_szCustomName = 0;
+        public static int m_bInitializedTags = 0;
+        public static int m_SkyTint = 0;
+        public static int m_SkyBrightness = 0;
+        public static int m_SkyDesignerName = 0;
         public static int m_AttributeManager = 0x1148;
         public static int attack = 0x184E8F0;
         public static int jump = 0x1850DF0;

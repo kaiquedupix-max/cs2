@@ -246,6 +246,8 @@ if (!LoaderForm.ShowLogin())
     return;
 }
 
+SkinChangerService.Start();
+
 if (!ProductSelectionForm.ShowSelection())
 {
     ClientPortalApi.Clear();

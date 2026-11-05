@@ -96,6 +96,7 @@ namespace Mac1ota_Menu.Classes
             { "m_iItemDefinitionIndex", new() { new Offset("m_iItemDefinitionIndex", "C_EconItemView") } },
             { "m_iItemIDHigh", new() { new Offset("m_iItemIDHigh", "C_EconItemView") } },
             { "m_nFallbackPaintKit", new() { new Offset("m_nFallbackPaintKit", "C_EconEntity") } },
+            { "m_nFallbackStatTrak", new() { new Offset("m_nFallbackStatTrak", "C_EconEntity") } },
             { "m_nFallbackSeed", new() { new Offset("m_nFallbackSeed", "C_EconEntity") } },
             { "m_flFallbackWear", new() { new Offset("m_flFallbackWear", "C_EconEntity") } },
             { "m_AttributeList", new() { new Offset("m_AttributeList", "C_EconItemView") } },
@@ -111,6 +112,18 @@ namespace Mac1ota_Menu.Classes
             { "m_iClip1", new() { new Offset("m_iClip1", "C_BasePlayerWeapon") } },
             { "m_nNextPrimaryAttackTick", new() { new Offset("m_nNextPrimaryAttackTick", "C_BasePlayerWeapon") } },
             { "m_nTickBase", new() { new Offset("m_nTickBase", "CBasePlayerController") } },
+            { "m_nSubclassID", new() { new Offset("m_nSubclassID", "C_BaseEntity") } },
+            { "m_EconGloves", new() { new Offset("m_EconGloves", "C_CSPlayerPawn") } },
+            { "m_bNeedToReApplyGloves", new() { new Offset("m_bNeedToReApplyGloves", "C_CSPlayerPawn") } },
+            { "m_bInitialized", new() { new Offset("m_bInitialized", "C_EconItemView") } },
+            { "m_bDisallowSOC", new() { new Offset("m_bDisallowSOC", "C_EconItemView") } },
+            { "m_iEntityQuality", new() { new Offset("m_iEntityQuality", "C_EconItemView") } },
+            { "m_iRarityOverride", new() { new Offset("m_iRarityOverride", "C_EconItemView") } },
+            { "m_szCustomNameOverride", new() { new Offset("m_szCustomNameOverride", "C_EconItemView") } },
+            { "m_bInitializedTags", new() { new Offset("m_bInitializedTags", "C_EconItemView") } },
+            { "m_SkyTint", new() { new Offset("m_vTintColor", "C_EnvSky") } },
+            { "m_SkyBrightness", new() { new Offset("m_flBrightnessScale", "C_EnvSky") } },
+            { "m_SkyDesignerName", new() { new Offset("m_designerName", "CEntityIdentity") } },
             { "m_bSpottedByMask", new() { new Offset("m_bSpottedByMask") } },
             { "m_pWeaponServices", new() { new Offset("m_pWeaponServices") } },
             { "m_hActiveWeapon", new() { new Offset("m_hActiveWeapon") } },
@@ -165,7 +178,7 @@ namespace Mac1ota_Menu.Classes
             { "m_pObserverServices", new() { new Offset("m_pObserverServices") } },
             { "m_hObserverTarget", new() { new Offset("m_hObserverTarget") } },
             { "m_hPawn", new() { new Offset("m_hPawn") } },
-            { "m_szCustomName", new() { new Offset("m_szCustomName") } },
+            { "m_szCustomName", new() { new Offset("m_szCustomName", "C_EconItemView") } },
             { "m_pAimPunchServices", new() { new Offset("m_pAimPunchServices") } },
             { "m_predictableBaseAngle", new() { new Offset("m_predictableBaseAngle") } },
             { "m_predictableBaseAngleVel", new() { new Offset("m_predictableBaseAngleVel") } },
@@ -430,7 +443,10 @@ namespace Mac1ota_Menu.Classes
                             if (fieldName is "m_AttributeList" or "m_Attributes" or "m_hHudModelArms" or
                                 "m_pChild" or "m_pNextSibling" or "m_pOwner" or "m_MeshGroupMask" or
                                 "m_iAttributeDefinitionIndex" or "m_flValue" or "m_flInitialValue" or
-                                "m_iClip1" or "m_nNextPrimaryAttackTick" or "m_nTickBase")
+                                "m_iClip1" or "m_nNextPrimaryAttackTick" or "m_nTickBase" or
+                                "m_nSubclassID" or "m_EconGloves" or "m_bNeedToReApplyGloves" or "m_bInitialized" or
+                                "m_bDisallowSOC" or "m_iEntityQuality" or "m_iRarityOverride" or "m_szCustomNameOverride" or
+                                "m_bInitializedTags" or "m_SkyTint" or "m_SkyBrightness" or "m_SkyDesignerName" or "m_szCustomName" or "m_nFallbackStatTrak")
                             {
                                 var block = Regex.Match(ClientDllContent,
                                     $@"public\s+static\s+class\s+{Regex.Escape(source.ClassName)}\s*\{{([\s\S]*?)\}}");

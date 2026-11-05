@@ -18,6 +18,21 @@ static void Throws<T>(Action action) where T : Exception
 }
 
 byte[] attributes = SkinMaterialData.Attributes(344, 42, 0.125f);
+Check(CosmeticModels.KnifePath(507) == "weapons/models/knife/knife_karambit/weapon_knife_karambit.vmdl", "Karambit model path");
+Throws<ArgumentException>(() => CosmeticModels.KnifePath(7));
+Check(CosmeticModels.Rarity("Covert") == 6 && CosmeticModels.Rarity("Restricted") == 4, "HUD rarity mapping");
+var nameBytes = CosmeticModels.NameBytes(string.Concat(Enumerable.Repeat("皮肤", 100)));
+Check(nameBytes.Length == 161 && nameBytes[160] == 0, "Bounded HUD name");
+_ = new System.Text.UTF8Encoding(false, true).GetString(nameBytes.AsSpan(0, Array.IndexOf(nameBytes, (byte)0)));
+var firstChoice = new Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choice(7, 0, 474, 1, .01f, false, "AK-47 | Aquamarine Revenge", 6, true, 123);
+Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Set(firstChoice);
+var snapshot = Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choices;
+Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Set(firstChoice with { Paint = 801 });
+Check(snapshot[0].Paint == 474 && Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choices.Count == 1, "Immutable snapshot and weapon replacement");
+string profileJson = System.Text.Json.JsonSerializer.Serialize(Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choices);
+var restored = System.Text.Json.JsonSerializer.Deserialize<List<Mac1ota_Menu.Modules.Visual.CosmeticLoadout.Choice>>(profileJson)!;
+Check(restored[0].StatTrak && restored[0].Counter == 123 && restored[0].Paint == 801, "Cosmetic profile round trip");
+Console.WriteLine("PASS: bounded UTF-8 names, knife metadata, rarity, loadout replacement and profile round trip.");
 Check(attributes.Length == 216, "Native attribute array size");
 for (int i = 0; i < 3; i++)
 {

@@ -31,7 +31,6 @@ internal class Sections
         {
             new("Geral", 0, () =>
             {
-                RenderBoolSettingWithWarning("Pulo automático", "Bhop.Enabled", () => Bhop.BhopEnable, v => Bhop.BhopEnable = v);
                 RenderBoolSetting("Som de acerto", "HitStuff.Enabled", () => HitStuff.EnableHitSounds, v => HitStuff.EnableHitSounds = v);
                 RenderFloatSlider("Volume dos acertos", "HitStuff.Volume", ref HitStuff.Volume, 0, 1);
                 RenderIntCombo("Som selecionado", "HitStuff.CurrentHitSound", ref HitStuff.CurrentHitSound, HitStuff.HitSoundDisplays, HitStuff.HitSounds.Count, true);
@@ -97,6 +96,16 @@ internal class Sections
                 RenderBoolSetting("Disparar somente no chão", "Rage.Grounded", () => Rage.FireOnlyGrounded, v => Rage.FireOnlyGrounded = v);
                 RenderBoolSetting("Disparar somente parado", "Rage.Still", () => Rage.FireOnlyStill, v => Rage.FireOnlyStill = v);
                 if (Rage.FireOnlyStill) RenderFloatSlider("Velocidade máxima", "Rage.Speed", ref Rage.MaxFireSpeed, 0, 250, "%.0f");
+            }),
+            new("Movimentação", 8, () =>
+            {
+                RenderBoolSetting("Auto Bhop", "Bhop.Enabled", () => Bhop.BhopEnable, v => Bhop.BhopEnable = v);
+                ImGui.TextWrapped("Segure Espaço para repetir o salto ao tocar o chão. A direção continua sob seu controle.");
+            }),
+            new("Ambiente", 8, () =>
+            {
+                RenderBoolSetting("Céu preto", "WorldVisuals.BlackSky", () => WorldVisuals.BlackSky, v => WorldVisuals.BlackSky = v);
+                ImGui.TextWrapped(WorldVisuals.Status);
             }),
             new("Controle de recuo", 1, () =>
             {

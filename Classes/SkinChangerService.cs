@@ -1,30 +1,52 @@
 using Mac1ota_Menu.Data.Game;
+using Mac1ota_Menu.Modules.Visual;
 
 namespace Mac1ota_Menu.Classes;
 
 internal static class SkinChangerService
 {
-    private sealed record Selection(ushort Weapon, int Paint, int Seed, float Wear, bool Legacy, long Revision);
+    private sealed record Selection(ushort Weapon, int Paint, int Seed, float Wear, bool Legacy, long Revision, string Name, int Rarity, bool StatTrak, int Counter);
     private static readonly object Gate = new();
     private static readonly Dictionary<ushort, Selection> Selections = new();
     private static Task? worker;
+    private static Selection? knifeSelection, gloveSelection;
     private static long revision;
     private static int blockedProcess;
     private static volatile string status = "Escolha uma skin e clique em Aplicar.";
     internal static string Status => status;
-    internal static volatile bool Enabled = true;
+    internal static bool Enabled { get => CosmeticLoadout.Automatic; set => CosmeticLoadout.Automatic = value; }
+    private static List<CosmeticLoadout.Choice>? synchronizedChoices;
+    internal static void Start() { lock (Gate) worker ??= Task.Run(RunAsync); }
 
-    internal static void Select(ushort weapon, int paint, int seed, float wear, bool legacy)
+    internal static void Select(ushort weapon, int paint, int seed, float wear, bool legacy, string name = "", int rarity = 0, int category = 0,
+        bool statTrak = false, int counter = 0)
     {
         if (blockedProcess != 0 && blockedProcess == Renderer.CS2ProcessId)
             throw new InvalidOperationException("Reinicie o CS2 após o tempo limite de materiais.");
         _ = SkinMaterialData.Attributes(paint, seed, wear);
+        CosmeticLoadout.Set(new(weapon, category, paint, seed, wear, legacy, name, rarity, statTrak, counter));
+        Enabled = true;
+        status = "Escolha preparada. Será aplicada ao equipar; salve o perfil para reutilizar.";
+        Start();
+    }
+
+    private static void Synchronize()
+    {
+        var choices = CosmeticLoadout.Choices;
+        if (ReferenceEquals(choices, synchronizedChoices)) return;
         lock (Gate)
         {
-            Selections[weapon] = new(weapon, paint, seed, wear, legacy, ++revision);
-            Enabled = true;
-            status = "Seleção salva nesta sessão. Aguardando a arma equipada...";
-            worker ??= Task.Run(RunAsync);
+            Selections.Clear(); knifeSelection = gloveSelection = null;
+            foreach (var c in (choices ?? new()).Take(128))
+            {
+                if (c == null || c.Definition == 0 || c.Paint <= 0 || c.Seed is < 0 or > 1000 ||
+                    !float.IsFinite(c.Wear) || c.Wear is < 0 or > 1 || c.Counter < 0 || c.Category is < 0 or > 2) continue;
+                var selection = new Selection(c.Definition, c.Paint, c.Seed, c.Wear, c.Legacy, ++revision, c.Name, c.Rarity, c.StatTrak, c.Counter);
+                if (c.Category == 1) knifeSelection = selection;
+                else if (c.Category == 2) gloveSelection = selection;
+                else Selections[c.Definition] = selection;
+            }
+            synchronizedChoices = choices;
         }
     }
 
@@ -34,16 +56,19 @@ internal static class SkinChangerService
         int pid = 0;
         nint client = 0;
         (nint Pawn, uint Handle, nint Weapon, long Revision)? lastAttempt = null;
+        (nint Pawn, long Revision)? lastGloves = null;
+        long failedGloves = 0;
         try
         {
             while (true)
             {
                 await Task.Delay(300);
-                if (!Enabled) { lastAttempt = null; continue; }
+                Synchronize();
+                if (!Enabled || (Selections.Count == 0 && knifeSelection == null && gloveSelection == null)) { lastAttempt = null; continue; }
                 try
                 {
                     int currentPid = Renderer.CS2ProcessId;
-                    if (GameState.client == 0 || currentPid == 0 || !GameState.IsConnectedToCS2())
+                    if (!OffsetGetter.Updated || GameState.EntityList == 0 || GameState.client == 0 || currentPid == 0 || !GameState.IsConnectedToCS2())
                     {
                         session?.Dispose(); session = null;
                         lastAttempt = null;
@@ -56,12 +81,29 @@ internal static class SkinChangerService
                         session?.Dispose(); session = null;
                         pid = currentPid; client = GameState.client;
                         lastAttempt = null;
+                        lastGloves = null;
+                        failedGloves = 0;
                         ValidateOffsets();
                         session = new(pid, client);
                         session.ResolveRegenerator();
                     }
                     nint pawn = session.Read<nint>(client + Offsets.dwLocalPlayerPawn);
                     if (pawn == 0 || session.Read<int>(pawn + Offsets.m_iHealth) <= 0) continue;
+                    Selection? gloves;
+                    lock (Gate) gloves = gloveSelection;
+                    if (gloves != null && failedGloves != gloves.Revision && (lastGloves != (pawn, gloves.Revision) ||
+                        !session.GlovesMatch(pawn, gloves.Weapon, gloves.Paint, gloves.Seed, gloves.Wear)))
+                    {
+                        try {
+                            session.ApplyGloves(pawn, gloves.Weapon, gloves.Paint, gloves.Seed, gloves.Wear);
+                            lastGloves = (pawn, gloves.Revision);
+                            status = "Luvas enviadas ao jogo. Confira o modelo e a textura.";
+                        }
+                        catch (Exception ex) when (!session.TimedOut) {
+                            failedGloves = gloves.Revision;
+                            status = "Luvas: " + ex.Message;
+                        }
+                    }
                     nint services = session.Read<nint>(pawn + Offsets.m_pWeaponServices);
                     if (services == 0) continue;
                     uint handle = session.Read<uint>(services + Offsets.m_hActiveWeapon);
@@ -70,15 +112,28 @@ internal static class SkinChangerService
                     if (weapon == 0) continue;
                     ushort definition = session.Read<ushort>(weapon + Offsets.m_AttributeManager + Offsets.m_Item + Offsets.m_iItemDefinitionIndex);
                     Selection? selected;
-                    lock (Gate) Selections.TryGetValue(definition, out selected);
+                    lock (Gate)
+                    {
+                        if (CosmeticModels.IsKnife(definition)) selected = knifeSelection;
+                        else Selections.TryGetValue(definition, out selected);
+                    }
                     if (selected == null) continue;
+                    if (!session.ModelsReady(pawn, list, weapon)) continue;
                     var attempt = (pawn, handle, weapon, selected.Revision);
                     if (lastAttempt == attempt &&
+                        (!CosmeticModels.IsKnife(definition) || definition == selected.Weapon) &&
                         session.Read<int>(weapon + Offsets.m_nFallbackPaintKit) == selected.Paint &&
                         session.Read<int>(weapon + Offsets.m_nFallbackSeed) == selected.Seed &&
                         System.Math.Abs(session.Read<float>(weapon + Offsets.m_flFallbackWear) - selected.Wear) < .001f) continue;
                     lastAttempt = attempt;
                     status = "Reconstruindo os materiais da arma...";
+                    if (CosmeticModels.IsKnife(definition))
+                    {
+                        session.ChangeKnife(pawn, list, handle, selected.Weapon);
+                        definition = selected.Weapon;
+                    }
+                    session.SetStatTrak(weapon, selected.StatTrak, selected.Counter, CosmeticModels.IsKnife(definition));
+                    session.SetHudName(weapon, (selected.StatTrak ? "StatTrak™ " : "") + selected.Name, selected.Rarity);
                     int materials = session.Apply(pawn, list, handle, definition, selected.Paint, selected.Seed, selected.Wear, selected.Legacy);
                     status = $"O jogo gerou {materials} material(is) para o paint kit #{selected.Paint}. Textura visual ainda não confirmada.";
                 }
@@ -87,7 +142,7 @@ internal static class SkinChangerService
                     status = ex.Message;
                     // Never repeatedly call a changed/failed engine routine in one process.
                     if (session?.TimedOut == true) blockedProcess = pid;
-                    session?.Dispose(); session = null;
+                    if (session?.TimedOut == true) { session.Dispose(); session = null; }
                     Enabled = false;
                 }
             }

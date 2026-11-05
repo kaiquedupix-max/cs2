@@ -110,6 +110,7 @@ namespace Mac1ota_Menu.Classes
                     ApplyRoundedRegion();
 
                     await RefreshAccountAsync();
+                    ShowDisplayNotice();
                 };
 
             Resize +=
@@ -578,6 +579,9 @@ namespace Mac1ota_Menu.Classes
                 async (_, _) =>
                     await RefreshAccountAsync();
 
+            var cosmetics = new Button { Parent = _panel, Text = "SKINS E CONFIGURAÇÕES" };
+            StyleSecondaryButton(cosmetics, new Point(45, 584), new Size(504, 40));
+            cosmetics.Click += (_, _) => { using var form = new CosmeticLoadoutForm(); form.ShowDialog(this); };
             var note =
                 MakeLabel(
                     "Após comprar no site, clique em ATUALIZAR para sincronizar.",
@@ -585,7 +589,7 @@ namespace Mac1ota_Menu.Classes
                     FontStyle.Regular,
                     TextSecondary,
                     45,
-                    600);
+                    640);
 
             note.Parent =
                 _panel;
@@ -810,8 +814,16 @@ namespace Mac1ota_Menu.Classes
                 !account.Product.HasAccess;
         }
 
+        private void ShowDisplayNotice()
+        {
+            string warning = AimTheme.Intensity >= .75f || Mac1ota_Menu.Modules.Combat.Rage.Enabled ? "\n\n" + AimTheme.Warning : "";
+            MessageBox.Show(this, "Para o overlay funcionar, configure o CS2 em Tela cheia em janela." + warning,
+                "Modo de exibição do CS2", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         private async Task StartProductAsync()
         {
+            ShowDisplayNotice();
             _start.Enabled =
                 false;
 

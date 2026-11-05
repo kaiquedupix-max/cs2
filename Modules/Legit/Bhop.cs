@@ -1,66 +1,30 @@
 using Mac1ota_Menu.Classes;
 using Mac1ota_Menu.Data.Game;
-using static Mac1ota_Menu.Data.Game.GameState;
-
-namespace Mac1ota_Menu.Modules.Legit
+namespace Mac1ota_Menu.Modules.Legit;
+public class Bhop : ThreadService, IModule
 {
-    public class Bhop : Classes.ThreadService, IModule // TODO make it use the jump action, i tried wouldnt work well
+    public static bool BhopEnable = false;
+    private bool pressed;
+    private nint lastAddress;
+    protected override void FrameAction()
     {
-        public static bool BhopEnable = false;
-        public static float Chance = 100;
-        public static int minDelay = 25;
-        public static int maxDelay = 35;
-        public static int HopKey = 0x20; // space
-        private static Random random = new();
-
-        public static void AutoBhop()
+        Thread.Sleep(3);
+        var mem = GameState.memory;
+        if (mem == null) return;
+        bool active = BhopEnable && !Renderer.DrawWindow && OffsetGetter.Updated &&
+            Offsets.jump > 0 && GameState.client != 0 &&
+            User32.IsWindowFocused(Renderer.CS2ProcessId) &&
+            (User32.GetAsyncKeyState(0x20) & 0x8000) != 0 &&
+            GameState.LocalPlayer is { Health: > 0, IsBuyMenuOpen: false };
+        nint address = GameState.client + Offsets.jump;
+        if (!active)
         {
-            //int now = GlobalVar.GetTickCount();
-
-            if ((User32.GetAsyncKeyState(HopKey) & 0x8000) == 0 || GameState.memory == null)
-                return;
-
-            //if (now - lastJumped < random.Next(minDelay, maxDelay))
-            //    return;
-
-            //if (((int)Fflag & (int)FFlag.FFlagStates.OnGround) == 0)
-            //{
-            //    return;
-            //}
-
-            if (Fflag == 65665 || Fflag == 65667)
-            {
-                //Console.WriteLine(Fflag);
-                GameState.memory.WriteInt(GameState.client + Offsets.jump, 65537); // write the value to ForceJump to make the player jump
-                Thread.Sleep(2); // sleep 
-            }
-            else
-            {
-                GameState.memory.WriteInt(GameState.client + Offsets.jump, 256); // unfoprce the jump
-                Thread.Sleep(2); //sleep
-            }
-            //lastJumped = now;
-
-            //var inputs = new User32.INPUT[2];
-            //inputs[0].type = User32.INPUT_KEYBOARD;
-            //inputs[0].U.ki.wVk = User32.VK_SPACE;
-            //inputs[0].U.ki.wScan = 0x39;
-            //inputs[1].U.ki.dwFlags = User32.KEYEVENTF_KEYDOWN;
-            //inputs[0].U.ki.time = 0;
-            //inputs[0].U.ki.dwExtraInfo = 0;
-            //inputs[1] = inputs[0];
-            //inputs[1].U.ki.dwFlags =User32.KEYEVENTF_KEYUP;
-            ////Console.WriteLine(now);
-            //User32.SendInput(2, inputs, Marshal.SizeOf<User32.INPUT>());
+            if (pressed && address == lastAddress) mem.TryWrite(address, 256);
+            pressed = false;
+            return;
         }
-        protected override void FrameAction()
-        {
-            if (!BhopEnable || GameState.memory == null || GameState.LocalPlayer == null || GameState.LocalPlayer.PawnAddress == IntPtr.Zero)
-                return;
-
-            GameState.Fflag = GameState.memory.ReadUInt(GameState.LocalPlayer.PawnAddress, Offsets.m_fFlags);
-            AutoBhop();
-        }
+        if (!mem.TryRead(GameState.LocalPlayer!.PawnAddress + Offsets.m_fFlags, out uint flags)) return;
+        bool next = (flags & 1) != 0 && !pressed;
+        if (mem.TryWrite(address, next ? 65537 : 256)) { pressed = next; lastAddress = address; }
     }
 }
-

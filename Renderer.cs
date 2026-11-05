@@ -394,6 +394,9 @@ namespace Mac1ota_Menu
 
             var windowPrimaryColor = MenuColors.PrimaryRGB ? Colors.Rgb(WindowAlpha) : MenuColors.PrimaryColor;
             var windowSecondaryColor = MenuColors.SecondaryRGB ? Colors.Rgb(WindowAlpha) : MenuColors.SecondaryColor;
+            Vector4 tint = AimTheme.Accent;
+            windowPrimaryColor = Vector4.Lerp(windowPrimaryColor, new(tint.X * .14f, tint.Y * .14f, tint.Z * .14f, WindowAlpha), .65f);
+            windowSecondaryColor = Vector4.Lerp(windowSecondaryColor, new(tint.X * .16f, tint.Y * .16f, tint.Z * .16f, WindowAlpha), .65f);
 
             style.Colors[(int)ImGuiCol.Text] = new(0.84f, 0.84f, 0.84f, WindowAlpha);
             style.Colors[(int)ImGuiCol.TextDisabled] = new(0.45f, 0.45f, 0.45f, WindowAlpha);
@@ -543,9 +546,10 @@ namespace Mac1ota_Menu
 
                     RenderTabButton("\uF53B", "Geral", 0);
                     RenderTabButton("\uF15E", "Visuais", 2);
-                    RenderTabButton("\uF1BC", "Mira", 1);
-                    RenderTabButton("\uF0E7", "Rage", 6);
+                    RenderTabButton("\uF1BC", "Mira Legit", 1);
+                    RenderTabButton("\uF0E7", "Mira Rage", 6);
                     RenderTabButton("\uF1B9", "Skin Changer", 7);
+                    RenderTabButton("\uF013", "Misc", 8);
                     RenderTabButton("\uF35A", "Perfis", 3);
                     RenderTabButton("\uF0C0", "Comunidade", 5);
                     RenderTabButton("\uF3DC", "Ajustes", 4);
@@ -603,23 +607,27 @@ namespace Mac1ota_Menu
                         new[]
                         {
                             "Geral",
-                            "Mira",
+                            "Mira Legit",
                             "Visuais",
                             "Perfis",
                             "Ajustes",
                             "Configs da comunidade",
-                            "Rage",
-                            "Skin Changer"
+                            "Mira Rage",
+                            "Skin Changer",
+                            "Misc"
                         }[_selectedTab]);
                     ImGui.SameLine();
                     ImGui.TextDisabled(" / legitbaratinho.xyz");
                     ImGui.Separator();
+                    if (AimTheme.Intensity >= .75f || Rage.Enabled)
+                        ImGui.TextWrapped(AimTheme.Warning);
                     switch (_selectedTab)
                     {
                         case 0:
                         case 1:
                         case 2:
                         case 6:
+                        case 8:
                             ImGui.Dummy(new Vector2(0, 4));
                             float availW = ImGui.GetContentRegionAvail().X;
                             float sectionW = (availW - ImGui.GetStyle().ItemSpacing.X) / 2f - 4f;
@@ -900,10 +908,32 @@ namespace Mac1ota_Menu
                     ImGui.ColorConvertFloat4ToU32(new Vector4(0.12f, 0.25f, 0.22f, selected ? 1f : 0.5f)), 8f);
             if (selected)
                 draw.AddRectFilled(pos + new Vector2(8, 12), pos + new Vector2(11, 34), ImGui.ColorConvertFloat4ToU32(TextCol), 2f);
-            bool hasFont = IsIconFontLoaded;
+            bool vectorIcon = tabIndex is 5 or 6 or 7 or 8;
+            if (vectorIcon)
+            {
+                Vector2 c = pos + new Vector2(29, size.Y / 2);
+                uint color = ImGui.ColorConvertFloat4ToU32(selected ? AimTheme.Accent : new Vector4(.6f, .7f, .7f, 1));
+                if (tabIndex == 6) {
+                    draw.AddCircle(c, 7, color, 20, 1.5f);
+                    draw.AddLine(c - new Vector2(11, 0), c + new Vector2(11, 0), color, 1.5f);
+                    draw.AddLine(c - new Vector2(0, 11), c + new Vector2(0, 11), color, 1.5f);
+                } else if (tabIndex == 7) {
+                    draw.AddQuad(c + new Vector2(-9, -4), c + new Vector2(5, -8), c + new Vector2(10, 3), c + new Vector2(-4, 9), color, 1.5f);
+                    draw.AddCircleFilled(c + new Vector2(4, -3), 2, color);
+                } else if (tabIndex == 5) {
+                    draw.AddCircle(c + new Vector2(-4, -4), 4, color, 16, 1.5f);
+                    draw.AddCircle(c + new Vector2(6, -2), 3, color, 16, 1.5f);
+                    draw.AddLine(c + new Vector2(-10, 8), c + new Vector2(-10, 3), color, 1.5f);
+                    draw.AddLine(c + new Vector2(-10, 3), c + new Vector2(3, 3), color, 1.5f);
+                    draw.AddLine(c + new Vector2(3, 3), c + new Vector2(8, 8), color, 1.5f);
+                } else {
+                    for (int j = 0; j < 3; j++) { float y = j * 7 - 7; draw.AddLine(c + new Vector2(-9, y), c + new Vector2(9, y), color, 1.5f); draw.AddCircleFilled(c + new Vector2(j == 1 ? -4 : 4, y), 3, color); }
+                }
+            }
+            bool hasFont = !vectorIcon && IsIconFontLoaded;
             if (hasFont) ImGui.PushFont(IconFont);
             var iconSize = ImGui.CalcTextSize(icon);
-            draw.AddText(pos + new Vector2(20, (size.Y - iconSize.Y) / 2), ImGui.ColorConvertFloat4ToU32(selected ? TextCol : new Vector4(0.6f, 0.7f, 0.7f, 1f)), icon);
+            if (!vectorIcon) draw.AddText(pos + new Vector2(20, (size.Y - iconSize.Y) / 2), ImGui.ColorConvertFloat4ToU32(selected ? TextCol : new Vector4(0.6f, 0.7f, 0.7f, 1f)), icon);
             if (hasFont) ImGui.PopFont();
             var textSize = ImGui.CalcTextSize(label);
             draw.AddText(pos + new Vector2(54, (size.Y - textSize.Y) / 2), ImGui.GetColorU32(ImGuiCol.Text), label);
