@@ -544,6 +544,7 @@ namespace Mac1ota_Menu
                     RenderTabButton("\uF53B", "Geral", 0);
                     RenderTabButton("\uF15E", "Visuais", 2);
                     RenderTabButton("\uF1BC", "Mira", 1);
+                    RenderTabButton("\uF0E7", "Rage", 6);
                     RenderTabButton("\uF35A", "Perfis", 3);
                     RenderTabButton("\uF0C0", "Comunidade", 5);
                     RenderTabButton("\uF3DC", "Ajustes", 4);
@@ -605,7 +606,8 @@ namespace Mac1ota_Menu
                             "Visuais",
                             "Perfis",
                             "Ajustes",
-                            "Configs da comunidade"
+                            "Configs da comunidade",
+                            "Rage"
                         }[_selectedTab]);
                     ImGui.SameLine();
                     ImGui.TextDisabled(" / legitbaratinho.xyz");
@@ -615,6 +617,7 @@ namespace Mac1ota_Menu
                         case 0:
                         case 1:
                         case 2:
+                        case 6:
                             ImGui.Dummy(new Vector2(0, 4));
                             float availW = ImGui.GetContentRegionAvail().X;
                             float sectionW = (availW - ImGui.GetStyle().ItemSpacing.X) / 2f - 4f;
