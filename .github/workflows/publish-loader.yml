@@ -49,6 +49,7 @@ jobs:
           -p:DebugType=None
           -p:DebugSymbols=false
           -p:AssemblyName="legitbaratinho.xyz"
+          -p:LegitPreviewBuild=false
           -o publish
 
       - name: Verify executable
@@ -82,8 +83,7 @@ jobs:
           PORTAL_URL: https://legitbaratinho.xyz
         run: |
           if ([string]::IsNullOrWhiteSpace($env:LOADER_ADMIN_PASSWORD)) {
-            Write-Warning "Repository secret LOADER_ADMIN_PASSWORD is not configured; skipping production publication."
-            exit 0
+            throw "Repository secret LOADER_ADMIN_PASSWORD is required for automatic production publication."
           }
 
           $loginBody = @{ password = $env:LOADER_ADMIN_PASSWORD } | ConvertTo-Json -Compress
