@@ -3,19 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#050907">
-  <title>legitbaratinho.xyz · CS2 brasileiro, completo e acessível</title>
-  <meta name="description" content="Projeto brasileiro para CS2 com painel integrado, loader, planos acessíveis, ativação automática, Mercado Pago e suporte direto pelo site.">
+  <meta name="theme-color" content="#0a0911">
+  <title>Legit Baratinho — Produtos para CS2 e Counter-Frame</title>
+  <meta name="description" content="Conheça a Legit Baratinho: produtos para CS2 e novidades de Counter-Frame, com conta integrada, planos acessíveis e suporte direto.">
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260923-free-trial">
   <link rel="stylesheet" href="/styles.css?v=20260923-free-trial">
+  <link rel="stylesheet" href="/storefront.css?v=20261109-redesign">
 </head>
-<body>
+<body class="storefront">
+  <a class="skip-link" href="#inicio">Pular para o conteúdo</a>
   <div class="cursor-glow" id="cursorGlow"></div>
   <div class="noise"></div>
   <div class="orb orb-one"></div>
   <div class="orb orb-two"></div>
 
   <header class="topbar">
+    <div class="announcement"><span class="announcement-spark" aria-hidden="true"></span> LEGIT BARATINHO <span class="announcement-separator">/</span> PLATAFORMA BRASILEIRA DE PRODUTOS DIGITAIS</div>
     <div class="shell nav">
       <a class="brand" href="/">
         <img class="brand-icon" src="/brand-icon.svg?v=20260923-free-trial" alt="">
@@ -23,10 +26,11 @@
       </a>
       <nav>
         <a href="#inicio">Início</a>
+        <a href="#produtos">Produtos</a>
         <a href="#recursos">Recursos</a>
-        <a href="#beneficios">Por que escolher</a>
         <a href="#softwares">Planos</a>
-        <a href="#faq">FAQ</a>
+        <a href="#processo">Como funciona</a>
+        <a href="#faq">Dúvidas</a>
       </nav>
       <a class="button button-small button-outline" href="/account">Minha conta</a>
     </div>
@@ -36,20 +40,19 @@
     <section id="inicio" class="hero shell">
       <div class="hero-badge reveal">
         <span class="pulse-dot"></span>
-        PROJETO BRASILEIRO • SUPORTE DIRETO
+        SUA NOVA CENTRAL DE PRODUTOS
       </div>
 
-      <h1 class="reveal delay-1">CS2 completo.<br><span>Preço de brasileiro.</span></h1>
+      <h1 class="reveal delay-1">Uma plataforma.<br><span>Mais jogo.</span></h1>
 
       <p class="hero-text reveal delay-2">
-        Um projeto desenvolvido no Brasil para quem quer muitos recursos, painel simples, ativação automática,
-        proteções avançadas voltadas à redução de detecção e atendimento de verdade sem pagar preço absurdo.
-        Escolha o plano, pague e acompanhe tudo em uma conta só.
+        Seu espaço para descobrir os produtos Legit Baratinho. Comece pelo CS2, acompanhe a chegada do Counter-Frame
+        e gerencie acesso, downloads e suporte em uma conta só.
       </p>
 
       <div class="hero-actions reveal delay-3">
-        <a class="button button-primary magnetic" href="/account?trial=1">Testar grátis por 1 dia <span>↗</span></a>
-        <a class="button button-dark magnetic" href="/checkout?plan=d30">Ver planos pagos</a>
+        <a class="button button-primary magnetic" href="#produtos">Explorar produtos <span aria-hidden="true">↗</span></a>
+        <a class="button button-dark magnetic" href="/account">Acessar minha conta</a>
       </div>
 
       <div class="hero-proof reveal delay-3">
@@ -57,8 +60,7 @@
         <span>⚡ Ativação automática</span>
         <span>💳 Mercado Pago</span>
         <span>💬 Suporte dentro do site</span>
-        <span>🛡️ Proteções avançadas contra detecção</span>
-        <span>✅ Sem detecção conhecida em nosso histórico até agora</span>
+        <span>🔄 Atualizações pelo painel</span>
         <span>🎁 Teste grátis de 1 dia</span>
       </div>
 
@@ -74,8 +76,8 @@
       </div>
 
       <div class="sales-banner reveal delay-4">
-        <span>🔥</span>
-        <span><b>Um único acesso.</b> Combate, legit, visual, configs, painel, loader, atualizações e camadas de proteção no mesmo projeto.</span>
+        <span aria-hidden="true">✦</span>
+        <span><b>Feito para simplificar.</b> Explore o catálogo, escolha seu plano de CS2 e acompanhe todas as informações pelo painel.</span>
       </div>
 
       <div class="hero-stage reveal delay-4">
@@ -121,6 +123,39 @@
           <span>FEITO NO BRASIL</span><i>◆</i><span>ATIVAÇÃO AUTOMÁTICA</span><i>◆</i><span>SUPORTE DIRETO</span><i>◆</i><span>MERCADO PAGO</span><i>◆</i><span>PAINEL + LOADER</span><i>◆</i><span>ATUALIZAÇÕES</span><i>◆</i>
           <span>FEITO NO BRASIL</span><i>◆</i><span>ATIVAÇÃO AUTOMÁTICA</span><i>◆</i><span>SUPORTE DIRETO</span><i>◆</i><span>MERCADO PAGO</span><i>◆</i><span>PAINEL + LOADER</span><i>◆</i><span>ATUALIZAÇÕES</span><i>◆</i>
         </div>
+      </div>
+    </section>
+
+
+    <section id="produtos" class="product-collection shell" aria-labelledby="productsTitle">
+      <div class="collection-heading reveal">
+        <div>
+          <div class="eyebrow">01 / CATÁLOGO</div>
+          <h2 id="productsTitle">Encontre seu <em>próximo produto.</em></h2>
+        </div>
+        <p>Uma central para cada jogo. Confira o que já está disponível e o que está chegando.</p>
+      </div>
+      <div class="game-grid">
+        <article class="game-card game-card-cs reveal">
+          <div class="game-card-content">
+            <div class="game-card-topline"><span class="game-label">PC / WINDOWS</span><span class="game-availability"><i aria-hidden="true"></i> DISPONÍVEL</span></div>
+            <div class="game-symbol" aria-hidden="true">CS<span>2</span></div>
+            <div class="game-card-bottom">
+              <div><span class="game-category">COUNTER-STRIKE 2</span><h3>Legit Baratinho CS2</h3><p>Planos flexíveis, painel integrado e suporte no próprio site.</p></div>
+              <a class="game-arrow" href="#softwares" aria-label="Ver planos de Counter-Strike 2">↗</a>
+            </div>
+          </div>
+        </article>
+        <article class="game-card game-card-cf reveal delay-1">
+          <div class="game-card-content">
+            <div class="game-card-topline"><span class="game-label">MOBILE</span><span class="game-coming">EM DESENVOLVIMENTO</span></div>
+            <div class="game-symbol game-symbol-cf" aria-hidden="true">CF<span>™</span></div>
+            <div class="game-card-bottom">
+              <div><span class="game-category">COUNTER-FRAME</span><h3>Counter-Frame Mobile</h3><p>Um novo produto está sendo preparado. Disponibilidade e planos serão divulgados aqui.</p></div>
+              <span class="game-arrow game-arrow-muted" aria-label="Em breve" role="img">↗</span>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -262,8 +297,8 @@
       <div class="shell">
         <div class="section-head reveal">
           <div>
-            <div class="eyebrow">ESCOLHA SEU PLANO</div>
-            <h2>Comece barato.<br>Fique pelo tempo que quiser.</h2>
+            <div class="eyebrow">02 / PLANOS CS2</div>
+            <h2>Escolha seu ritmo.<br>Sem complicação.</h2>
           </div>
           <p>Todos os planos dão acesso ao mesmo projeto. O que muda é somente o período.</p>
         </div>
@@ -299,6 +334,19 @@
           <a href="/checkout?plan=d180"><small>6 MESES</small><strong>R$ 64,90</strong><span>Para longo prazo</span></a>
           <a class="lifetime" href="/checkout?plan=lifetime"><small>LIFETIME</small><strong>R$ 100,00</strong><span>Pague uma vez</span></a>
         </div>
+      </div>
+    </section>
+
+
+    <section id="processo" class="steps-section shell" aria-labelledby="stepsTitle">
+      <div class="collection-heading reveal">
+        <div><div class="eyebrow">03 / COMO FUNCIONA</div><h2 id="stepsTitle">Da escolha ao <em>acesso.</em></h2></div>
+        <p>O processo de compra do CS2 continua o mesmo, agora em uma vitrine mais organizada.</p>
+      </div>
+      <div class="steps-grid">
+        <article class="step-card reveal"><span class="step-no">01</span><span class="step-icon" aria-hidden="true">◇</span><h3>Escolha seu plano</h3><p>Confira a duração e o valor do plano de CS2 que funciona melhor para você.</p><a href="#softwares">Ver planos ↗</a></article>
+        <article class="step-card reveal delay-1"><span class="step-no">02</span><span class="step-icon" aria-hidden="true">↗</span><h3>Finalize a compra</h3><p>O pagamento continua no checkout existente do Mercado Pago.</p><a href="/checkout?plan=d30">Ir ao checkout ↗</a></article>
+        <article class="step-card reveal delay-2"><span class="step-no">03</span><span class="step-icon" aria-hidden="true">✓</span><h3>Acompanhe na conta</h3><p>Depois da confirmação, gerencie sua assinatura e os downloads disponíveis pelo painel.</p><a href="/account">Minha conta ↗</a></article>
       </div>
     </section>
 
