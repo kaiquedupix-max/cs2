@@ -1,0 +1,80 @@
+/* Shared purple interface for existing account / checkout / admin pages.
+   Visual-only overrides; no JS identifiers, routes, prices, or form semantics changed. */
+body.account-body,body.checkout-body,body.admin-body{
+  --bg:#080510;--bg2:#0f0a1a;--panel:#140d21;--panel2:#1c112b;
+  --line:#3a2552;--line2:#674188;--green:#c158ff;--green2:#8d2be3;
+  --text:#f8f1ff;--muted:#b4a2c5;--muted2:#8a78a3;--warning:#ffd36a;
+  background:#080510;color:#f8f1ff;
+}
+body.account-body:before,body.checkout-body:before,body.admin-body:before{
+  background:radial-gradient(ellipse 55% 40% at 15% 4%,#6020af26,transparent 85%),linear-gradient(180deg,#090613,#090612 50%,#080510);
+}
+.account-body .orb,.checkout-body .orb{background:#7b2fc7;opacity:.18}
+.account-body .cursor-glow{background:radial-gradient(circle,#ad47ed1c 0,transparent 67%)}
+.account-body .topbar,.checkout-body .topbar{background:#0c0716e8;border-bottom:1px solid #3a2552}
+.account-body .brand-icon,.checkout-body .brand-icon,.admin-body .brand-icon{filter:hue-rotate(126deg) saturate(1.8) drop-shadow(0 0 13px #9e44ee66)}
+.account-body .brand-copy small,.checkout-body .brand-copy small{color:#c059ff}
+.account-body .button-primary,.checkout-body .button-primary,.admin-body .button.primary,.admin-body .primary{
+  background:linear-gradient(115deg,#b843fa,#8126d7);color:#fff;border:1px solid #a351d5;box-shadow:0 13px 38px #842add35
+}
+.account-body .button-outline,.checkout-body .button-outline,.admin-body .button.ghost{background:#20112d;border:1px solid #533371;color:#f1dcff}
+.account-body .hero-badge,.checkout-body .hero-badge{background:#261537;border:1px solid #613a88;color:#dfb6f5}
+.account-body .pulse-dot{background:#c360fa;box-shadow:0 0 15px #c360fa}
+.account-body .auth-copy h1 span{background:linear-gradient(110deg,#f4ddff,#bf4dff 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.account-body .auth-copy>p,.checkout-body .checkout-heading p{color:#b4a2c4}
+.account-body .auth-points b,.checkout-body .eyebrow{color:#c568fc}
+.account-body .auth-card,.account-body .account-metrics article,.account-body .account-product-card,.account-body .account-side-card,.account-body .download-panel,
+.checkout-body .checkout-card,.checkout-body .checkout-summary,.admin-body .admin-card{
+  border:1px solid #4c2e65;background:linear-gradient(145deg,#1b1029,#100b1b);box-shadow:0 25px 75px #0003
+}
+.account-body .auth-tabs,.checkout-body .checkout-account-tabs{background:#0d0816}
+.account-body .auth-tabs button.active,.checkout-body .checkout-account-tabs button.active{background:#432261;color:#ebc9ff;box-shadow:inset 0 0 0 1px #65418b}
+.account-body .auth-tabs button,.checkout-body .checkout-account-tabs button{color:#b096c5}
+.account-body .auth-form small,.checkout-body .checkout-section-title small,.admin-body .section-label{color:#bb85e5}
+.account-body .auth-form label,.checkout-body .checkout-fields label,.admin-body .admin-card label{color:#c1afd0}
+.account-body .auth-form input,.checkout-body .checkout-fields input,.admin-body .admin-card input,.admin-body .admin-card select,.admin-body .admin-card textarea{
+  background:#0b0713;color:#f7eaff;border:1px solid #563473
+}
+.account-body .auth-form input:focus,.checkout-body .checkout-fields input:focus,.admin-body .admin-card input:focus,.admin-body .admin-card select:focus,.admin-body .admin-card textarea:focus{
+  outline:2px solid #8532bf;outline-offset:1px;border-color:#bf5bf3;box-shadow:0 0 0 3px #a53ded20
+}
+.account-body .account-metrics small,.account-body .subscription-line,.account-body .credential-box small,.account-body .account-side-card p{color:#aa94be}
+.account-body .account-metrics strong,.account-body .account-product-copy h2{color:#f4e9ff}
+.account-body .access-badge.active,.account-body .purchase-notice{background:#35174c;color:#d7a3ff;border:1px solid #69388b}
+.account-body .download-icon-wrap{background:radial-gradient(circle at 35% 30%,#5b2b86,#130c1e);border-color:#623981}
+.account-body .download-actions .button{border-color:#8151a4}
+.account-body .download-copy p,.account-body .download-meta,.account-body .free-trial-hint{color:#ab94bc}
+.checkout-body .checkout-heading h1{color:#f8efff}
+.checkout-body .checkout-section-title span{color:#d48aff;background:#371c51;border-color:#693a8e}
+.checkout-body .checkout-plan-card{background:#180d26;border-color:#50316c;color:#eddafb}
+.checkout-body .checkout-plan-card.active,.checkout-body .checkout-plan-card.selected{border-color:#bb58fa;background:#2f154b}
+.checkout-body .checkout-account-box,.checkout-body .checkout-account-logged,.checkout-body .checkout-account-note,.checkout-body .checkout-flow-note{
+  background:linear-gradient(145deg,#251232,#130a1e);border-color:#573173;color:#bca7ce
+}
+.checkout-body .checkout-account-tabs button.active{color:#ebc8ff}
+.checkout-body .checkout-account-logged>span{background:#a444e8;color:#fff}
+.checkout-body .checkout-pay,.checkout-body .checkout-security{border-color:#4c2c66}
+.checkout-body .checkout-security span,.checkout-body .checkout-summary small{color:#aa97bf}
+.admin-body .admin-shell>.brand{color:#f8efff}
+.admin-body .admin-card h1,.admin-body .admin-card h2{color:#f7ebff}
+.admin-body .button.ghost,.admin-body .ghost{color:#e7caff;background:#21122f;border-color:#553572}
+.admin-body .new-key,.admin-body .current-release{background:#2a153c;border-color:#603785;color:#e1adff}
+.admin-body .current-release strong{color:#d781ff}
+.admin-body th{color:#c19cd8;border-color:#3b264f}
+.admin-body td{color:#c5afd4;border-color:#2b1b3b}
+.admin-body .tag.ok{background:#311c45;color:#d7a0ff}
+.admin-body .admin-client-toolbar input{background:#0d0817;border-color:#523270;color:#fff}
+.admin-body .support-conversation-item.active{box-shadow:inset 3px 0 #ae46ee}
+.admin-body .admin-support-layout{border-color:#4e2c6a}
+.admin-body .admin-support-list,.admin-body .admin-support-chat{background:#140c20;border-color:#4e2c6a}
+.admin-body .admin-support-message.admin{background:#9a36db;color:#fff}
+.account-body .support-fab,.checkout-body .support-fab{background:linear-gradient(135deg,#cc6fff,#862cdb);color:#fff;box-shadow:0 17px 47px #9a39de55}
+.account-body .support-panel,.checkout-body .support-panel{background:#160b24;border-color:#603985}
+.account-body .support-panel-head,.checkout-body .support-panel-head{background:linear-gradient(120deg,#472162,#260f39);border-color:#623887}
+.account-body .support-form,.checkout-body .support-form{background:#170d25;border-color:#492d66}
+.account-body .support-form textarea,.checkout-body .support-form textarea{background:#0d0716;border-color:#543374;color:#fff}
+.account-body .support-form button,.checkout-body .support-form button{background:#a43be7;color:#fff}
+.account-body .support-message.visitor,.checkout-body .support-message.visitor{background:#8c2dd5;color:#fff}
+.account-body .support-contact-form,.checkout-body .support-contact-form{background:#180e27;border-color:#4f2f70}
+.account-body .support-contact-form>button,.checkout-body .support-contact-form>button{background:linear-gradient(110deg,#b54bfb,#8027d6);color:#fff}
+@media(prefers-reduced-motion:reduce){.account-body .reveal{transition:none;opacity:1;transform:none}}
