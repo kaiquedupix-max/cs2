@@ -1,0 +1,286 @@
+/* Legit Baratinho storefront redesign | homepage only | 2026-11-09
+   Scope: body.storefront. Does not affect checkout, account, admin or server logic. */
+body.storefront{
+  --bg:#090910;--bg2:#11111c;--panel:#12121e;--panel2:#181825;
+  --line:#2b2b3b;--line2:#42415e;--green:#b6a2ff;--green2:#9379ef;
+  --text:#f7f7fc;--muted:#a4a2b6;--muted2:#85839c;
+  background:#090910;color:var(--text);
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+body.storefront::before{
+  background:radial-gradient(ellipse 55% 36% at 80% 8%,rgba(105,70,180,.16),transparent 88%),
+             radial-gradient(ellipse 60% 30% at 2% 28%,rgba(46,53,115,.11),transparent 90%),
+             linear-gradient(180deg,#0a0a12,#080810 40%,#0c0b14);
+}
+.storefront .shell{width:min(1280px,calc(100% - 64px))}
+.storefront main{isolation:isolate}
+.storefront section[id]{scroll-margin-top:112px}
+.storefront a:focus-visible,.storefront button:focus-visible,.storefront summary:focus-visible{
+  outline:2px solid #d6ccff;outline-offset:4px;
+}
+.storefront .skip-link{position:absolute;top:-70px;left:20px;z-index:100;background:#fff;color:#15121d;padding:12px 18px;border-radius:9px}
+.storefront .skip-link:focus{top:12px}
+.storefront .cursor-glow{background:radial-gradient(circle,#9b79ee1b,transparent 67%)}
+.storefront .orb{filter:blur(130px);opacity:.16}
+.storefront .orb-one{background:#9075ff;top:20%;left:-320px}
+.storefront .orb-two{background:#5143ae;right:-230px;top:65%}
+.storefront .topbar{background:#0a0a13e8;border-bottom:1px solid #2b2a3a;box-shadow:0 12px 60px #0003}
+.storefront .announcement{
+  height:30px;display:flex;align-items:center;justify-content:center;gap:12px;
+  border-bottom:1px solid #222132;background:#121020;color:#b9b1d1;
+  letter-spacing:.18em;font-size:9px;font-weight:800;text-align:center;
+}
+.storefront .announcement-spark{width:6px;height:6px;background:#c7b6ff;border-radius:50%;box-shadow:0 0 13px #ac90ff}
+.storefront .announcement-separator{color:#635e79}
+.storefront .nav{height:79px;gap:22px}
+.storefront .brand{flex-shrink:0;gap:11px}
+.storefront .brand-icon{filter:grayscale(1) brightness(2.4);width:38px;height:38px}
+.storefront .brand-copy{font-size:16px;letter-spacing:-.04em}
+.storefront .brand-copy b{font-weight:850}
+.storefront .brand-copy small{color:#b8a2ff;font-size:16px}
+.storefront .nav nav{gap:24px}
+.storefront .nav nav a{color:#a8a6b8;font-size:12px;font-weight:650;white-space:nowrap}
+.storefront .nav nav a:hover{color:#fff}
+.storefront .button{border-radius:12px;letter-spacing:-.01em}
+.storefront .button-primary{
+  background:linear-gradient(115deg,#dfd2ff 0%,#bda6ff 54%,#9a7df0 100%);
+  color:#161021;box-shadow:0 16px 45px #9d7bf12e;
+}
+.storefront .button-primary:hover{box-shadow:0 20px 55px #9d7bf151;transform:translateY(-2px)}
+.storefront .button-outline,.storefront .button-dark{
+  background:#171623;border:1px solid #3c394f;color:#f1edfa;
+}
+.storefront .button-outline:hover,.storefront .button-dark:hover{border-color:#a08ccf;background:#211f31}
+.storefront .hero{
+  width:min(1280px,calc(100% - 64px));display:grid;text-align:left;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
+  grid-template-areas:"badge stage" "title stage" "text stage" "actions stage" "proof stage" "status stage" "banner banner";
+  gap:0 65px;align-items:center;padding:108px 0 60px;
+}
+.storefront .hero-badge{grid-area:badge;justify-self:start;width:max-content;max-width:100%;
+  background:#1b182b;border:1px solid #443a65;color:#c6b7f6;padding:10px 14px;font-size:10px;letter-spacing:.16em;
+}
+.storefront .pulse-dot{background:#c0aaff;box-shadow:0 0 0 4px #a88ded20}
+.storefront .hero h1{grid-area:title;font-size:clamp(57px,6.3vw,92px);max-width:710px;margin:29px 0 20px;line-height:.98;letter-spacing:-.067em;font-weight:850}
+.storefront .hero h1 span{background:linear-gradient(100deg,#f1eaff,#c9b1ff 48%,#9d7eff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.storefront .hero-text{grid-area:text;color:#aaa8bd;font-size:16px;line-height:1.8;max-width:540px;margin:0}
+.storefront .hero-actions{grid-area:actions;justify-content:flex-start;margin:30px 0 12px;gap:12px;flex-wrap:wrap}
+.storefront .hero-actions .button{min-height:51px;padding:14px 22px}
+.storefront .hero-proof{grid-area:proof;justify-content:flex-start;margin:21px 0 0;gap:7px}
+.storefront .hero-proof span{background:#141320;border:1px solid #29283a;color:#a5a3b7;border-radius:8px;padding:9px 10px;font-size:10px;letter-spacing:0}
+.storefront .hero-status{grid-area:status;width:100%;max-width:565px;margin:25px 0 0;border:1px solid #302d41;background:#141321e8;border-radius:13px;padding:15px}
+.storefront .status-live small{color:#928ca6}
+.storefront .status-live strong{color:#e0ddeb}
+.storefront .hero-stage{grid-area:stage;width:100%;max-width:100%;margin:0;min-width:0;align-self:center;transform:translateY(6px)}
+.storefront .stage-ring{border-color:#8f79bc21}
+.storefront .ring-a{width:106%;height:108%}
+.storefront .ring-b{width:87%;height:88%}
+.storefront .dashboard-card{
+  border:1px solid #4c435f;border-radius:22px;
+  background:linear-gradient(145deg,#1b1927,#10101b);
+  box-shadow:0 48px 120px #000b,0 0 115px #6c4ead24;
+}
+.storefront .dash-top{border-bottom:1px solid #302b40;background:#171522;height:56px}
+.storefront .mini-brand{color:#d9d3ed}
+.storefront .mini-brand span{background:#c4adff;color:#171022}
+.storefront .dash-dots i{background:#514a62}
+.storefront .dash-content{grid-template-columns:132px minmax(0,1fr);min-height:320px}
+.storefront .dash-side{background:#12111d;border-right:1px solid #292638;padding:20px 12px}
+.storefront .dash-side small{color:#716b87;font-size:8px;padding-left:8px}
+.storefront .dash-side a{color:#87829c;font-size:10px}
+.storefront .dash-side a.active{background:#29233c;color:#d7c5ff}
+.storefront .dash-main{padding:23px 19px;min-width:0}
+.storefront .dash-heading small{color:#9186b5}
+.storefront .dash-heading h3{font-size:clamp(19px,2vw,26px)}
+.storefront .green-chip{background:#2d2343;color:#ccb7ff;border-color:#59447c}
+.storefront .stats{gap:8px;margin:22px 0}
+.storefront .stats>div{background:#171525;border:1px solid #342d46;padding:13px 10px}
+.storefront .stats small{color:#8b809e}
+.storefront .stats strong{font-size:23px}
+.storefront .stats span{color:#938ba6}
+.storefront .product-row{background:#201b2f;border:1px solid #463656;padding:11px;gap:10px}
+.storefront .product-icon{background:linear-gradient(130deg,#eed0b4,#b8a8ff);color:#241c2b}
+.storefront .product-copy span{color:#a59bb2}
+.storefront .product-state{color:#bce0c6;white-space:nowrap}
+.storefront .sales-banner{
+  grid-area:banner;margin:63px 0 0;max-width:none;min-height:66px;
+  border:1px solid #302c43;border-radius:14px;
+  background:linear-gradient(90deg,#1b1829,#171522 50%,#20192e);
+  color:#aba8be;font-size:13px;text-align:left;justify-content:flex-start;padding:18px 25px;
+}
+.storefront .sales-banner>span:first-child{font-size:22px;color:#bda5ff}
+.storefront .sales-banner b{color:#f7f4ff}
+.storefront .trust-strip{background:#12111e;border-block:1px solid #2d2a40}
+.storefront .marquee-track{padding:15px 0;color:#aea5ca;font-size:10px}
+.storefront .marquee-track i{color:#baa2f6}
+.storefront .eyebrow{color:#af99f3;font-size:10px;letter-spacing:.17em}
+.storefront .product-collection{padding:112px 0 18px}
+.storefront .collection-heading{display:flex;align-items:end;justify-content:space-between;gap:38px;margin-bottom:34px}
+.storefront .collection-heading h2{font-size:clamp(37px,4.5vw,60px);letter-spacing:-.06em;line-height:1.05;margin:13px 0 0;max-width:730px}
+.storefront .collection-heading h2 em{font-style:normal;color:#c5b1ff}
+.storefront .collection-heading>p{max-width:355px;color:#9895ad;font-size:14px;line-height:1.8;margin:0 0 5px}
+.storefront .game-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.storefront .game-card{position:relative;min-height:456px;overflow:hidden;border:1px solid #3d354e;border-radius:23px;background:#181424}
+.storefront .game-card::before{content:"";position:absolute;width:95%;aspect-ratio:1;right:-14%;top:-43%;border-radius:50%;border:1px solid #fff2;box-shadow:0 0 0 70px #ffffff06,0 0 0 150px #ffffff04;transform:rotate(-25deg)}
+.storefront .game-card-cs{background:radial-gradient(ellipse at 69% 32%,#8d634552,transparent 55%),linear-gradient(140deg,#302536,#1d1924 55%,#15141e)}
+.storefront .game-card-cf{background:radial-gradient(ellipse at 68% 30%,#6151a859,transparent 58%),linear-gradient(140deg,#272441,#1a1929 55%,#14141f)}
+.storefront .game-card-content{height:100%;min-height:456px;display:flex;flex-direction:column;position:relative;z-index:1;padding:29px 32px}
+.storefront .game-card-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:10px;letter-spacing:.13em;font-weight:800}
+.storefront .game-label{color:#dbd6df;opacity:.7}
+.storefront .game-availability{display:flex;align-items:center;gap:8px;color:#c6edcc}
+.storefront .game-availability i{width:7px;height:7px;border-radius:50%;background:#8de2a9;box-shadow:0 0 15px #77d2a0}
+.storefront .game-coming{color:#d6c5ff;border:1px solid #675780;padding:8px 10px;border-radius:7px;background:#392b5057}
+.storefront .game-symbol{margin:auto;align-self:center;transform:rotate(-12deg);font-weight:1000;letter-spacing:-.14em;font-size:clamp(110px,13vw,210px);line-height:1;color:#f4e5d0;text-shadow:0 15px 2px #09081233,0 30px 65px #0007;user-select:none}
+.storefront .game-symbol span{color:#c8b0ff}
+.storefront .game-symbol-cf{font-style:italic;color:#d4cbff;transform:rotate(-9deg)}
+.storefront .game-symbol-cf span{font-size:.28em;letter-spacing:-.05em;vertical-align:top;color:#9989ce}
+.storefront .game-card-bottom{display:flex;align-items:end;justify-content:space-between;gap:15px}
+.storefront .game-category{font-size:10px;letter-spacing:.17em;color:#c4b0e9;font-weight:850}
+.storefront .game-card h3{font-size:clamp(21px,2.8vw,30px);letter-spacing:-.045em;margin:8px 0}
+.storefront .game-card p{font-size:12px;color:#b8b1c4;line-height:1.65;margin:0;max-width:355px}
+.storefront .game-arrow{display:grid;place-items:center;width:54px;height:54px;flex:0 0 54px;border-radius:50%;border:1px solid #d9c9ff;background:#d7c7ff;color:#1d142b;text-decoration:none;font-size:26px;transition:.2s}
+.storefront a.game-arrow:hover{transform:translate(3px,-3px);background:#fff}
+.storefront .game-arrow-muted{background:#ffffff0e;border:1px solid #ffffff36;color:#b4a6cd;cursor:default}
+.storefront .feature-section{padding-top:93px;padding-bottom:93px}
+.storefront .origin-callout{margin-top:0;background:linear-gradient(125deg,#171422,#1c1828);border:1px solid #342e47;border-radius:20px;padding:38px}
+.storefront .origin-callout h3{max-width:700px;font-size:clamp(26px,3vw,37px)}
+.storefront .origin-callout p{color:#aaa3ba}
+.storefront .section-head{gap:35px}
+.storefront .section-head h2,.storefront .final-cta h2{font-size:clamp(39px,4.8vw,64px)}
+.storefront .section-head>p{color:#a29db4}
+.storefront .feature-group,.storefront .proof-card,.storefront .benefit-card{border:1px solid #302d40;background:linear-gradient(155deg,#191727,#11111c);border-radius:17px}
+.storefront .feature-group{padding:25px}
+.storefront .feature-group-head small{color:#9588b4}
+.storefront .feature-count,.storefront .feature-icon{border:1px solid #52416f;background:#2d243f;color:#d1bfff}
+.storefront .feature-pills span{background:#201c2b;border:1px solid #383048;color:#c2bbcf;border-radius:8px}
+.storefront .proof-card{padding:23px}
+.storefront .proof-card span,.storefront .benefit-card p{color:#a8a0ba}
+.storefront .proof-card i{color:#c4abff}
+.storefront .benefit-card:hover{border-color:#69568f}
+.storefront .benefit-card>span{color:#9c8cb6}
+.storefront .software-section{background:linear-gradient(180deg,#12101d,#090910);border-block:1px solid #292638;padding:115px 0}
+.storefront .software-card{border:1px solid #49405c;background:linear-gradient(120deg,#211a30,#151421);border-radius:20px;gap:27px}
+.storefront .software-art{background:radial-gradient(circle at 44% 30%,#605187,#252036 55%,#13121d);height:155px}
+.storefront .software-art span{color:#f5f1fa;text-shadow:0 0 40px #bca7ff44}
+.storefront .cross{background:#bb9fff24}
+.storefront .software-tags span{background:#332849;color:#d1bcff;border-radius:7px}
+.storefront .software-info p{color:#a9a1b8}
+.storefront .software-status{color:#aaa4ba}
+.storefront .software-buy small{color:#b4a8c7}
+.storefront .home-plan-grid{gap:13px;margin-top:22px}
+.storefront .home-plan-grid a{min-height:122px;border:1px solid #373147;background:#171522;border-radius:14px;padding:21px 18px;gap:7px;align-content:center}
+.storefront .home-plan-grid a:hover{border-color:#a58bdd;background:#242035;transform:translateY(-4px)}
+.storefront .home-plan-grid a.featured{border-color:#b5a1ef;box-shadow:0 0 0 1px #b49bf544;background:linear-gradient(125deg,#2a213c,#191522)}
+.storefront .home-plan-grid a.free-trial{background:linear-gradient(140deg,#29213c,#1b172b);border-color:#a68cdd;box-shadow:none}
+.storefront .home-plan-grid a.lifetime{background:linear-gradient(140deg,#231b30,#15131d);border-color:#66517d}
+.storefront .home-plan-grid a.free-trial strong{color:#d8c5ff}
+.storefront .home-plan-grid small{color:#b7a9cf;font-size:10px}
+.storefront .home-plan-grid strong{color:#faf9ff;font-size:27px}
+.storefront .home-plan-grid span{color:#948ca5;font-size:10px}
+.storefront .steps-section{padding:110px 0 30px}
+.storefront .steps-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.storefront .step-card{position:relative;display:flex;flex-direction:column;min-height:285px;padding:28px 27px;border:1px solid #332f44;border-radius:19px;background:linear-gradient(140deg,#1b1827,#12111c)}
+.storefront .step-no{font-weight:900;letter-spacing:.1em;color:#9284b1;font-size:11px}
+.storefront .step-icon{position:absolute;right:26px;top:23px;width:38px;height:38px;border:1px solid #5c4a7c;background:#2c233c;color:#d5c0ff;border-radius:11px;display:grid;place-items:center;font-size:22px}
+.storefront .step-card h3{font-size:23px;letter-spacing:-.04em;margin:45px 0 8px}
+.storefront .step-card p{font-size:13px;line-height:1.7;color:#a6a0b8;margin:0 0 24px}
+.storefront .step-card a{margin-top:auto;text-decoration:none;color:#d0b9ff;font-size:12px;font-weight:800}
+.storefront .step-card a:hover{color:#fff}
+.storefront .faq-section{padding-top:108px}
+.storefront .faq-grid details{border:1px solid #333044;background:#181622;border-radius:13px;padding:22px}
+.storefront .faq-grid details[open]{border-color:#73618f;background:#201b2e}
+.storefront .faq-grid summary{color:#e9e6f0;font-size:13px}
+.storefront .faq-grid p{color:#a7a0b6}
+.storefront .final-cta{background:radial-gradient(circle at 85% 30%,#6b50a841,transparent 50%),linear-gradient(110deg,#231b34,#15131f);border:1px solid #58446f;border-radius:21px;padding:55px;margin-top:12px}
+.storefront .footer{border-top:1px solid #302b3b;color:#8e879f;min-height:104px;height:auto;gap:24px}
+.storefront .support-fab{background:linear-gradient(130deg,#e0d2ff,#a88cec);color:#1a1424;box-shadow:0 17px 45px #8661c344}
+.storefront .support-fab-dot{background:#c9aeff;border-color:#1a1424;box-shadow:0 0 13px #a88cff}
+.storefront .support-panel{border-color:#46385f;background:#15121f}
+.storefront .support-panel-head{background:linear-gradient(135deg,#392a52,#201a31);border-color:#4a3b5f}
+@media(max-width:1150px){
+  .storefront .nav nav{gap:14px}
+  .storefront .nav nav a{font-size:11px}
+  .storefront .hero{column-gap:30px;padding-top:75px}
+  .storefront .hero h1{font-size:clamp(51px,6vw,78px)}
+  .storefront .dash-content{grid-template-columns:102px minmax(0,1fr)}
+  .storefront .dash-side{padding:20px 7px}
+  .storefront .dash-main{padding:18px 13px}
+  .storefront .stats>div{padding:11px 7px}
+  .storefront .stats strong{font-size:20px}
+  .storefront .product-state{font-size:8px}
+}
+@media(max-width:900px){
+  .storefront .shell,.storefront .hero{width:min(100% - 38px,740px)}
+  .storefront .nav{height:72px}
+  .storefront .hero{grid-template-columns:1fr;grid-template-areas:"badge" "title" "text" "actions" "proof" "stage" "status" "banner";padding:72px 0 50px}
+  .storefront .hero h1{font-size:clamp(56px,10vw,84px)}
+  .storefront .hero-text{max-width:660px}
+  .storefront .hero-stage{margin-top:45px}
+  .storefront .hero-status{margin-top:25px}
+  .storefront .sales-banner{margin-top:35px}
+  .storefront .dashboard-card{max-width:710px}
+  .storefront .collection-heading{align-items:start;flex-direction:column;gap:14px}
+  .storefront .collection-heading>p{max-width:640px}
+  .storefront .feature-catalog{grid-template-columns:1fr}
+  .storefront .steps-grid{grid-template-columns:1fr}
+  .storefront .step-card{min-height:230px}
+  .storefront .step-card h3{margin-top:30px}
+}
+@media(max-width:680px){
+  .storefront .shell,.storefront .hero{width:calc(100% - 32px)}
+  .storefront .announcement{font-size:7px;letter-spacing:.1em;gap:7px;padding:0 8px}
+  .storefront .brand-copy,.storefront .brand-copy small{font-size:13px}
+  .storefront .nav>.button{padding:10px 12px;font-size:10px}
+  .storefront .hero{padding-top:60px}
+  .storefront .hero h1{font-size:clamp(49px,12vw,70px);margin:23px 0 17px}
+  .storefront .hero-text{font-size:14px}
+  .storefront .hero-actions{display:grid;grid-template-columns:1fr;gap:10px;width:100%}
+  .storefront .hero-actions .button{width:100%}
+  .storefront .hero-proof{gap:6px}
+  .storefront .hero-proof span{font-size:9px;padding:8px}
+  .storefront .hero-stage{margin-top:33px}
+  .storefront .dash-content{grid-template-columns:1fr;min-height:240px}
+  .storefront .dash-side{display:none}
+  .storefront .dash-main{padding:20px 13px}
+  .storefront .dash-heading h3{font-size:21px}
+  .storefront .stats{margin:18px 0}
+  .storefront .stats strong{font-size:20px}
+  .storefront .stats>div{padding:9px 7px}
+  .storefront .product-copy span{font-size:9px}
+  .storefront .product-state{display:none}
+  .storefront .hero-status{gap:12px}
+  .storefront .status-pill{flex-shrink:0}
+  .storefront .sales-banner{padding:17px;line-height:1.6}
+  .storefront .product-collection{padding-top:78px}
+  .storefront .game-grid{grid-template-columns:1fr}
+  .storefront .game-card,.storefront .game-card-content{min-height:395px}
+  .storefront .game-card-content{padding:21px}
+  .storefront .game-card-topline{font-size:8px}
+  .storefront .game-symbol{font-size:145px}
+  .storefront .game-card h3{font-size:24px}
+  .storefront .game-arrow{width:44px;height:44px;flex-basis:44px}
+  .storefront .origin-callout{padding:25px}
+  .storefront .feature-section{padding:70px 0}
+  .storefront .section-head h2,.storefront .collection-heading h2{font-size:clamp(34px,9vw,48px)}
+  .storefront .software-section{padding:78px 0}
+  .storefront .software-card{padding:16px;gap:19px}
+  .storefront .software-info h3{font-size:24px}
+  .storefront .home-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .storefront .home-plan-grid a{padding:17px 13px;min-height:117px}
+  .storefront .home-plan-grid strong{font-size:22px}
+  .storefront .steps-section{padding:75px 0 8px}
+  .storefront .faq-section{padding:78px 0}
+  .storefront .final-cta{padding:30px;margin-bottom:65px}
+  .storefront .footer{flex-wrap:wrap;padding:25px 0}
+}
+@media(max-width:370px){
+  .storefront .announcement{font-size:6px}
+  .storefront .game-availability,.storefront .game-coming{font-size:7px}
+  .storefront .stats strong{font-size:16px}
+  .storefront .dash-heading h3{font-size:19px}
+}
+@media(prefers-reduced-motion:reduce){
+  .storefront .marquee-track,.storefront .pulse-dot,.storefront .stage-ring{animation:none!important}
+  .storefront .reveal{opacity:1;transform:none;transition:none}
+  .storefront .dashboard-card,.storefront .button,.storefront .game-arrow{transition:none}
+}
