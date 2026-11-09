@@ -78,3 +78,12 @@ body.account-body:before,body.checkout-body:before,body.admin-body:before{
 .account-body .support-contact-form,.checkout-body .support-contact-form{background:#180e27;border-color:#4f2f70}
 .account-body .support-contact-form>button,.checkout-body .support-contact-form>button{background:linear-gradient(110deg,#b54bfb,#8027d6);color:#fff}
 @media(prefers-reduced-motion:reduce){.account-body .reveal{transition:none;opacity:1;transform:none}}
+
+/* Remove remaining warm/orange product placeholder accents. */
+.account-body .product-icon,.account-body .game-icon,.checkout-body .product-icon,.checkout-body .game-icon{
+  background:linear-gradient(135deg,#cc70ff,#7433cc);color:#170c28
+}
+.account-body .software-art,.checkout-body .software-art{
+  background:radial-gradient(circle at 45% 30%,#5d2b84,#241035 55%,#100a1b)
+}
+.account-body .product-state,.checkout-body .product-state{color:#d3a0f2}
