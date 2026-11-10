@@ -11,7 +11,7 @@
   <title>Legit Baratinho | Loja digital</title>
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
   <link rel="stylesheet" href="/styles.css?v=20260923-support">
-  <link rel="stylesheet" href="/landing.css?v=20261110-compact-v2">
+  <link rel="stylesheet" href="/landing.css?v=20261110-counterframe-gallery">
 </head>
 <body>
   <a class="skip" href="#inicio" data-i18n="skip">Pular para o conteúdo</a>
@@ -50,7 +50,7 @@
         <div class="hero-trust"><span>✦ <b data-i18n="trust1">Pagamento seguro</b></span><span>✦ <b data-i18n="trust2">Suporte</b></span><span>✦ <b data-i18n="trust3">Atualizações</b></span></div>
       </div>
       <div class="hero-art" aria-label="Counter-Frame" role="img">
-        <img class="cf-real-shot hero-shot" src="/media/counterframe_esp.webp" alt="Captura real do menu Counter-Frame em funcionamento" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
+        <img class="cf-real-shot hero-shot" src="/media/counterframe_esp.jpg" alt="Captura real do menu Counter-Frame em funcionamento" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
         <div class="art-glow"></div><div class="art-outline"></div>
         <span class="art-top">LB <small>LEGIT BARATINHO</small></span>
         <div class="art-core">C<span>F</span></div>
@@ -75,7 +75,7 @@
         </article>
         <article class="product-card featured-card">
           <div class="product-visual cf-visual" aria-label="Imagem do Counter-Frame">
-            <img class="cf-real-shot product-shot" src="/media/counterframe_aimbot.webp" alt="Captura real do Counter-Frame com menu de mira" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
+            <img class="cf-real-shot product-shot" src="/media/counterframe_aimbot.jpg" alt="Captura real do Counter-Frame com menu de mira" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
             <div class="cf-twist" aria-hidden="true">CF</div>
             <div class="platform-chips"><span data-i18n="androidAvailable">Android disponível</span><span data-i18n="iosPresale">iOS em pré-venda</span></div>
           </div>
@@ -83,6 +83,7 @@
             <div class="product-heading"><h3>Counter-Frame</h3><span class="product-tag violet">MOBILE</span></div>
             <p data-i18n="cfSubtitle">Android disponível. Para iOS, a compra é uma pré-venda sem acesso imediato.</p>
             <button type="button" class="primary-btn card-buy" data-product="counterframe"><span data-i18n="buy">Comprar</span><span>→</span></button>
+            <button type="button" class="gallery-trigger" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
           </div>
         </article>
       </div>
@@ -112,6 +113,21 @@
   </main>
   <footer class="footer"><div class="container footer-inner"><span>© <span id="year"></span> Legit Baratinho.</span><a href="/account" data-i18n="account">Minha conta</a></div></footer>
 
+  <dialog id="gallery-dialog" class="gallery-dialog" aria-labelledby="gallery-title">
+    <div class="gallery-shell">
+      <div class="gallery-head">
+        <div><span class="overline" data-i18n="realScreenshots">CAPTURAS REAIS</span><h2 id="gallery-title">Counter-Frame</h2></div>
+        <button type="button" class="dialog-close" id="close-gallery" aria-label="Fechar galeria">×</button>
+      </div>
+      <div class="real-gallery">
+        <figure><img src="/media/counterframe_gameplay.jpg" alt="Gameplay real do Counter-Frame" loading="lazy"><figcaption>Gameplay</figcaption></figure>
+        <figure><img src="/media/counterframe_esp.jpg" alt="Menu ESP real em funcionamento" loading="lazy"><figcaption>ESP</figcaption></figure>
+        <figure><img src="/media/counterframe_aimbot.jpg" alt="Menu Aimbot real em funcionamento" loading="lazy"><figcaption>Aimbot</figcaption></figure>
+      </div>
+      <p data-i18n="realScreenshotsNote" class="gallery-footnote">Imagens reais do menu durante o jogo. Disponibilidade por plataforma sujeita ao status.</p>
+    </div>
+  </dialog>
+
   <dialog id="purchase-dialog" class="purchase-dialog" aria-labelledby="purchase-title">
     <div class="dialog-inner">
       <div class="dialog-head"><div><span class="overline" data-i18n="selectPlan">ESCOLHA SEU PLANO</span><h2 id="purchase-title">Counter-Frame</h2></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Close">×</button></div>
@@ -135,7 +151,7 @@
       <p id="checkout-note" class="dialog-note" role="status"></p>
     </div>
   </dialog>
-  <script src="/landing.js?v=20261110-intl-pricing-v2" defer></script>
+  <script src="/landing.js?v=20261110-counterframe-gallery" defer></script>
   <script src="/support.js?v=20260923-support" defer></script>
 </body>
 </html>
