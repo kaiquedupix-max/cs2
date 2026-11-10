@@ -2,8 +2,9 @@ export const LANGS = ["pt", "en", "es", "ru"];
 export const translations = {
   pt: {
     welcome: "Bem-vindo à Legit Baratinho!\nEsta loja no Telegram é exclusiva do Counter-Frame.",
-    shop: "🛍️ Comprar", orders: "📦 Pedidos", coupons: "🏷️ Cupom", referrals: "🎁 Indicações",
+    gallery: "📷 Fotos reais", shop: "🛍️ Comprar", orders: "📦 Pedidos", coupons: "🏷️ Cupom", referrals: "🎁 Indicações",
     language: "🌐 Idioma", region: "🌍 Região / Preços", support: "💬 Suporte", back: "⬅️ Voltar",
+    galleryCaption: "Capturas reais de gameplay, ESP e Aimbot, mais dois mockups promocionais. Pagamentos por Stars e entrega automática ainda não estão ativos.",
     choosePlatform: "Selecione a plataforma para Counter-Frame:",
     android: "Android • disponível", ios: "iOS • pré-venda",
     iosWarning: "ATENÇÃO: iOS é pré-venda. O aplicativo ainda não foi lançado; esta compra não dá acesso imediato e não há data confirmada.",
@@ -27,8 +28,9 @@ export const translations = {
   },
   en: {
     welcome: "Welcome to Legit Baratinho!\nThis Telegram shop sells Counter-Frame only.",
-    shop:"🛍️ Shop",orders:"📦 Orders",coupons:"🏷️ Coupon",referrals:"🎁 Referrals",
+    gallery:"📷 Real photos", shop:"🛍️ Shop",orders:"📦 Orders",coupons:"🏷️ Coupon",referrals:"🎁 Referrals",
     language:"🌐 Language",region:"🌍 Region / Prices",support:"💬 Support",back:"⬅️ Back",
+    galleryCaption:"Real gameplay, ESP and Aimbot screenshots plus two promotional mockups. Telegram Stars payments and license fulfillment are not live yet.",
     choosePlatform:"Select your Counter-Frame platform:",
     android:"Android • available",ios:"iOS • pre-order",
     iosWarning:"IMPORTANT: iOS is a pre-order. The app has not launched; you will not get immediate access and no release date is confirmed.",
@@ -52,8 +54,9 @@ export const translations = {
   },
   es: {
     welcome:"¡Bienvenido a Legit Baratinho!\nEsta tienda de Telegram es exclusiva de Counter-Frame.",
-    shop:"🛍️ Tienda",orders:"📦 Pedidos",coupons:"🏷️ Cupón",referrals:"🎁 Referidos",
+    gallery:"📷 Fotos reales", shop:"🛍️ Tienda",orders:"📦 Pedidos",coupons:"🏷️ Cupón",referrals:"🎁 Referidos",
     language:"🌐 Idioma",region:"🌍 Región / Precios",support:"💬 Soporte",back:"⬅️ Volver",
+    galleryCaption:"Capturas reales de gameplay, ESP y Aimbot y dos mockups. Los pagos Stars y la entrega aún no están activos.",
     choosePlatform:"Elige tu plataforma de Counter-Frame:",
     android:"Android • disponible",ios:"iOS • preventa",
     iosWarning:"IMPORTANTE: iOS está en preventa. La aplicación aún no se lanzó, no hay acceso inmediato ni fecha confirmada.",
@@ -77,8 +80,9 @@ export const translations = {
   },
   ru: {
     welcome:"Добро пожаловать в Legit Baratinho!\nВ Telegram-боте продаётся только Counter-Frame.",
-    shop:"🛍️ Магазин",orders:"📦 Заказы",coupons:"🏷️ Купон",referrals:"🎁 Приглашения",
+    gallery:"📷 Скриншоты", shop:"🛍️ Магазин",orders:"📦 Заказы",coupons:"🏷️ Купон",referrals:"🎁 Приглашения",
     language:"🌐 Язык",region:"🌍 Регион / Цены",support:"💬 Поддержка",back:"⬅️ Назад",
+    galleryCaption:"Реальные скриншоты игры, ESP, Aimbot и два промо-макета. Stars и выдача ключей пока не работают.",
     choosePlatform:"Выберите платформу Counter-Frame:",
     android:"Android • доступно",ios:"iOS • предзаказ",
     iosWarning:"ВАЖНО: iOS — предзаказ. Приложение ещё не вышло, мгновенного доступа нет, дата релиза не подтверждена.",

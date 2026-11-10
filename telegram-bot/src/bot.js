@@ -14,6 +14,7 @@ function keyboard(rows){return {inline_keyboard:rows.map(row=>row.map(([label,da
 function homeButtons(lang){return keyboard([
  [[t(lang,"shop"),"shop"],[t(lang,"orders"),"orders"]],
  [[t(lang,"coupons"),"coupons"],[t(lang,"referrals"),"referrals"]],
+ [[t(lang,"gallery"),"gallery"]],
  [[t(lang,"language"),"language"],[t(lang,"region"),"region"]],
  [[t(lang,"support"),"support"]]
 ]);}
@@ -64,12 +65,45 @@ async function send(chatId,txt,replyMarkup=null){
  return api("sendMessage",{chat_id:chatId,text:txt,disable_web_page_preview:true,...(replyMarkup?{reply_markup:replyMarkup}:{})},12000);
 }
 async function say(chatId,lang,txt,buttons=back(lang)){return send(chatId,txt,buttons);}
+async function photo(chatId,filename,caption,buttons=null){
+  return api("sendPhoto",{
+    chat_id:chatId,
+    photo:siteUrl+"/media/"+filename,
+    caption,
+    ...(buttons?{reply_markup:buttons}:{})
+  },15000);
+}
+async function gallery(chatId,user) {
+  const lang=user.language;
+  try{
+    await api("sendMediaGroup",{
+      chat_id:chatId,
+      media:[
+        {type:"photo",media:siteUrl+"/media/counterframe_gameplay.jpg",caption:t(lang,"galleryCaption")},
+        {type:"photo",media:siteUrl+"/media/counterframe_esp.jpg"},
+        {type:"photo",media:siteUrl+"/media/counterframe_aimbot.jpg"},
+        {type:"photo",media:siteUrl+"/media/telegram_promo_menu.jpg"},
+        {type:"photo",media:siteUrl+"/media/telegram_promo_plans.jpg"}
+      ]
+    },25000);
+  }catch(error){
+    console.warn("Gallery photos unavailable:",error?.message||error);
+    await say(chatId,lang,t(lang,"galleryCaption")+"\n"+siteUrl+"/media/counterframe_esp.jpg");
+  }
+  return say(chatId,lang,t(lang,"choosePlatform"),platformButtons(lang));
+}
 async function home(chatId,user,extra=""){
  const msg=t(user.language,"welcome")+(extra?"\n\n"+extra:"");
  return say(chatId,user.language,msg,homeButtons(user.language));
 }
 async function shop(chatId,user){
- return say(chatId,user.language,t(user.language,"choosePlatform"),platformButtons(user.language));
+  const caption=t(user.language,"choosePlatform");
+  try{
+    return await photo(chatId,"counterframe_esp.jpg",caption,platformButtons(user.language));
+  }catch(error){
+    console.warn("Menu preview unavailable:",error?.message||error);
+    return say(chatId,user.language,caption,platformButtons(user.language));
+  }
 }
 async function platformMenu(chatId,user,platform){
  const warning=platform==="ios"?t(user.language,"iosWarning")+"\n\n":"";
@@ -100,6 +134,7 @@ async function act(chatId,user,data){
  const lang=user.language;
  if(data==="home")return home(chatId,user);
  if(data==="shop")return shop(chatId,user);
+ if(data==="gallery")return gallery(chatId,user);
  if(data==="orders")return orders(chatId,user);
  if(data==="coupons")return say(chatId,lang,t(lang,"couponHelp"));
  if(data==="referrals")return referral(chatId,user);
@@ -145,6 +180,7 @@ async function message(chatId,from,raw){
   return;
  }
  if(command==="/shop")return shop(chatId,user);
+ if(command==="/gallery"||command==="/photos")return gallery(chatId,user);
  if(command==="/orders"||command==="/mykeys")return orders(chatId,user);
  if(command==="/language")return say(chatId,user.language,t(user.language,"language"),languageButtons(user.language));
  if(command==="/region")return say(chatId,user.language,t(user.language,"chooseMarket"),regionButtons(user.language));
@@ -187,13 +223,13 @@ async function installCommands(){
  const cmds=[
   ["start","Start"],["shop","Shop"],["orders","Orders"],["mykeys","My licenses"],
   ["coupon","Coupon"],["referral","Referral link"],["region","Pricing region"],
-  ["language","Language"],["support","Support"],["paysupport","Payment support"]
+  ["language","Language"],["gallery","Real photos"],["support","Support"],["paysupport","Payment support"]
  ].map(([command,description])=>({command,description}));
  await api("setMyCommands",{commands:cmds},12000);
  const translations={
-  pt:["Iniciar","Comprar","Pedidos","Licenças","Cupom","Indicações","Região","Idioma","Suporte","Pagamento"],
-  es:["Iniciar","Tienda","Pedidos","Licencias","Cupón","Referidos","Región","Idioma","Soporte","Pagos"],
-  ru:["Старт","Магазин","Заказы","Лицензии","Купон","Рефералы","Регион","Язык","Поддержка","Оплата"]
+  pt:["Iniciar","Comprar","Pedidos","Licenças","Cupom","Indicações","Região","Idioma","Fotos reais","Suporte","Pagamento"],
+  es:["Iniciar","Tienda","Pedidos","Licencias","Cupón","Referidos","Región","Idioma","Fotos reales","Soporte","Pagos"],
+  ru:["Старт","Магазин","Заказы","Лицензии","Купон","Рефералы","Регион","Язык","Фото","Поддержка","Оплата"]
  };
  for(const [language_code,labels] of Object.entries(translations)){
   try{
