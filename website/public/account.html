@@ -26,10 +26,10 @@
       <div class="auth-copy reveal">
         <div class="hero-badge"><span class="pulse-dot"></span> SUA CONTA LEGIT</div>
         <h1>Uma conta.<br><span>Site + loader.</span></h1>
-        <p>Cadastre-se uma vez e use as mesmas credenciais para acessar seu produto no aplicativo. Você pode começar com 1 dia de teste grátis.</p>
+        <p>Cadastre-se e acompanhe seus produtos e pedidos em um só lugar. Escolha seu plano na loja.</p>
         <div class="auth-points">
           <div><b>01</b><span>Crie sua conta</span></div>
-          <div><b>02</b><span>Teste grátis ou compre seu acesso</span></div>
+          <div><b>02</b><span>Escolha seu plano e compre o acesso</span></div>
           <div><b>03</b><span>Entre no loader</span></div>
         </div>
       </div>
@@ -86,9 +86,21 @@
           </div>
           <div class="account-product-action">
             <span id="accessBadge" class="access-badge inactive">SEM ACESSO</span>
-            <button id="freeTrialBtn" class="button button-outline hidden" type="button">Testar grátis por 1 dia</button>
-            <small id="freeTrialHint" class="free-trial-hint">1 teste grátis por conta e por PC.</small>
-            <a id="buyAccessBtn" class="button button-primary" href="/checkout">Comprar acesso</a>
+             <a id="buyAccessBtn" class="button button-primary" href="/checkout">Comprar acesso</a>
+          </div>
+        </article>
+
+        <article class="account-product-card" id="counterFrameAccount">
+          <div class="software-art compact"><span>CF</span></div>
+          <div class="account-product-copy">
+            <div class="software-tags"><span>COUNTER-FRAME</span></div>
+            <h2>Counter-Frame • Android / iOS</h2>
+            <p id="cfAccountSummary">Consultando seus pedidos de Counter-Frame...</p>
+            <div class="subscription-line"><span>Compras</span><b id="cfAccountPurchases">—</b></div>
+          </div>
+          <div class="account-product-action">
+            <span class="access-badge inactive" id="cfAccountBadge">AGUARDANDO</span>
+            <a class="button button-primary" href="/#produtos">Ver produtos</a>
           </div>
         </article>
 
@@ -131,7 +143,7 @@
     </section>
   </main>
 
-  <script src="/account.js?v=20260923-free-trial"></script>
+  <script src="/account.js?v=20261110-no-trial"></script>
   <script src="/app.js?v=20260923-free-trial"></script>
   <script src="/support.js?v=20260923-support"></script>
 </body>
