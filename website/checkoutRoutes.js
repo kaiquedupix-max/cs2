@@ -7,6 +7,7 @@ import {
   validCpf,
   verifyWebhook,
   normalizeProduct,
+  normalizeMarket,
 } from "./mercadoPago.js";
 
 function validEmail(value) {
@@ -85,7 +86,7 @@ export function registerCheckoutRoutes(app, deps) {
        VALUES ($1,'mercadopago',$2,$3,'creating',$4,$5,$6,$7,'','',$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        ON CONFLICT (idempotency_key)
        DO UPDATE SET updated_at = NOW()
-       RETURNING id, product_code, product_platform, plan_key`,
+       RETURNING id, product_code, product_platform, plan_key, expected_amount`,
       [
         userId,
         idempotencyKey,
@@ -110,7 +111,8 @@ export function registerCheckoutRoutes(app, deps) {
     const created = result.rows[0];
     if (created.product_code !== productCode ||
         created.product_platform !== platform ||
-        created.plan_key !== plan.key) {
+        created.plan_key !== plan.key ||
+        Number(created.expected_amount) !== Number((plan.priceCents / 100).toFixed(2))) {
       throw Object.assign(new Error("Chave de pagamento já utilizada para outro produto."), { statusCode: 409 });
     }
     return Number(created.id);
@@ -310,7 +312,8 @@ export function registerCheckoutRoutes(app, deps) {
 
   app.get("/api/checkout/config", optionalUser, async (req, res) => {
     const product = normalizeProduct(req.query.product);
-    const config = checkoutConfig(product);
+    const market = product === "counterframe" ? normalizeMarket(req.query.market) : "BR";
+    const config = checkoutConfig(product,market);
 
     let row = {};
     if (req.userId && pool) {
@@ -333,6 +336,8 @@ export function registerCheckoutRoutes(app, deps) {
     res.json({
       configured: config.configured,
       product,
+      market: config.market,
+      settlementCurrency: config.settlementCurrency,
       publicKey: config.publicKey,
       authenticated: Boolean(req.userId),
       account: req.userId ? {
@@ -340,12 +345,13 @@ export function registerCheckoutRoutes(app, deps) {
         username: row.account_username || "",
         email: row.account_email || "",
       } : null,
-      plans: config.plans.map(({ key, name, days, lifetime, priceCents, available }) => ({
+      plans: config.plans.map(({ key, name, days, lifetime, priceCents, usdPriceCents, available }) => ({
         key,
         name,
         days,
         lifetime: Boolean(lifetime),
         priceCents,
+        usdPriceCents: usdPriceCents ?? null,
         available,
       })),
       profile: {
@@ -367,8 +373,9 @@ export function registerCheckoutRoutes(app, deps) {
       return res.status(400).json({ error: "invalid_platform" });
     }
     const orderedProductCode = product === "counterframe" ? "counterframe-" + platform : productCode;
-    const config = checkoutConfig(product);
-    const plan = checkoutPlan(req.body?.planKey, product);
+    const market = product === "counterframe" ? normalizeMarket(req.body?.market) : "BR";
+    const config = checkoutConfig(product,market);
+    const plan = checkoutPlan(req.body?.planKey, product,market);
 
     if (!config.configured || !plan) {
       return res.status(503).json({
@@ -413,13 +420,15 @@ export function registerCheckoutRoutes(app, deps) {
         deviceId: req.body?.device_id || req.body?.deviceId,
         product,
         platform,
+        market,
       });
 
       const view = await syncMercadoPago(localId, rawPayment);
 
       return res.status(201).json({
         paymentId: localId,
-        product, platform,
+        product, platform, market,
+        settlementCurrency: "BRL",
         preOrder: platform === "ios",
         status: view.status,
         rawStatus: view.rawStatus,
