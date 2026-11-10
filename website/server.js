@@ -8,6 +8,8 @@ import { registerCounterframe, initCounterframe } from "./counterframe.js";
 import { registerTelegram, initTelegram } from "./telegram.js";
 import { initCoupons, registerCoupons } from "./coupons.js";
 import { visitorCountry } from "./geoMarket.js";
+import { initReferrals, registerReferrals } from './referrals.js';
+import {initTerms} from './terms.js';
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -1727,6 +1729,7 @@ app.post("/api/admin/product-statuses/:product", requireAdmin, async (req, res) 
 registerCounterframe(app, {pool, requireUser, requireAdmin, verifyPassword, passwordHash, validUsername, validEmail, setting, setSetting});
 registerTelegram(app, {pool});
 registerCoupons(app, {pool, requireAdmin});
+registerReferrals(app, {pool, requireUser});
 registerCheckoutRoutes(app, {
   pool,
   requireUser,
@@ -1799,6 +1802,8 @@ initDb()
   .then(() => pool && initCounterframe(pool))
   .then(() => pool && initTelegram(pool))
   .then(() => pool && initCoupons(pool))
+  .then(() => pool && initReferrals(pool))
+  .then(() => pool && initTerms(pool))
   .then(() => {
     app.listen(port, "0.0.0.0", () => {
       console.log(`legitbaratinho.xyz web ouvindo na porta ${port}`);

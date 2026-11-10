@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
 import {Transform} from 'node:stream';
+import {inspectApk} from './apkMetadata.js';
 
 export const language = value => ['pt','en','es','ru'].includes(String(value || '').split(/[-_]/)[0]) ? String(value).split(/[-_]/)[0] : 'en';
 const hash = v => crypto.createHash('sha256').update(String(v)).digest('hex');
@@ -31,6 +32,7 @@ export async function initCounterframe(pool) {
     CREATE INDEX IF NOT EXISTS access_audit_user ON access_audit(user_id,created_at DESC);
     CREATE TABLE IF NOT EXISTS cf_bot_users(telegram_id BIGINT PRIMARY KEY,language TEXT NOT NULL);
     ALTER TABLE access_audit ADD COLUMN IF NOT EXISTS device_model TEXT,ADD COLUMN IF NOT EXISTS loader_version TEXT,ADD COLUMN IF NOT EXISTS timezone TEXT;
+    ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS lifetime BOOLEAN NOT NULL DEFAULT FALSE;
   `);
   await pool.query(`WITH applied AS (INSERT INTO app_settings(key,value) VALUES('cf_ios_available_20261110','1') ON CONFLICT(key) DO NOTHING RETURNING key)
     INSERT INTO app_settings(key,value) SELECT k,v FROM (VALUES('cf_ios_status','online'),('cf_ios_message','Counter-Frame para iOS disponível.')) x(k,v)
@@ -40,9 +42,9 @@ export async function initCounterframe(pool) {
 // Called inside the checkout transaction after the provider confirms payment.
 export async function issuePurchaseKey(client,paymentId,payment) {
   const raw='CF-'+crypto.randomBytes(18).toString('hex').toUpperCase();
-  await client.query(`INSERT INTO cf_keys(payment_id,buyer_id,key_hash,key_cipher,days,plan)
-    VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(payment_id) DO NOTHING`,
-    [paymentId,payment.user_id,hash(raw),encrypt(raw),payment.plan_lifetime?365000:Math.max(1,Number(payment.plan_days||30)),payment.plan_name||'CounterFlame']);
+  await client.query(`INSERT INTO cf_keys(payment_id,buyer_id,key_hash,key_cipher,days,plan,lifetime)
+    VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(payment_id) DO NOTHING`,
+    [paymentId,payment.user_id,hash(raw),encrypt(raw),payment.plan_lifetime?0:Math.max(1,Number(payment.plan_days||30)),payment.plan_name||'CounterFlame',Boolean(payment.plan_lifetime)]);
 }
 
 export function registerCounterframe(app,deps) {
@@ -67,7 +69,7 @@ export function registerCounterframe(app,deps) {
     req.cf=s;await pool.query('UPDATE cf_sessions SET last_seen=NOW() WHERE token_hash=$1',[s.token_hash]);next();
   });
   const snapshot = async s => {
-    const {rows}=await pool.query('SELECT plan,activated_at,expires_at FROM cf_keys WHERE claimed_by=$1 AND revoked_at IS NULL AND expires_at>NOW() ORDER BY expires_at DESC',[s.user_id]);
+    const {rows}=await pool.query('SELECT plan,activated_at,expires_at,lifetime FROM cf_keys WHERE claimed_by=$1 AND revoked_at IS NULL AND expires_at>NOW() ORDER BY expires_at DESC',[s.user_id]);
     return {username:s.username,licenses:rows,expiresAt:rows[0]?.expires_at||null,serverTime:Date.now()};
   };
   const activateKey = async(db,keyValue,userId) => {
@@ -75,7 +77,7 @@ export function registerCounterframe(app,deps) {
     if(!key||key.revoked_at)throw fail('invalid_key');
     if(key.buyer_id&&String(key.buyer_id)!==String(userId))throw fail('key_owner',403);
     if(key.claimed_by){if(String(key.claimed_by)!==String(userId))throw fail('key_used',409);return;}
-    await db.query(`UPDATE cf_keys SET claimed_by=$2,activated_at=NOW(),expires_at=GREATEST(NOW(),COALESCE((SELECT MAX(expires_at) FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL),NOW()))+($3 * INTERVAL '1 day') WHERE id=$1`,[key.id,userId,key.days]);
+    await db.query(`UPDATE cf_keys SET claimed_by=$2,activated_at=NOW(),expires_at=CASE WHEN $4::boolean OR EXISTS(SELECT 1 FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL AND lifetime=TRUE) THEN TIMESTAMPTZ '9999-12-31 23:59:59+00' ELSE GREATEST(NOW(),COALESCE((SELECT MAX(expires_at) FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL),NOW()))+($3 * INTERVAL '1 day') END WHERE id=$1`,[key.id,userId,key.days,key.lifetime]);
   };
   const bindSession=async(db,req,u,token)=>{
     const id=device(req);await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[u.id]);
@@ -133,19 +135,29 @@ export function registerCounterframe(app,deps) {
   const fileDir=process.env.CF_FILE_DIR||path.resolve('data/counterframe');
   app.post('/api/admin/cf/upload',requireAdmin,wrap(async(req,res)=>{
     if(!String(req.headers['content-type']||'').startsWith('application/octet-stream'))throw fail('binary_required');
-    let meta;try{meta=JSON.parse(Buffer.from(String(req.headers['x-release-meta']||''),'base64').toString('utf8'));}catch{throw fail('invalid_release');}
-    const loader=meta.packageName==='com.cf.overlay';
-    if(!loader&&meta.packageName!=='com.ScarletWork.CounterFlame')throw fail('invalid_release');
-    if(!Number.isSafeInteger(meta.versionCode)||meta.versionCode<1||!HEX.test(meta.certificateSha256)||!HEX.test(meta.sha256)||!Number.isSafeInteger(meta.size)||meta.size<1||meta.size>(loader?50000000:4500000000))throw fail('invalid_release');
-    await fs.promises.mkdir(fileDir,{recursive:true});const tmp=path.join(fileDir,crypto.randomBytes(16).toString('hex')+'.part');
-    let size=0;const digest=crypto.createHash('sha256');
+    const kind=String(req.headers['x-release-kind']||'');if(!['loader','game'].includes(kind))throw fail('invalid_release');
+    const loader=kind==='loader',maxSize=loader?50000000:4500000000;
+    const uploadId=String(req.headers['x-upload-id']||''),offset=Number(req.headers['x-upload-offset']),total=Number(req.headers['x-upload-total']);
+    if(!/^[a-f0-9-]{36}$/.test(uploadId)||!Number.isSafeInteger(offset)||offset<0||!Number.isSafeInteger(total)||total<1||total>maxSize||offset>=total)throw fail('invalid_upload');
+    await fs.promises.mkdir(fileDir,{recursive:true});const tmp=path.join(fileDir,uploadId+'.part');
+    if(offset>0&&(await fs.promises.stat(tmp).catch(()=>null))?.size!==offset)throw fail('invalid_upload_offset',409);
+    let size=0,retain=false;const digest=crypto.createHash('sha256');
     try{
-      await pipeline(req,new Transform({transform(chunk,encoding,cb){size+=chunk.length;if(size>meta.size)return cb(fail('invalid_size'));digest.update(chunk);cb(null,chunk);}}),fs.createWriteStream(tmp,{flags:'wx'}));
-      if(size!==meta.size||digest.digest('hex')!==meta.sha256.toLowerCase())throw fail('integrity');
-      const name=meta.sha256.toLowerCase()+'.apk';await fs.promises.rename(tmp,path.join(fileDir,name));
+      await pipeline(req,new Transform({transform(chunk,encoding,cb){size+=chunk.length;if(size>16777216||offset+size>total)return cb(fail('invalid_size'));cb(null,chunk);}}),fs.createWriteStream(tmp,{flags:offset?'a':'wx'}));
+      if(size<1)throw fail('invalid_size');
+      if(offset+size<total){retain=true;res.json({ok:true,offset:offset+size});return;}
+      size=total;for await(const bytes of fs.createReadStream(tmp))digest.update(bytes);
+      let meta;try{meta=await inspectApk(tmp,kind);}catch(e){throw fail(['wrong_package','invalid_signature','invalid_version'].includes(e.message)?e.message:'apk_validation_failed');}
+      const previous=JSON.parse(await setting(loader?'cf_loader_release':'cf_release','null'));
+      const trustedCert=previous?.certificateSha256||process.env.CF_APK_CERT_SHA256||'92168fe76e8dd4f557e690bb84b071605d872672bc1b7cb6a4ef536fe2f94166';
+      if(meta.certificateSha256!==trustedCert)throw fail('invalid_signature');
+      const sha256=digest.digest('hex');
+      if(loader&&previous&&meta.versionCode<=previous.versionCode&&sha256!==previous.sha256)throw fail('loader_version_must_increase');
+      meta={...meta,size,sha256,publishedAt:new Date().toISOString()};
+      const name=sha256+'.apk';await fs.promises.rename(tmp,path.join(fileDir,name));
       const url=(process.env.PUBLIC_SITE_URL||'https://legitbaratinho.xyz')+'/api/cf/'+(loader?'loader-apk':'game-apk');
       await setSetting(loader?'cf_loader_release':'cf_release',JSON.stringify({...meta,sha256:meta.sha256.toLowerCase(),certificateSha256:meta.certificateSha256.toLowerCase(),url}));res.json({ok:true,url});
-    }finally{await fs.promises.unlink(tmp).catch(()=>{});}
+    }finally{if(!retain)await fs.promises.unlink(tmp).catch(()=>{});}
   }));
   app.get('/api/cf/loader-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'Legit-CF-Private.apk');}));
   app.get('/api/cf/game-apk',auth,wrap(async(req,res)=>{if(!(await snapshot(req.cf)).expiresAt)throw fail('license_required',403);if((await status()).availability!=='online')throw fail('maintenance',503);const r=JSON.parse(await setting('cf_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'CounterFlame.apk');}));
@@ -185,9 +197,9 @@ export function registerCounterframe(app,deps) {
     await transaction(async db=>{await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[id]);await db.query('DELETE FROM cf_sessions WHERE user_id=$1',[id]);await db.query('DELETE FROM cf_devices WHERE user_id=$1',[id]);await audit(db,req,id,'admin_device_reset');});res.json({ok:true});
   }));
   app.post('/api/admin/cf/key',requireAdmin,wrap(async(req,res)=>{
-    const days=Number(req.body?.days);if(!Number.isInteger(days)||days<1||days>3650)throw fail('invalid_duration');
+    const lifetime=req.body?.lifetime===true,days=lifetime?0:Number(req.body?.days);if(!lifetime&&(!Number.isInteger(days)||days<1||days>3650))throw fail('invalid_duration');
     const key='CF-'+crypto.randomBytes(18).toString('hex').toUpperCase();
-    await pool.query('INSERT INTO cf_keys(key_hash,key_cipher,days,plan) VALUES($1,$2,$3,$4)',[hash(key),encrypt(key),days,`${days}d`]);res.json({key,days});
+    await pool.query('INSERT INTO cf_keys(key_hash,key_cipher,days,plan,lifetime) VALUES($1,$2,$3,$4,$5)',[hash(key),encrypt(key),days,lifetime?'Lifetime':`${days}d`,lifetime]);res.json({key,days,lifetime});
   }));
   app.post('/api/admin/cf/release',requireAdmin,wrap(async(req,res)=>{
     const r=req.body||{};const url=new URL(r.url);

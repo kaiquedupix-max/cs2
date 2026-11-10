@@ -11,6 +11,8 @@ import {
 import { visitorMarket } from "./geoMarket.js";
 import { issuePurchaseKey } from "./counterframe.js";
 import { couponDiscount, discount } from './coupons.js';
+import {resolveReferrer,grantReferral,reverseReferral,recomputeCounterframe} from './referrals.js';
+import {TERMS_VERSION} from './terms.js';
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
@@ -156,7 +158,7 @@ export function registerCheckoutRoutes(app, deps) {
       await client.query("BEGIN");
 
       const result = await client.query(
-        `SELECT user_id, access_granted_at, plan_key, plan_name, plan_days, plan_lifetime,
+        `SELECT user_id, access_granted_at, plan_key, plan_name, plan_days, plan_lifetime,referrer_id,
                 product_code, product_platform
          FROM checkout_payments
          WHERE id = $1
@@ -216,6 +218,7 @@ export function registerCheckoutRoutes(app, deps) {
         [localId, paidAt]
       );
 
+      await grantReferral(client,localId,payment);
       await client.query("COMMIT");
       return true;
     } catch (error) {
@@ -256,8 +259,11 @@ export function registerCheckoutRoutes(app, deps) {
       );
 
       if (payment.access_granted_at) {
+        await reverseReferral(client,localId);
         if (['counterframe-android','counterframe-ios'].includes(payment.product_code)) {
+          await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[payment.user_id]);
           await client.query('UPDATE cf_keys SET revoked_at=NOW() WHERE payment_id=$1',[localId]);
+          await recomputeCounterframe(client,payment.user_id);
         }
         await client.query(
           `UPDATE user_products
@@ -366,6 +372,7 @@ export function registerCheckoutRoutes(app, deps) {
     try{const product=normalizeProduct(req.body?.product),market=product==='counterframe'?(await visitorMarket(req)).market:'BR';const coupon=await couponDiscount(pool,req.body?.code,product),plan=checkoutPlan(req.body?.planKey,product,market);if(!plan)return res.status(400).json({error:'invalid_plan'});res.json({code:coupon.code,percent:coupon.percent,plan:{...plan,priceCents:discount(plan.priceCents,coupon.percent),usdPriceCents:plan.usdPriceCents?discount(plan.usdPriceCents,coupon.percent):null}});}catch(e){res.status(e.statusCode||500).json({error:e.statusCode?e.message:'server_error'});}
   });
   app.post("/api/checkout/payment", requireUser, async (req, res) => {
+    if(req.body?.termsAccepted!==true||req.body?.termsVersion!==TERMS_VERSION)return res.status(400).json({error:'terms_required',message:'Leia e aceite os termos antes de pagar.'});
     const requested = String(req.body?.product || "cs2").toLowerCase();
     if (!["cs2", "counterframe", "cf"].includes(requested)) {
       return res.status(400).json({ error: "unknown_product" });
@@ -420,6 +427,9 @@ export function registerCheckoutRoutes(app, deps) {
       });
 
       if(coupon.code)await pool.query('UPDATE checkout_payments SET coupon_code=$2 WHERE id=$1',[localId,coupon.code]);
+      await pool.query('UPDATE checkout_payments SET terms_version=$2,terms_accepted_at=COALESCE(terms_accepted_at,NOW()) WHERE id=$1',[localId,TERMS_VERSION]);
+      const referrer=await resolveReferrer(pool,req.body?.referralCode,req.userId);
+      if(referrer)await pool.query('UPDATE checkout_payments SET referrer_id=COALESCE(referrer_id,$2) WHERE id=$1',[localId,referrer]);
       const rawPayment = await createPayment({
         userId: req.userId,
         localId,

@@ -508,6 +508,7 @@ async function mountPaymentBrick() {
             }
 
             await ensureCheckoutAccount();
+            if(!document.getElementById('acceptPurchaseTerms')?.checked)throw Error(({pt:'Leia e aceite os termos antes de pagar.',en:'Read and accept the terms before paying.',es:'Lee y acepta los términos antes de pagar.',ru:'Перед оплатой прочитайте и примите условия.'})[checkoutLang]||'Read and accept the terms before paying.');
 
             const activePlan = selectedPlan();
             if (!activePlan) {
@@ -522,6 +523,9 @@ async function mountPaymentBrick() {
                 ...buyerPayload(),
                 planKey: activePlan.key,
                 couponCode: appliedCouponCode,
+                referralCode: checkoutParams.get('ref')||localStorage.getItem('lb_referral')||'',
+                termsAccepted: document.getElementById('acceptPurchaseTerms')?.checked===true,
+                termsVersion: '2026-11-10.1',
                 idempotencyKey: paymentIntent,
                 device_id: window.MP_DEVICE_SESSION_ID || undefined,
                 formData,
