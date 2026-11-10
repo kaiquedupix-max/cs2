@@ -16,7 +16,7 @@ Serviço independente para executar no **Coolify**. O site CS2 não é modificad
 
 ## Importante: pagamentos e entrega
 
-**Este estágio é apenas de navegação e pré-cadastro**. O bot *não aceita Stars, não solicita pagamento nem gera ou entrega chaves*. Para cobrar em Stars é necessário calcular e configurar XTR, receber `successful_payment`, associar o pagamento de forma idempotente a um pedido e integrar a entrega automática/estorno. Os preços USD são referências comerciais, não conversões garantidas para Stars.
+**Este serviço é apenas de catálogo e suporte**. O bot **não aceita Stars, não solicita pagamento e não gera ou entrega chaves**. As compras acontecem exclusivamente no site, pelo checkout do Mercado Pago. Os preços em USD são referências comerciais para a versão internacional do site.
 
 ## Deploy no Coolify
 

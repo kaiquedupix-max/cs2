@@ -42,9 +42,10 @@ function planButtons(lang,platform,market){
 function quoteButtons(lang,platform,planId,market){
  const params=new URLSearchParams({product:"counterframe",platform,plan:planId,lang,market:market==="BR"?"br":"intl"});
  const rows=[];
- // Existing website checkout settles in BRL: no false USD-price promise.
- if(market==="BR")rows.push([[t(lang,"visitSite"),"",siteUrl+"/checkout?"+params.toString()]]);
- rows.push([[t(lang,"starsLater"),"pay:disabled"]]);
+ // Payment processing is exclusively on the website, never in Telegram.
+ // International users open the site where the server confirms their IP region.
+ const destination=market==="BR" ? siteUrl+"/checkout?"+params.toString() : siteUrl+"/#produtos";
+ rows.push([[t(lang,"visitSite"),"",destination]]);
  rows.push([[t(lang,"back"),"platform:"+platform]]);
  return keyboard(rows);
 }
@@ -142,7 +143,7 @@ async function act(chatId,user,data){
  if(data==="language")return say(chatId,lang,t(lang,"language"),languageButtons(lang));
  if(data==="region")return say(chatId,lang,t(lang,"chooseMarket"),regionButtons(lang));
  if(data==="support")return say(chatId,lang,t(lang,"supportText")+"\n"+supportUrl);
- if(data==="pay:disabled")return say(chatId,lang,t(lang,"notReady"));
+ 
  if(data.startsWith("lang:")){
   const chosen=data.slice(5);
   if(!LANGS.includes(chosen))return;
