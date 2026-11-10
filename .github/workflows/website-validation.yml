@@ -46,5 +46,13 @@ jobs:
           assert.equal(checkoutPlan("d90", "cs2").priceCents, 3990);
           assert.equal(checkoutPlan("lifetime", "counterframe"), null);
           assert.equal(checkoutConfig("counterframe").plans.length, 4);
+          assert.equal(checkoutPlan("d30", "counterframe").usdPriceCents, 1000);
+          assert.equal(checkoutPlan("d15", "counterframe").usdPriceCents, 700);
+          assert.equal(checkoutPlan("d7", "counterframe").usdPriceCents, 400);
+          assert.equal(checkoutPlan("d1", "counterframe").usdPriceCents, 150);
+          assert.equal(checkoutConfig("counterframe","INTL").configured, false);
+          process.env.CF_USD_BRL_RATE="5";
+          assert.equal(checkoutPlan("d30","counterframe","INTL").priceCents, 5000);
+          assert.equal(checkoutPlan("d30","cs2","INTL").priceCents, 1990);
           console.log("Checkout plans OK.");
           NODE
