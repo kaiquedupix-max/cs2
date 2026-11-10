@@ -11,7 +11,7 @@
   <title>Legit Baratinho | Loja digital</title>
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
   <link rel="stylesheet" href="/styles.css?v=20260923-support">
-  <link rel="stylesheet" href="/landing.css?v=20261110-counterframe-gallery">
+  <link rel="stylesheet" href="/landing.css?v=20261110-features">
 </head>
 <body>
   <a class="skip" href="#inicio" data-i18n="skip">Pular para o conteúdo</a>
@@ -83,6 +83,10 @@
             <div class="product-heading"><h3>Counter-Frame</h3><span class="product-tag violet">MOBILE</span></div>
             <p data-i18n="cfSubtitle">Android disponível. Para iOS, a compra é uma pré-venda sem acesso imediato.</p>
             <button type="button" class="primary-btn card-buy" data-product="counterframe"><span data-i18n="buy">Comprar</span><span>→</span></button>
+            <details class="cf-feature-details" id="cf-feature-details">
+              <summary><span data-i18n="cfFeatureToggle">Ver todas as funções do Counter-Frame</span><span class="cf-feature-chevron" aria-hidden="true">⌄</span></summary>
+              <div class="cf-feature-content" id="cf-feature-content"></div>
+            </details>
             <button type="button" class="gallery-trigger" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
           </div>
         </article>
@@ -151,7 +155,7 @@
       <p id="checkout-note" class="dialog-note" role="status"></p>
     </div>
   </dialog>
-  <script src="/landing.js?v=20261110-counterframe-gallery" defer></script>
+  <script src="/landing.js?v=20261110-features" defer></script>
   <script src="/support.js?v=20260923-support" defer></script>
 </body>
 </html>
