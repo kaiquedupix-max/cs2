@@ -10,11 +10,11 @@
       androidAvailable:"Android disponível",iosPresale:"iOS em pré-venda",cfSubtitle:"Android disponível. Para iOS, a compra é uma pré-venda sem acesso imediato.",
       service:"DISPONIBILIDADE",statusTitle:"Status",statusLead:"Situação informada no painel administrativo.",
       help:"DÚVIDAS RÁPIDAS",faqLead:"O essencial antes da compra.",faqQ1:"Como escolho meu plano?",faqA1:"Clique em Comprar no produto desejado. Os planos aparecem antes de ir para o pagamento.",
-      faqQ2:"Quais métodos de pagamento existem?",faqA2:"O site utiliza Mercado Pago, com Pix e cartão conforme a região. O canal Telegram Stars depende da ativação do bot.",
+      faqQ2:"Quais métodos de pagamento existem?",faqA2:"As compras são feitas pelo site via Mercado Pago. Telegram é apenas para catálogo e suporte do Counter-Frame.",
       faqQ3:"Como funciona o iOS?",faqA3:"iOS está em pré-venda. O aplicativo não foi lançado, não há acesso imediato e a data de lançamento ainda não está confirmada.",
       faqQ4:"Como consulto o status?",faqA4:"Abra Status para ver as informações publicadas pela administração.",
       selectPlan:"ESCOLHA SEU PLANO",platform:"Plataforma",presaleTitle:"Pré-venda iOS",iosNotice:"Você está comprando antecipadamente uma versão ainda não lançada. Não há acesso imediato e a data de lançamento não está confirmada.",
-      pricingRegion:"Região de preços",intlCardUnavailable:"O cartão internacional ainda precisa da configuração de câmbio. Preços em USD são referências; nenhuma cobrança será feita enquanto essa configuração estiver ausente.",intlCardNote:"Os preços internacionais estão em USD; o Mercado Pago liquida em reais (BRL), com o valor exato mostrado no checkout.",cfFeatureToggle:"Ver todas as funções do Counter-Frame",viewPhotos:"Ver fotos reais do menu",realScreenshots:"CAPTURAS REAIS",realScreenshotsNote:"Fotos reais do menu durante o jogo. Consulte o status da sua plataforma.",payCard:"Continuar com Pix ou cartão",openTelegram:"Abrir bot do Telegram",noteStars:"O bot do Telegram ainda precisa ser ativado para processar pagamentos com Stars.",
+      functionsEyebrow:"RECURSOS DO MENU REAL",functionsHeadline:"Funções do Counter-Frame",functionsSubhead:"Todos os recursos mostrados nas suas capturas reais do ESP e Aimbot.",regionBR:"🇧🇷 Brasil • preços em reais",regionIntl:"🌍 Internacional • preços em dólares",pricingRegion:"Região detectada pelo IP",intlCardUnavailable:"O cartão internacional ainda precisa da configuração de câmbio. Preços em USD são referências; nenhuma cobrança será feita enquanto essa configuração estiver ausente.",intlCardNote:"Os preços internacionais estão em USD; o Mercado Pago liquida em reais (BRL), com o valor exato mostrado no checkout.",cfFeatureToggle:"Ver todas as funções do Counter-Frame",viewPhotos:"Ver fotos reais do menu",realScreenshots:"CAPTURAS REAIS",realScreenshotsNote:"Fotos reais do menu durante o jogo. Consulte o status da sua plataforma.",payCard:"Continuar com Pix ou cartão",openTelegram:"Telegram do Counter-Frame (suporte)",noteStars:"Telegram exclusivo do Counter-Frame: catálogo e suporte. Nenhuma cobrança é feita pelo bot.",
       buyNote:"Selecione um plano para prosseguir.",checkoutUnavailable:"Pagamento online não configurado. Entre em contato com o suporte.",
       days:"dias",day:"dia",lifetime:"Vitalício",status_loading:"Consultando",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MANUTENÇÃO",status_coming_soon:"EM BREVE",status_presale:"PRÉ-VENDA",
       statusGeneric_online:"Produto disponível conforme o painel.",statusGeneric_offline:"Produto indisponível.",statusGeneric_maintenance:"Produto em manutenção.",statusGeneric_coming_soon:"Lançamento em preparação.",statusGeneric_presale:"Pré-venda disponível; versão ainda não lançada.",
@@ -29,11 +29,11 @@
       androidAvailable:"Android available",iosPresale:"iOS pre-order",cfSubtitle:"Android is available. iOS orders are pre-orders with no immediate access.",
       service:"AVAILABILITY",statusTitle:"Status",statusLead:"Availability published by the admin team.",
       help:"QUICK ANSWERS",faqLead:"What you need to know before buying.",faqQ1:"How do I choose a plan?",faqA1:"Click Buy on the product you want. Plans will appear before checkout.",
-      faqQ2:"Which payment methods are available?",faqA2:"The website uses Mercado Pago for Pix and cards where available. Telegram Stars depends on the bot being activated.",
+      faqQ2:"Which payment methods are available?",faqA2:"Purchases are processed on the website with Mercado Pago. Telegram is only for Counter-Frame information and support.",
       faqQ3:"What about iOS?",faqA3:"iOS is available for pre-order only. The app has not launched, access is not immediate and no release date is confirmed.",
       faqQ4:"How do I check the status?",faqA4:"Open Status to see availability updates from the admin team.",
       selectPlan:"CHOOSE YOUR PLAN",platform:"Platform",presaleTitle:"iOS pre-order",iosNotice:"You are pre-ordering an unreleased iOS version. Access is not immediate and there is no confirmed release date.",
-      pricingRegion:"Pricing region",intlCardUnavailable:"International card checkout is pending exchange-rate configuration. USD prices are references; no payment will be taken until billing is ready.",intlCardNote:"International prices are listed in USD; Mercado Pago settles in Brazilian reais (BRL). The exact BRL charge is shown at checkout.",cfFeatureToggle:"View all Counter-Frame features",viewPhotos:"View real menu screenshots",realScreenshots:"REAL SCREENSHOTS",realScreenshotsNote:"Real menu screenshots taken during gameplay. Check your platform status.",payCard:"Continue with Pix or card",openTelegram:"Open Telegram bot",noteStars:"Telegram Stars payments are not active until the bot is deployed.",
+      functionsEyebrow:"REAL MENU FEATURES",functionsHeadline:"Counter-Frame features",functionsSubhead:"All options shown in your actual ESP and Aimbot screenshots.",regionBR:"🇧🇷 Brazil • prices in BRL",regionIntl:"🌍 International • prices in USD",pricingRegion:"Region detected by IP",intlCardUnavailable:"International card checkout is pending exchange-rate configuration. USD prices are references; no payment will be taken until billing is ready.",intlCardNote:"International prices are listed in USD; Mercado Pago settles in Brazilian reais (BRL). The exact BRL charge is shown at checkout.",cfFeatureToggle:"View all Counter-Frame features",viewPhotos:"View real menu screenshots",realScreenshots:"REAL SCREENSHOTS",realScreenshotsNote:"Real menu screenshots taken during gameplay. Check your platform status.",payCard:"Continue with Pix or card",openTelegram:"Counter-Frame Telegram (support)",noteStars:"Counter-Frame Telegram is for information and support only. No bot payments.",
       buyNote:"Select a plan to continue.",checkoutUnavailable:"Online checkout is not configured. Contact support.",
       days:"days",day:"day",lifetime:"Lifetime",status_loading:"Loading",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MAINTENANCE",status_coming_soon:"COMING SOON",status_presale:"PRE-ORDER",
       statusGeneric_online:"Available as reported by the admin team.",statusGeneric_offline:"Currently unavailable.",statusGeneric_maintenance:"Temporarily under maintenance.",statusGeneric_coming_soon:"Launch in preparation.",statusGeneric_presale:"Pre-orders are open; the version has not been released.",
@@ -48,11 +48,11 @@
       androidAvailable:"Android disponible",iosPresale:"iOS en preventa",cfSubtitle:"Android disponible. En iOS, la compra es una preventa sin acceso inmediato.",
       service:"DISPONIBILIDAD",statusTitle:"Estado",statusLead:"Información publicada por administración.",
       help:"RESPUESTAS RÁPIDAS",faqLead:"Lo esencial antes de comprar.",faqQ1:"¿Cómo elijo un plan?",faqA1:"Pulsa Comprar en el producto. Los planes se muestran antes del pago.",
-      faqQ2:"¿Qué métodos de pago hay?",faqA2:"El sitio usa Mercado Pago, con Pix y tarjeta según la región. Telegram Stars requiere que el bot esté activo.",
+      faqQ2:"¿Qué métodos de pago hay?",faqA2:"Las compras se procesan en el sitio con Mercado Pago. Telegram es solo para información y soporte de Counter-Frame.",
       faqQ3:"¿Cómo funciona iOS?",faqA3:"iOS está en preventa. La aplicación aún no se lanzó, no hay acceso inmediato ni fecha confirmada.",
       faqQ4:"¿Cómo consulto el estado?",faqA4:"Abre Estado para ver la información publicada por administración.",
       selectPlan:"ELIGE TU PLAN",platform:"Plataforma",presaleTitle:"Preventa iOS",iosNotice:"Compras por adelantado una versión de iOS aún no publicada. No hay acceso inmediato ni fecha confirmada de lanzamiento.",
-      pricingRegion:"Región de precios",intlCardUnavailable:"El pago internacional con tarjeta requiere configurar el tipo de cambio. Los precios en USD son referencias; no se cobrará hasta activarlo.",intlCardNote:"Los precios internacionales están en USD; Mercado Pago cobra en reales brasileños (BRL) y muestra el importe antes de pagar.",cfFeatureToggle:"Ver todas las funciones de Counter-Frame",viewPhotos:"Ver capturas reales del menú",realScreenshots:"CAPTURAS REALES",realScreenshotsNote:"Capturas reales del menú durante el juego. Consulta el estado de tu plataforma.",payCard:"Continuar con Pix o tarjeta",openTelegram:"Abrir bot de Telegram",noteStars:"Los pagos con Telegram Stars requieren activar el bot.",
+      functionsEyebrow:"FUNCIONES DEL MENÚ REAL",functionsHeadline:"Funciones de Counter-Frame",functionsSubhead:"Todas las opciones visibles en las capturas reales de ESP y Aimbot.",regionBR:"🇧🇷 Brasil • precios en reales",regionIntl:"🌍 Internacional • precios en USD",pricingRegion:"Región detectada por IP",intlCardUnavailable:"El pago internacional con tarjeta requiere configurar el tipo de cambio. Los precios en USD son referencias; no se cobrará hasta activarlo.",intlCardNote:"Los precios internacionales están en USD; Mercado Pago cobra en reales brasileños (BRL) y muestra el importe antes de pagar.",cfFeatureToggle:"Ver todas las funciones de Counter-Frame",viewPhotos:"Ver capturas reales del menú",realScreenshots:"CAPTURAS REALES",realScreenshotsNote:"Capturas reales del menú durante el juego. Consulta el estado de tu plataforma.",payCard:"Continuar con Pix o tarjeta",openTelegram:"Telegram de Counter-Frame (soporte)",noteStars:"Telegram de Counter-Frame solo para catálogo y soporte. No se cobra en el bot.",
       buyNote:"Selecciona un plan para continuar.",checkoutUnavailable:"El pago online no está configurado. Contacta con soporte.",
       days:"días",day:"día",lifetime:"De por vida",status_loading:"Cargando",status_online:"DISPONIBLE",status_offline:"SIN SERVICIO",status_maintenance:"MANTENIMIENTO",status_coming_soon:"PRÓXIMAMENTE",status_presale:"PREVENTA",
       statusGeneric_online:"Disponible según administración.",statusGeneric_offline:"No disponible actualmente.",statusGeneric_maintenance:"En mantenimiento temporal.",statusGeneric_coming_soon:"Lanzamiento en preparación.",statusGeneric_presale:"Preventa abierta; versión aún no lanzada.",
@@ -67,11 +67,11 @@
       androidAvailable:"Android доступен",iosPresale:"Предзаказ iOS",cfSubtitle:"Android доступен. Для iOS открыт предзаказ без мгновенного доступа.",
       service:"ДОСТУПНОСТЬ",statusTitle:"Статус",statusLead:"Информация от администрации.",
       help:"КРАТКИЕ ОТВЕТЫ",faqLead:"Важная информация перед покупкой.",faqQ1:"Как выбрать тариф?",faqA1:"Нажмите «Купить» у нужного продукта. Тарифы появятся до оплаты.",
-      faqQ2:"Какие способы оплаты?",faqA2:"На сайте используется Mercado Pago (карта и Pix, где доступно). Telegram Stars заработает после запуска бота.",
+      faqQ2:"Какие способы оплаты?",faqA2:"Оплата на сайте через Mercado Pago. Telegram используется только для информации и поддержки Counter-Frame.",
       faqQ3:"Что с iOS?",faqA3:"Для iOS открыт только предзаказ. Приложение ещё не вышло, мгновенного доступа нет, дата релиза не объявлена.",
       faqQ4:"Где проверить статус?",faqA4:"Откройте раздел «Статус» для информации администрации.",
       selectPlan:"ВЫБЕРИТЕ ТАРИФ",platform:"Платформа",presaleTitle:"Предзаказ iOS",iosNotice:"Это предзаказ ещё не выпущенной версии для iOS. Мгновенного доступа нет, дата выпуска не подтверждена.",
-      pricingRegion:"Регион цен",intlCardUnavailable:"Оплата иностранной картой ещё требует настройки обменного курса. Цены USD справочные, списаний пока нет.",intlCardNote:"Международные цены указаны в USD, но Mercado Pago списывает BRL. Сумма в реалах будет показана до оплаты.",cfFeatureToggle:"Все функции Counter-Frame",viewPhotos:"Реальные скриншоты меню",realScreenshots:"РЕАЛЬНЫЕ СНИМКИ",realScreenshotsNote:"Реальные снимки меню во время игры. Проверяйте статус платформы.",payCard:"Перейти к оплате картой или Pix",openTelegram:"Открыть Telegram-бота",noteStars:"Оплата через Telegram Stars будет доступна после запуска бота.",
+      functionsEyebrow:"ФУНКЦИИ РЕАЛЬНОГО МЕНЮ",functionsHeadline:"Функции Counter-Frame",functionsSubhead:"Все параметры из оригинальных скриншотов ESP и Aimbot.",regionBR:"🇧🇷 Бразилия • цены в реалах",regionIntl:"🌍 Международные цены в USD",pricingRegion:"Регион определён по IP",intlCardUnavailable:"Оплата иностранной картой ещё требует настройки обменного курса. Цены USD справочные, списаний пока нет.",intlCardNote:"Международные цены указаны в USD, но Mercado Pago списывает BRL. Сумма в реалах будет показана до оплаты.",cfFeatureToggle:"Все функции Counter-Frame",viewPhotos:"Реальные скриншоты меню",realScreenshots:"РЕАЛЬНЫЕ СНИМКИ",realScreenshotsNote:"Реальные снимки меню во время игры. Проверяйте статус платформы.",payCard:"Перейти к оплате картой или Pix",openTelegram:"Telegram Counter-Frame (поддержка)",noteStars:"Telegram Counter-Frame: каталог и поддержка. Оплата в боте отключена.",
       buyNote:"Выберите тариф для продолжения.",checkoutUnavailable:"Онлайн-оплата не настроена. Обратитесь в поддержку.",
       days:"дней",day:"день",lifetime:"Навсегда",status_loading:"Загрузка",status_online:"ДОСТУПНО",status_offline:"НЕДОСТУПНО",status_maintenance:"НА ОБСЛУЖИВАНИИ",status_coming_soon:"СКОРО",status_presale:"ПРЕДЗАКАЗ",
       statusGeneric_online:"Доступно по данным администрации.",statusGeneric_offline:"Сейчас недоступно.",statusGeneric_maintenance:"Временно на обслуживании.",statusGeneric_coming_soon:"Подготовка к запуску.",statusGeneric_presale:"Предзаказ открыт; приложение ещё не выпущено.",
@@ -141,17 +141,16 @@
   const planGrid = document.getElementById("modal-plans");
   const platformChoice = document.getElementById("platform-choice");
   const marketChoice = document.getElementById("pricing-region-choice");
-  const marketSelect = document.getElementById("pricing-region");
+  const detectedRegion = document.getElementById("detected-region");
   const platformSelect = document.getElementById("purchase-platform");
   const iosNotice = document.getElementById("ios-notice");
   const cardBtn = document.getElementById("pay-card");
   const telegramBtn = document.getElementById("pay-stars");
   const checkoutNote = document.getElementById("checkout-note");
   let lang = "pt", selectedProduct = null, selectedPlan = "d30", loadedPlans = pricesFallback, checkoutAvailable = true, productStatuses = {};
-  const savedMarket = localStorage.getItem("lb_store_market");
-  let market = ["BR","INTL"].includes(savedMarket) ? savedMarket :
-    ((navigator.languages?.[0] || navigator.language || "en").toLowerCase().startsWith("pt") ? "BR" : "INTL");
-  marketSelect.value = market;
+  // Price region always comes from the server-side IP check, never the browser language.
+  let market = "INTL";
+  let regionResolved = false;
 
   function guessLanguage() {
     const param = new URLSearchParams(location.search).get("lang");
@@ -174,6 +173,7 @@
     if (selectedProduct) renderPlans();
     renderStatuses();
     renderCounterFrameFeatures();
+    if (regionResolved) detectedRegion.textContent = tr(market === "BR" ? "regionBR" : "regionIntl");
   }
   function money(cents) {
     return (Number(cents)/100).toLocaleString({pt:"pt-BR",en:"en-US",es:"es-ES",ru:"ru-RU"}[lang],{style:"currency",currency:"BRL"});
@@ -211,8 +211,12 @@
     const ios = selectedProduct==="counterframe" && platformSelect.value==="ios";
     iosNotice.hidden = !ios;
     platformChoice.hidden = selectedProduct!=="counterframe";
-    marketChoice.hidden = selectedProduct!=="counterframe";
-    telegramBtn.hidden = selectedProduct!=="counterframe";
+    marketChoice.hidden = selectedProduct !== "counterframe";
+    detectedRegion.textContent = regionResolved
+      ? tr(market === "BR" ? "regionBR" : "regionIntl")
+      : "...";
+    // Telegram is informational and is NEVER offered on the CS2 checkout.
+    telegramBtn.hidden = selectedProduct !== "counterframe";
     cardBtn.disabled = !checkoutAvailable;
     const international = selectedProduct === "counterframe" && market === "INTL";
     const note = !checkoutAvailable
@@ -229,21 +233,25 @@
     selectedPlan = "d30";
     productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : "Counter-Frame";
     if (product==="counterframe") platformSelect.value="android";
-    // MP readiness is verified on the payment page too.
-    checkoutAvailable = true;
-    try {
-      const query = new URLSearchParams({product,market:market.toLowerCase()});
-      const response = await fetch("/api/checkout/config?"+query, {cache:"no-store"});
-      if(response.ok) {
-        const config = await response.json();
-        if(Array.isArray(config.plans) && config.plans.length) {
-          loadedPlans[product] = config.plans;
-        }
-        checkoutAvailable = Boolean(config.configured);
-      } else checkoutAvailable = false;
-    } catch { checkoutAvailable = false; }
-    renderPlans();
+    checkoutAvailable = false;
+    regionResolved = product !== "counterframe";
     if (!dlg.open) dlg.showModal();
+    renderPlans();
+    try {
+      const response = await fetch("/api/checkout/config?product=" + encodeURIComponent(product), {cache:"no-store"});
+      if(!response.ok) throw Error("checkout_unavailable");
+      const config = await response.json();
+      if (selectedProduct !== product) return;
+      market = product === "counterframe" && config.market !== "BR" ? "INTL" : "BR";
+      regionResolved = true;
+      if(Array.isArray(config.plans) && config.plans.length) loadedPlans[product] = config.plans;
+      checkoutAvailable = Boolean(config.configured);
+    } catch {
+      checkoutAvailable = false;
+      if(product === "counterframe") market = "INTL";
+      regionResolved = true;
+    }
+    if (selectedProduct === product) renderPlans();
   }
   async function refreshStatuses() {
     try {
@@ -288,11 +296,7 @@
   document.getElementById("close-dialog").addEventListener("click",()=>dlg.close());
   dlg.addEventListener("click",(event)=>{if(event.target===dlg) dlg.close();});
   platformSelect.addEventListener("change",renderPlans);
-  marketSelect.addEventListener("change",()=>{
-    market = marketSelect.value === "INTL" ? "INTL" : "BR";
-    localStorage.setItem("lb_store_market",market);
-    if(selectedProduct==="counterframe")openPurchase(selectedProduct);
-  });
+
   cardBtn.addEventListener("click",()=>{if(selectedProduct&&checkoutAvailable)location.assign(purchaseLink());});
   document.getElementById("year").textContent=new Date().getFullYear();
   applyLanguage(guessLanguage());
