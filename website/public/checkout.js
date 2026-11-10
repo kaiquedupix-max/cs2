@@ -5,7 +5,7 @@ const checkoutPlatform = checkoutProduct === "counterframe" && checkoutParams.ge
 const checkoutLang = ["pt","en","es","ru"].includes(checkoutParams.get("lang"))
   ? checkoutParams.get("lang") : (navigator.language || "pt").toLowerCase().split("-")[0];
 const isCounterFrame = checkoutProduct === "counterframe";
-const checkoutMarket = isCounterFrame && checkoutParams.get("market") === "intl" ? "INTL" : "BR";
+let checkoutMarket = isCounterFrame ? "INTL" : "BR"; // Server config overrides it after IP geolocation.
 const isIosPreorder = isCounterFrame && checkoutPlatform === "ios";
 const checkoutBox = document.getElementById("checkoutForm");
 const message = document.getElementById("checkoutMessage");
@@ -606,8 +606,9 @@ async function boot() {
         "https://t.me/LegitCheatsCFBot?start=cf_" + checkoutPlatform + "_" + selectedPlanKey;
     }
 
-    const checkoutQuery = new URLSearchParams({product: checkoutProduct, market: checkoutMarket.toLowerCase()});
+    const checkoutQuery = new URLSearchParams({product: checkoutProduct});
     checkoutConfig = await api("/api/checkout/config?" + checkoutQuery);
+    checkoutMarket = isCounterFrame && checkoutConfig.market !== "BR" ? "INTL" : "BR";
     if(isCounterFrame && checkoutMarket==="INTL"){
       const intro=document.getElementById("checkoutIntro");
       if(intro)intro.textContent="International prices are listed in USD, but Mercado Pago charges in BRL (R$). The payable BRL amount is displayed below before confirmation.";

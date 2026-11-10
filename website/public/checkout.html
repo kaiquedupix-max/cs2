@@ -13,6 +13,7 @@
     .cf-preorder-warning strong{display:block;font-size:15px}
     .cf-preorder-warning label{display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer}
     .cf-preorder-warning input{margin-top:5px;accent-color:#ba62f5}
+    #cfTelegramChoice.hidden{display:none!important}
     .cf-telegram-choice{border:1px solid #533273;border-radius:12px;background:#1a0e29;padding:14px;margin:12px 0 20px}
     .cf-telegram-choice a{display:inline-block;color:#e3b3ff;font-weight:850}
     .cf-telegram-choice p{color:#b8a3cc;font-size:12px}
@@ -123,8 +124,8 @@
             <label><input type="checkbox" id="confirmIosPreorder"><span data-checkout-i18n="confirmPreorder">Confirmo que entendo que estou realizando uma pré-compra, sem acesso imediato ao iOS.</span></label>
           </div>
           <div id="cfTelegramChoice" class="cf-telegram-choice hidden">
-            <a id="cfTelegramLink" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener">⭐ Telegram Stars ↗</a>
-            <p id="cfTelegramInfo">O canal de pagamento pelo Telegram será disponibilizado após a ativação do bot.</p>
+            <a id="cfTelegramLink" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener" data-checkout-i18n="telegramSupport">Telegram Counter-Frame • Suporte ↗</a>
+            <p id="cfTelegramInfo">Telegram exclusivo para catálogo e suporte do Counter-Frame. Pagamentos somente pelo site.</p>
           </div>
           <div id="paymentLoading" class="checkout-payment-loading">Carregando pagamento seguro...</div>
           <div id="paymentBrick_container" class="mp-brick"></div>
@@ -172,8 +173,8 @@
 
   <script src="https://sdk.mercadopago.com/js/v2"></script>
   <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
-  <script src="/checkout-i18n.js?v=20261110-compact"></script>
-  <script src="/checkout.js?v=20261110-counterframe"></script>
+  <script src="/checkout-i18n.js?v=20261110-geo"></script>
+  <script src="/checkout.js?v=20261110-geo"></script>
   <script src="/support.js?v=20260923-support"></script>
 </body>
 </html>

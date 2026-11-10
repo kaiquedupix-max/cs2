@@ -27,12 +27,16 @@ jobs:
           node --check server.js
           node --check checkoutRoutes.js
           node --check mercadoPago.js
+          node --check geoMarket.js
+          node --check geoMarket.test.js
           node --check public/landing.js
           node --check public/checkout.js
           node --check public/checkout-i18n.js
           node --check public/account.js
           node --check public/admin.js
           node --check public/support.js
+      - name: Test server-enforced IP pricing
+        run: node --test geoMarket.test.js
       - name: Validate product prices without changing CS2
         run: |
           node --input-type=module <<'NODE'

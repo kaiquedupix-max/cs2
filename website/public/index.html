@@ -11,7 +11,7 @@
   <title>Legit Baratinho | Loja digital</title>
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
   <link rel="stylesheet" href="/styles.css?v=20260923-support">
-  <link rel="stylesheet" href="/landing.css?v=20261110-features">
+  <link rel="stylesheet" href="/landing.css?v=20261110-geo-showcase">
 </head>
 <body>
   <a class="skip" href="#inicio" data-i18n="skip">Pular para o conteúdo</a>
@@ -83,14 +83,34 @@
             <div class="product-heading"><h3>Counter-Frame</h3><span class="product-tag violet">MOBILE</span></div>
             <p data-i18n="cfSubtitle">Android disponível. Para iOS, a compra é uma pré-venda sem acesso imediato.</p>
             <button type="button" class="primary-btn card-buy" data-product="counterframe"><span data-i18n="buy">Comprar</span><span>→</span></button>
-            <details class="cf-feature-details" id="cf-feature-details">
-              <summary><span data-i18n="cfFeatureToggle">Ver todas as funções do Counter-Frame</span><span class="cf-feature-chevron" aria-hidden="true">⌄</span></summary>
-              <div class="cf-feature-content" id="cf-feature-content"></div>
-            </details>
+            <a class="cf-feature-link" href="#cf-functions"><span data-i18n="cfFeatureToggle">Ver todas as funções do Counter-Frame</span><span aria-hidden="true">↗</span></a>
             <button type="button" class="gallery-trigger" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
           </div>
         </article>
       </div>
+      <section id="cf-functions" class="cf-functions-showcase" aria-labelledby="cf-functions-title">
+        <div class="cf-functions-head">
+          <div>
+            <span class="overline" data-i18n="functionsEyebrow">RECURSOS DO MENU REAL</span>
+            <h3 id="cf-functions-title" data-i18n="functionsHeadline">Funções do Counter-Frame</h3>
+            <p data-i18n="functionsSubhead">Lista completa do que aparece nas capturas do menu ESP e Aimbot.</p>
+          </div>
+          <button type="button" class="gallery-trigger cf-functions-photos" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="cf-functions-layout">
+          <div class="cf-feature-content" id="cf-feature-content"></div>
+          <div class="cf-preview-stack">
+            <figure class="cf-preview cf-preview-primary">
+              <img src="/media/counterframe_esp.jpg" alt="Captura original do menu ESP do Counter-Frame" loading="lazy">
+              <figcaption><span>01</span> ESP • COUNTER-FRAME</figcaption>
+            </figure>
+            <figure class="cf-preview cf-preview-secondary">
+              <img src="/media/counterframe_aimbot.jpg" alt="Captura original do menu Aimbot do Counter-Frame" loading="lazy">
+              <figcaption><span>02</span> AIMBOT • COUNTER-FRAME</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
     </section>
 
     <section class="status-section section" id="status">
@@ -135,13 +155,9 @@
   <dialog id="purchase-dialog" class="purchase-dialog" aria-labelledby="purchase-title">
     <div class="dialog-inner">
       <div class="dialog-head"><div><span class="overline" data-i18n="selectPlan">ESCOLHA SEU PLANO</span><h2 id="purchase-title">Counter-Frame</h2></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Close">×</button></div>
-      <div id="pricing-region-choice" class="platform-choice" hidden>
-        <label><span data-i18n="pricingRegion">Região de preços</span>
-          <select id="pricing-region">
-            <option value="BR">🇧🇷 Brasil (BRL)</option>
-            <option value="INTL">🌍 Internacional (USD)</option>
-          </select>
-        </label>
+      <div id="pricing-region-choice" class="auto-region" hidden>
+        <span data-i18n="pricingRegion">Região detectada pelo IP</span>
+        <strong id="detected-region" role="status">...</strong>
       </div>
       <div id="platform-choice" class="platform-choice" hidden>
         <label><span data-i18n="platform">Plataforma</span><select id="purchase-platform"><option value="android">Android</option><option value="ios">iOS — Pré-venda</option></select></label>
@@ -150,12 +166,12 @@
       <div id="modal-plans" class="modal-plans"></div>
       <div class="dialog-actions">
         <button id="pay-card" type="button" class="primary-btn" disabled><span data-i18n="payCard">Continuar com Pix ou cartão</span><span>→</span></button>
-        <a id="pay-stars" class="secondary-btn" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener" hidden><span data-i18n="openTelegram">Abrir bot do Telegram</span></a>
+        <a id="pay-stars" class="secondary-btn" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener" hidden data-counterframe-only="true"><span data-i18n="openTelegram">Abrir bot do Telegram</span></a>
       </div>
       <p id="checkout-note" class="dialog-note" role="status"></p>
     </div>
   </dialog>
-  <script src="/landing.js?v=20261110-features" defer></script>
+  <script src="/landing.js?v=20261110-geo-showcase" defer></script>
   <script src="/support.js?v=20260923-support" defer></script>
 </body>
 </html>

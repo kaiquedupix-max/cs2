@@ -17,7 +17,7 @@
       buySecureDetail:"Pagamento processado pelo Mercado Pago.",preorderTitle:"IMPORTANTE: Pré-venda para iOS",
       preorderNotice:"A versão iOS ainda não foi lançada. Esta é uma compra antecipada, sem acesso imediato. Ainda não existe data confirmada para o lançamento.",
       confirmPreorder:"Estou ciente de que esta é uma pré-compra sem acesso imediato e sem data de lançamento confirmada.",
-      telegramInfo:"O Telegram Stars estará disponível quando o bot estiver ativo.",day:"dia",days:"dias",lifetime:"Vitalício",
+      telegramInfo:"Telegram exclusivo do Counter-Frame para catálogo e suporte. Pagamentos somente pelo site.",telegramSupport:"Telegram do Counter-Frame • Suporte ↗",day:"dia",days:"dias",lifetime:"Vitalício",
       preorderApproved:"Pré-venda confirmada",preorderApprovedNote:"Seu pedido foi registrado. O acesso será liberado somente após o lançamento da versão iOS.",preorderMessage:"Pré-compra confirmada. Aguardando lançamento iOS.",
       approvedMessage:"Pagamento confirmado.",iosConfirmError:"Confirme que entende as condições da pré-venda iOS antes de pagar."
     },
@@ -34,7 +34,7 @@
       buySecureDetail:"Payment handled by Mercado Pago.",preorderTitle:"IMPORTANT: iOS pre-order",
       preorderNotice:"The iOS version has not yet been released. This is a pre-order, with no immediate access and no confirmed release date.",
       confirmPreorder:"I understand this is an iOS pre-order with no immediate access and no confirmed release date.",
-      telegramInfo:"Telegram Stars will be available after the bot is activated.",day:"day",days:"days",lifetime:"Lifetime",
+      telegramInfo:"Counter-Frame Telegram is for information and support. Payments are made on the website only.",telegramSupport:"Counter-Frame Telegram • Support ↗",day:"day",days:"days",lifetime:"Lifetime",
       preorderApproved:"Pre-order confirmed",preorderApprovedNote:"Your order was recorded. Access will be granted only when the iOS version launches.",preorderMessage:"Pre-order confirmed. Awaiting iOS release.",
       approvedMessage:"Payment confirmed.",iosConfirmError:"Please confirm that you understand the iOS pre-order conditions before paying."
     },
@@ -51,7 +51,7 @@
       buySecureDetail:"Pago procesado por Mercado Pago.",preorderTitle:"IMPORTANTE: Preventa iOS",
       preorderNotice:"La versión de iOS aún no se lanzó. Compras por adelantado, sin acceso inmediato ni fecha confirmada.",
       confirmPreorder:"Entiendo que compro en preventa iOS, sin acceso inmediato ni fecha confirmada de lanzamiento.",
-      telegramInfo:"Telegram Stars estará disponible cuando se active el bot.",day:"día",days:"días",lifetime:"De por vida",
+      telegramInfo:"Telegram solo para catálogo y soporte de Counter-Frame. Pagos únicamente en el sitio.",telegramSupport:"Telegram Counter-Frame • Soporte ↗",day:"día",days:"días",lifetime:"De por vida",
       preorderApproved:"Preventa confirmada",preorderApprovedNote:"Tu pedido está registrado. El acceso llegará después del lanzamiento de iOS.",preorderMessage:"Preventa confirmada. Pendiente de lanzamiento iOS.",
       approvedMessage:"Pago confirmado.",iosConfirmError:"Confirma que entiendes las condiciones de preventa de iOS antes de pagar."
     },
@@ -68,7 +68,7 @@
       buySecureDetail:"Обработка платежа через Mercado Pago.",preorderTitle:"ВАЖНО: Предзаказ iOS",
       preorderNotice:"Версия для iOS ещё не вышла. Это предзаказ без мгновенного доступа и без подтверждённой даты выпуска.",
       confirmPreorder:"Я понимаю, что это предзаказ iOS без мгновенного доступа и даты выпуска.",
-      telegramInfo:"Telegram Stars станет доступен после запуска бота.",day:"день",days:"дней",lifetime:"Навсегда",
+      telegramInfo:"Telegram для каталога и поддержки Counter-Frame. Оплата только на сайте.",telegramSupport:"Telegram Counter-Frame • Поддержка ↗",day:"день",days:"дней",lifetime:"Навсегда",
       preorderApproved:"Предзаказ подтверждён",preorderApprovedNote:"Заказ зарегистрирован. Доступ откроется после выхода версии iOS.",preorderMessage:"Предзаказ зарегистрирован. Ожидается выход iOS.",
       approvedMessage:"Платёж подтверждён.",iosConfirmError:"Подтвердите условия предзаказа iOS перед оплатой."
     }
