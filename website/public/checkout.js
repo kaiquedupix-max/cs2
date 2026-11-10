@@ -5,6 +5,7 @@ const checkoutPlatform = checkoutProduct === "counterframe" && checkoutParams.ge
 const checkoutLang = ["pt","en","es","ru"].includes(checkoutParams.get("lang"))
   ? checkoutParams.get("lang") : (navigator.language || "pt").toLowerCase().split("-")[0];
 const isCounterFrame = checkoutProduct === "counterframe";
+const checkoutMarket = isCounterFrame && checkoutParams.get("market") === "intl" ? "INTL" : "BR";
 const isIosPreorder = isCounterFrame && checkoutPlatform === "ios";
 const checkoutBox = document.getElementById("checkoutForm");
 const message = document.getElementById("checkoutMessage");
@@ -76,6 +77,7 @@ function buyerPayload() {
     fingerprint: browserFingerprint(),
     product: checkoutProduct,
     platform: checkoutPlatform,
+    market: checkoutMarket,
   };
 }
 
@@ -103,6 +105,7 @@ function setMessage(text, kind = "") {
 }
 
 function money(cents) {
+  if(cents == null || !Number.isFinite(Number(cents)))return "—";
   const loc = {pt:"pt-BR",en:"en-US",es:"es-ES",ru:"ru-RU"}[checkoutLang] || "en-US";
   return (Number(cents || 0) / 100).toLocaleString(loc, {
     style: "currency",
@@ -112,6 +115,13 @@ function money(cents) {
 
 function ct(key) { return window.lbCheckoutText?.(key) || key; }
 
+function priceLabel(plan) {
+  const base=money(plan.priceCents);
+  if(checkoutMarket === "INTL" && isCounterFrame && Number.isFinite(plan.usdPriceCents)) {
+    return base+" · $"+(plan.usdPriceCents/100).toFixed(2)+" USD (ref.)";
+  }
+  return base;
+}
 function selectedPlan() {
   return checkoutConfig?.plans?.find((plan) => plan.key === selectedPlanKey) || null;
 }
@@ -125,7 +135,7 @@ function updatePlanSummary() {
   document.getElementById("summaryDays").textContent = plan.lifetime
     ? ct("lifetime")
     : plan.days + " " + ct(plan.days === 1 ? "day" : "days");
-  document.getElementById("summaryPrice").textContent = money(plan.priceCents);
+  document.getElementById("summaryPrice").textContent = priceLabel(plan);
 }
 
 function setAccountMode(mode) {
@@ -290,7 +300,7 @@ function renderPlans() {
       ${plan.available ? "" : "disabled"}
     >
       <span>${plan.lifetime ? ct("lifetime") : plan.days + " " + ct(plan.days === 1 ? "day" : "days")}</span>
-      <strong>${money(plan.priceCents)}</strong>
+      <strong>${priceLabel(plan)}</strong>
       <small>${plan.lifetime ? ct("lifetime") : plan.days + " " + ct(plan.days === 1 ? "day" : "days")}</small>
     </button>
   `).join("");
@@ -596,7 +606,12 @@ async function boot() {
         "https://t.me/LegitCheatsCFBot?start=cf_" + checkoutPlatform + "_" + selectedPlanKey;
     }
 
-    checkoutConfig = await api("/api/checkout/config?product=" + encodeURIComponent(checkoutProduct));
+    const checkoutQuery = new URLSearchParams({product: checkoutProduct, market: checkoutMarket.toLowerCase()});
+    checkoutConfig = await api("/api/checkout/config?" + checkoutQuery);
+    if(isCounterFrame && checkoutMarket==="INTL"){
+      const intro=document.getElementById("checkoutIntro");
+      if(intro)intro.textContent="International prices are listed in USD, but Mercado Pago charges in BRL (R$). The payable BRL amount is displayed below before confirmation.";
+    }
     renderPlans();
 
     const profile = checkoutConfig.profile || {};
@@ -612,7 +627,9 @@ async function boot() {
 
     if (!checkoutConfig.configured) {
       setMessage(
-        "Configure MP_PUBLIC_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e PUBLIC_URL para habilitar pagamentos.",
+        checkoutMarket === "INTL"
+          ? "International card payments require USD-to-BRL exchange-rate configuration before checkout can be enabled."
+          : "Configure MP_PUBLIC_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e PUBLIC_URL para habilitar pagamentos.",
         "error"
       );
       return;
