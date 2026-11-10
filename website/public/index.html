@@ -115,6 +115,14 @@
   <dialog id="purchase-dialog" class="purchase-dialog" aria-labelledby="purchase-title">
     <div class="dialog-inner">
       <div class="dialog-head"><div><span class="overline" data-i18n="selectPlan">ESCOLHA SEU PLANO</span><h2 id="purchase-title">Counter-Frame</h2></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Close">×</button></div>
+      <div id="pricing-region-choice" class="platform-choice" hidden>
+        <label><span data-i18n="pricingRegion">Região de preços</span>
+          <select id="pricing-region">
+            <option value="BR">🇧🇷 Brasil (BRL)</option>
+            <option value="INTL">🌍 Internacional (USD)</option>
+          </select>
+        </label>
+      </div>
       <div id="platform-choice" class="platform-choice" hidden>
         <label><span data-i18n="platform">Plataforma</span><select id="purchase-platform"><option value="android">Android</option><option value="ios">iOS — Pré-venda</option></select></label>
         <div id="ios-notice" class="ios-notice" hidden><strong data-i18n="presaleTitle">Pré-venda iOS</strong><p data-i18n="iosNotice">Você está comprando antecipadamente uma versão ainda não lançada. Não há acesso imediato e a data de lançamento não está confirmada.</p></div>
@@ -127,7 +135,7 @@
       <p id="checkout-note" class="dialog-note" role="status"></p>
     </div>
   </dialog>
-  <script src="/landing.js?v=20261110-compact-v1" defer></script>
+  <script src="/landing.js?v=20261110-intl-pricing-v2" defer></script>
   <script src="/support.js?v=20260923-support" defer></script>
 </body>
 </html>
