@@ -20,3 +20,14 @@ body::before{display:none}
 .support-contact-card,.support-form{background:#160d27;border-color:#55316c}
 .support-form button,.support-contact-form button{background:#a94bf1;color:#190d25}
 .support-messages .support-message.admin{background:#7833bc;color:#fff}
+
+/* If real gameplay screenshots are uploaded to /media/, show them in place of decorative fallback. */
+.cf-real-shot{display:block;position:absolute;z-index:2;object-fit:contain;border:1px solid #9d5ae0;border-radius:12px;box-shadow:0 16px 50px #000b,0 0 28px #a247ff53}
+.cf-real-shot[hidden]{display:none}
+.hero-art .hero-shot{top:85px;left:18px;width:calc(100% - 36px);max-height:255px}
+.hero-art.has-real-shot .art-core{display:none}
+.hero-art.has-real-shot .art-caption{bottom:18px}
+.hero-art.has-real-shot .art-live{display:none}
+.product-visual .product-shot{top:22px;left:14px;width:calc(100% - 28px);height:calc(100% - 47px)}
+.product-visual.has-real-shot .cf-twist{display:none}
+.product-visual.has-real-shot .platform-chips{z-index:4}
