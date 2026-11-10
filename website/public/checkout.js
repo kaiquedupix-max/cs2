@@ -103,11 +103,14 @@ function setMessage(text, kind = "") {
 }
 
 function money(cents) {
-  return (Number(cents || 0) / 100).toLocaleString("pt-BR", {
+  const loc = {pt:"pt-BR",en:"en-US",es:"es-ES",ru:"ru-RU"}[checkoutLang] || "en-US";
+  return (Number(cents || 0) / 100).toLocaleString(loc, {
     style: "currency",
     currency: "BRL",
   });
 }
+
+function ct(key) { return window.lbCheckoutText?.(key) || key; }
 
 function selectedPlan() {
   return checkoutConfig?.plans?.find((plan) => plan.key === selectedPlanKey) || null;
@@ -117,10 +120,11 @@ function updatePlanSummary() {
   const plan = selectedPlan();
   if (!plan) return;
 
-  document.getElementById("summaryPlan").textContent = plan.name;
+  document.getElementById("summaryPlan").textContent =
+    plan.lifetime ? ct("lifetime") : String(plan.days) + " " + ct(plan.days === 1 ? "day" : "days");
   document.getElementById("summaryDays").textContent = plan.lifetime
-    ? "Acesso permanente"
-    : plan.days + " dias";
+    ? ct("lifetime")
+    : plan.days + " " + ct(plan.days === 1 ? "day" : "days");
   document.getElementById("summaryPrice").textContent = money(plan.priceCents);
 }
 
@@ -285,9 +289,9 @@ function renderPlans() {
       data-plan-key="${plan.key}"
       ${plan.available ? "" : "disabled"}
     >
-      <span>${plan.name}</span>
+      <span>${plan.lifetime ? ct("lifetime") : plan.days + " " + ct(plan.days === 1 ? "day" : "days")}</span>
       <strong>${money(plan.priceCents)}</strong>
-      <small>${plan.lifetime ? "Pague uma vez" : plan.days + " dias de acesso"}</small>
+      <small>${plan.lifetime ? ct("lifetime") : plan.days + " " + ct(plan.days === 1 ? "day" : "days")}</small>
     </button>
   `).join("");
 
@@ -327,15 +331,15 @@ async function showApproved(preOrder = isIosPreorder) {
 
   if (preOrder) {
     paymentApproved.querySelector("strong").textContent =
-      "Pré-venda iOS confirmada";
+      ct("preorderApproved");
     paymentApproved.querySelector("p").textContent =
-      "Seu pedido foi registrado. A versão iOS ainda não foi lançada e não há acesso imediato.";
-    setMessage("Pré-compra confirmada. Aguardando lançamento iOS.", "success");
+      ct("preorderApprovedNote");
+    setMessage(ct("preorderMessage"), "success");
   } else {
-    paymentApproved.querySelector("strong").textContent = "Pagamento aprovado";
+    paymentApproved.querySelector("strong").textContent = ct("approved");
     paymentApproved.querySelector("p").textContent =
-      "Compra confirmada. Consulte seu acesso e histórico na área do cliente.";
-    setMessage("Pagamento confirmado.", "success");
+      ct("approvedNote");
+    setMessage(ct("approvedMessage"), "success");
   }
 }
 
@@ -487,7 +491,7 @@ async function mountPaymentBrick() {
                 : "Preencha nome completo, CPF e e-mail antes de pagar.");
             }
             if (isIosPreorder && !document.getElementById("confirmIosPreorder")?.checked) {
-              throw new Error("Confirme que entende as condições da pré-venda iOS antes de pagar.");
+              throw new Error(ct("iosConfirmError"));
             }
 
             await ensureCheckoutAccount();
