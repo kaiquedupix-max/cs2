@@ -2,7 +2,7 @@ export const LANGS = ["pt", "en", "es", "ru"];
 export const translations = {
   pt: {
     welcome: "Bem-vindo à Legit Baratinho!\nEsta loja no Telegram é exclusiva do Counter-Frame.",
-    gallery: "📷 Fotos reais", shop: "🛍️ Comprar", orders: "📦 Pedidos", coupons: "🏷️ Cupom", referrals: "🎁 Indicações",
+    features: "📋 Funções", featureList: "FUNÇÕES DO COUNTER-FRAME (conforme as imagens reais)\n\nESP\n• Ativar ESP\n• Caixa (Box)\n• Esqueleto\n• Nome\n• Vida\n• Distância\n• Arma\n• Linha de mira\n\nCONFIGURAÇÕES ESP\n• Tipo de caixa\n• Espessura\n• Arredondamento\n• Opacidade\n• Tamanho do texto\n\nAIMBOT\n• Ativar mira\n• Círculo de FOV\n• Ativação: Sempre no FOV / Só ao disparar\n• Hitbox: Cabeça, Pescoço e Peito\n\nAJUSTES DA MIRA\n• FOV\n• Suavidade\n• Força de assistência\n• Alcance máximo\n• Filtros da mira\n\nA aba Sistema aparece, mas suas opções não foram mostradas.", gallery: "📷 Fotos reais", shop: "🛍️ Comprar", orders: "📦 Pedidos", coupons: "🏷️ Cupom", referrals: "🎁 Indicações",
     language: "🌐 Idioma", region: "🌍 Região / Preços", support: "💬 Suporte", back: "⬅️ Voltar",
     galleryCaption: "Capturas reais de gameplay, ESP e Aimbot, mais dois mockups promocionais. Pagamentos por Stars e entrega automática ainda não estão ativos.",
     choosePlatform: "Selecione a plataforma para Counter-Frame:",
@@ -28,7 +28,7 @@ export const translations = {
   },
   en: {
     welcome: "Welcome to Legit Baratinho!\nThis Telegram shop sells Counter-Frame only.",
-    gallery:"📷 Real photos", shop:"🛍️ Shop",orders:"📦 Orders",coupons:"🏷️ Coupon",referrals:"🎁 Referrals",
+    features:"📋 Features", featureList:"COUNTER-FRAME FEATURES (as shown in the original screenshots)\n\nESP\n• Enable ESP\n• Box\n• Skeleton\n• Name\n• Health\n• Distance\n• Weapon\n• Aim line\n\nESP SETTINGS\n• Box type\n• Thickness\n• Corner rounding\n• Opacity\n• Text size\n\nAIMBOT\n• Enable aim\n• FOV circle\n• Activation: Always in FOV / Only when firing\n• Hitbox: Head, Neck, Chest\n\nAIM SETTINGS\n• FOV\n• Smoothing\n• Assist strength\n• Maximum range\n• Aim filters\n\nThe System tab was visible, but its options were not shown.", gallery:"📷 Real photos", shop:"🛍️ Shop",orders:"📦 Orders",coupons:"🏷️ Coupon",referrals:"🎁 Referrals",
     language:"🌐 Language",region:"🌍 Region / Prices",support:"💬 Support",back:"⬅️ Back",
     galleryCaption:"Real gameplay, ESP and Aimbot screenshots plus two promotional mockups. Telegram Stars payments and license fulfillment are not live yet.",
     choosePlatform:"Select your Counter-Frame platform:",
@@ -54,7 +54,7 @@ export const translations = {
   },
   es: {
     welcome:"¡Bienvenido a Legit Baratinho!\nEsta tienda de Telegram es exclusiva de Counter-Frame.",
-    gallery:"📷 Fotos reales", shop:"🛍️ Tienda",orders:"📦 Pedidos",coupons:"🏷️ Cupón",referrals:"🎁 Referidos",
+    features:"📋 Funciones", featureList:"FUNCIONES DE COUNTER-FRAME (según capturas originales)\n\nESP\n• Activar ESP\n• Caja (Box)\n• Esqueleto\n• Nombre\n• Vida\n• Distancia\n• Arma\n• Línea de mira\n\nAJUSTES DE ESP\n• Tipo de caja\n• Grosor\n• Redondeo\n• Opacidad\n• Tamaño del texto\n\nAIMBOT\n• Activar puntería\n• Círculo de FOV\n• Activación: Siempre en FOV / Solo al disparar\n• Hitbox: Cabeza, Cuello, Pecho\n\nAJUSTES DE MIRA\n• FOV\n• Suavizado\n• Fuerza de asistencia\n• Alcance máximo\n• Filtros de puntería\n\nLa pestaña Sistema es visible, pero sus opciones no aparecen.", gallery:"📷 Fotos reales", shop:"🛍️ Tienda",orders:"📦 Pedidos",coupons:"🏷️ Cupón",referrals:"🎁 Referidos",
     language:"🌐 Idioma",region:"🌍 Región / Precios",support:"💬 Soporte",back:"⬅️ Volver",
     galleryCaption:"Capturas reales de gameplay, ESP y Aimbot y dos mockups. Los pagos Stars y la entrega aún no están activos.",
     choosePlatform:"Elige tu plataforma de Counter-Frame:",
@@ -80,7 +80,7 @@ export const translations = {
   },
   ru: {
     welcome:"Добро пожаловать в Legit Baratinho!\nВ Telegram-боте продаётся только Counter-Frame.",
-    gallery:"📷 Скриншоты", shop:"🛍️ Магазин",orders:"📦 Заказы",coupons:"🏷️ Купон",referrals:"🎁 Приглашения",
+    features:"📋 Функции", featureList:"ФУНКЦИИ COUNTER-FRAME (по реальным скриншотам)\n\nESP\n• Включить ESP\n• Рамка (Box)\n• Скелет\n• Имя\n• Здоровье\n• Расстояние\n• Оружие\n• Линия прицеливания\n\nНАСТРОЙКИ ESP\n• Тип рамки\n• Толщина\n• Скругление\n• Прозрачность\n• Размер текста\n\nAIMBOT\n• Включить прицел\n• Круг FOV\n• Режим: Всегда в FOV / Только при выстреле\n• Хитбокс: Голова, Шея, Грудь\n\nНАСТРОЙКИ ПРИЦЕЛА\n• FOV\n• Плавность\n• Сила помощи\n• Максимальная дистанция\n• Фильтры прицеливания\n\nВкладка «Система» видна, но её опции не показаны.", gallery:"📷 Скриншоты", shop:"🛍️ Магазин",orders:"📦 Заказы",coupons:"🏷️ Купон",referrals:"🎁 Приглашения",
     language:"🌐 Язык",region:"🌍 Регион / Цены",support:"💬 Поддержка",back:"⬅️ Назад",
     galleryCaption:"Реальные скриншоты игры, ESP, Aimbot и два промо-макета. Stars и выдача ключей пока не работают.",
     choosePlatform:"Выберите платформу Counter-Frame:",

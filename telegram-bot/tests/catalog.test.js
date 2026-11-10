@@ -21,4 +21,9 @@ test("all four languages are available",()=>{
   assert.deepEqual(LANGS,["pt","en","es","ru"]);
   assert.equal(normalizeLang("pt-BR"),"pt");
   assert.ok(t("ru","iosWarning").includes("предзаказ"));
+  for(const lang of LANGS) {
+    assert.ok(t(lang,"featureList").includes("ESP"));
+    assert.ok(t(lang,"featureList").includes("FOV"));
+    assert.ok(t(lang,"features").length>3);
+  }
 });
