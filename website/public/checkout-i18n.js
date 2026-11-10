@@ -76,7 +76,7 @@
   const t=(key)=>dict[lang][key] ?? dict.pt[key] ?? key;
   window.lbCheckoutText=t;
   const set=(selector,key)=>{const e=document.querySelector(selector);if(e)e.textContent=t(key);};
-  const label=(selector,key)=>{const e=document.querySelector(selector);if(e && e.firstChild?.nodeType===Node.TEXT_NODE)e.firstChild.textContent=t(key)+"\n              ";};
+  const label=(selector,key)=>{const item=document.querySelector(selector);const e=item?.matches("input") ? item.closest("label") : item;if(e && e.firstChild?.nodeType===Node.TEXT_NODE)e.firstChild.textContent=t(key)+"\n              ";};
   [
     [".header-actions .account-link","account"],[".topbar .button-outline","account"],
     [".checkout-heading .eyebrow","secure"],[".checkout-heading h1","finalize"],["#checkoutIntro","intro"],
