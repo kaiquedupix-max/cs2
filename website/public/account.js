@@ -113,7 +113,7 @@ function renderAccount(data) {
       : product.isFreeTrial
         ? "Seu teste grátis está ativo por 1 dia. O primeiro PC usado no loader ficará vinculado a este teste."
         : `Seu plano está ativo e possui ${product.daysRemaining} dia(s) restante(s).`
-    : "Ative o teste grátis de 1 dia ou compre um plano para liberar o produto no loader.";
+    : "Escolha e compre um plano para liberar o produto no loader.";
 
   const trial = data.trial || {};
   freeTrialBtn?.classList.toggle("hidden", !trial.eligible || product.hasAccess);
@@ -134,6 +134,47 @@ function renderAccount(data) {
   }
 
   loadRelease(product.hasAccess);
+  loadCounterFrameAccess();
+}
+
+async function loadCounterFrameAccess() {
+  const summary = document.getElementById("cfAccountSummary");
+  const badge = document.getElementById("cfAccountBadge");
+  const purchases = document.getElementById("cfAccountPurchases");
+  if (!summary || !badge || !purchases) return;
+
+  try {
+    const info = await api("/api/account/counterframe");
+    const now = Date.now();
+    const android = (info.access || []).find((row) =>
+      row.product_code === "counterframe-android" && !row.revoked_at &&
+      new Date(row.expires_at).getTime() > now
+    );
+    const ios = (info.access || []).find((row) =>
+      row.product_code === "counterframe-ios" && !row.revoked_at &&
+      new Date(row.expires_at).getTime() > now
+    );
+    const preorders = info.preorders || [];
+    if (android || ios) {
+      const active = [android ? "Android" : "", ios ? "iOS" : ""].filter(Boolean).join(" + ");
+      summary.textContent = "Acesso ativo para " + active + ".";
+      badge.textContent = "ACESSO ATIVO";
+      badge.className = "access-badge active";
+    } else if (preorders.length > 0) {
+      summary.textContent = "Pré-compra iOS registrada. O acesso só será liberado após o lançamento, sem data confirmada.";
+      badge.textContent = "PRÉ-VENDA iOS";
+      badge.className = "access-badge inactive";
+    } else {
+      summary.textContent = "Nenhuma compra de Counter-Frame nesta conta.";
+      badge.textContent = "SEM ACESSO";
+      badge.className = "access-badge inactive";
+    }
+    purchases.textContent = preorders.length > 0
+      ? preorders.length + " pré-venda(s) iOS" : (android || ios ? "Licença ativa" : "Nenhuma");
+  } catch {
+    summary.textContent = "Não foi possível consultar suas compras agora.";
+    badge.textContent = "INDISPONÍVEL";
+  }
 }
 
 function formatBytes(bytes) {

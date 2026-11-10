@@ -1,3 +1,11 @@
+const checkoutParams = new URLSearchParams(location.search);
+const checkoutProduct = checkoutParams.get("product") === "counterframe" ? "counterframe" : "cs2";
+const checkoutPlatform = checkoutProduct === "counterframe" && checkoutParams.get("platform") === "ios" ? "ios" :
+  checkoutProduct === "counterframe" ? "android" : "windows";
+const checkoutLang = ["pt","en","es","ru"].includes(checkoutParams.get("lang"))
+  ? checkoutParams.get("lang") : (navigator.language || "pt").toLowerCase().split("-")[0];
+const isCounterFrame = checkoutProduct === "counterframe";
+const isIosPreorder = isCounterFrame && checkoutPlatform === "ios";
 const checkoutBox = document.getElementById("checkoutForm");
 const message = document.getElementById("checkoutMessage");
 const brickContainer = document.getElementById("paymentBrick_container");
@@ -18,7 +26,7 @@ const checkoutLoginIdentifier = document.getElementById("checkoutLoginIdentifier
 const checkoutLoginPassword = document.getElementById("checkoutLoginPassword");
 
 let checkoutConfig = null;
-let selectedPlanKey = new URLSearchParams(location.search).get("plan") || "d30";
+let selectedPlanKey = checkoutParams.get("plan") || "d30";
 let paymentIntent = crypto.randomUUID();
 let paymentBrickController = null;
 let paymentPollTimer = null;
@@ -66,13 +74,15 @@ function buyerPayload() {
     cpf: document.getElementById("buyerCpf").value,
     email: document.getElementById("buyerEmail").value,
     fingerprint: browserFingerprint(),
+    product: checkoutProduct,
+    platform: checkoutPlatform,
   };
 }
 
 function validateBuyerFields() {
   const required = [
     document.getElementById("buyerName"),
-    document.getElementById("buyerCpf"),
+    ...(isCounterFrame ? [] : [document.getElementById("buyerCpf")]),
     document.getElementById("buyerEmail"),
   ];
 
@@ -93,11 +103,14 @@ function setMessage(text, kind = "") {
 }
 
 function money(cents) {
-  return (Number(cents || 0) / 100).toLocaleString("pt-BR", {
+  const loc = {pt:"pt-BR",en:"en-US",es:"es-ES",ru:"ru-RU"}[checkoutLang] || "en-US";
+  return (Number(cents || 0) / 100).toLocaleString(loc, {
     style: "currency",
     currency: "BRL",
   });
 }
+
+function ct(key) { return window.lbCheckoutText?.(key) || key; }
 
 function selectedPlan() {
   return checkoutConfig?.plans?.find((plan) => plan.key === selectedPlanKey) || null;
@@ -107,10 +120,11 @@ function updatePlanSummary() {
   const plan = selectedPlan();
   if (!plan) return;
 
-  document.getElementById("summaryPlan").textContent = plan.name;
+  document.getElementById("summaryPlan").textContent =
+    plan.lifetime ? ct("lifetime") : String(plan.days) + " " + ct(plan.days === 1 ? "day" : "days");
   document.getElementById("summaryDays").textContent = plan.lifetime
-    ? "Acesso permanente"
-    : plan.days + " dias";
+    ? ct("lifetime")
+    : plan.days + " " + ct(plan.days === 1 ? "day" : "days");
   document.getElementById("summaryPrice").textContent = money(plan.priceCents);
 }
 
@@ -246,6 +260,10 @@ async function choosePlan(key) {
   const url = new URL(location.href);
   url.searchParams.set("plan", selectedPlanKey);
   history.replaceState(null, "", url);
+  if (isCounterFrame) {
+    document.getElementById("cfTelegramLink").href =
+      "https://t.me/LegitCheatsCFBot?start=cf_" + checkoutPlatform + "_" + selectedPlanKey;
+  }
 
   pixResult.classList.add("hidden");
   paymentApproved.classList.add("hidden");
@@ -271,9 +289,9 @@ function renderPlans() {
       data-plan-key="${plan.key}"
       ${plan.available ? "" : "disabled"}
     >
-      <span>${plan.name}</span>
+      <span>${plan.lifetime ? ct("lifetime") : plan.days + " " + ct(plan.days === 1 ? "day" : "days")}</span>
       <strong>${money(plan.priceCents)}</strong>
-      <small>${plan.lifetime ? "Pague uma vez" : plan.days + " dias de acesso"}</small>
+      <small>${plan.lifetime ? ct("lifetime") : plan.days + " " + ct(plan.days === 1 ? "day" : "days")}</small>
     </button>
   `).join("");
 
@@ -302,7 +320,7 @@ function stopPaymentPolling() {
   }
 }
 
-async function showApproved() {
+async function showApproved(preOrder = isIosPreorder) {
   stopPaymentPolling();
   await destroyPaymentBrick();
 
@@ -311,7 +329,18 @@ async function showApproved() {
   paymentLoading.classList.add("hidden");
   paymentApproved.classList.remove("hidden");
 
-  setMessage("Pagamento confirmado. Sua assinatura já está ativa.", "success");
+  if (preOrder) {
+    paymentApproved.querySelector("strong").textContent =
+      ct("preorderApproved");
+    paymentApproved.querySelector("p").textContent =
+      ct("preorderApprovedNote");
+    setMessage(ct("preorderMessage"), "success");
+  } else {
+    paymentApproved.querySelector("strong").textContent = ct("approved");
+    paymentApproved.querySelector("p").textContent =
+      ct("approvedNote");
+    setMessage(ct("approvedMessage"), "success");
+  }
 }
 
 function startPaymentPolling(paymentId) {
@@ -326,7 +355,7 @@ function startPaymentPolling(paymentId) {
         accountAuthenticated = true;
         accountIdentity = data.account?.user || accountIdentity;
         renderAccountState();
-        await showApproved();
+        await showApproved(Boolean(data.payment?.preOrder));
         return;
       }
 
@@ -347,7 +376,7 @@ async function handlePaymentResult(result) {
     accountAuthenticated = true;
     accountIdentity = result.account?.user || accountIdentity;
     renderAccountState();
-    await showApproved();
+    await showApproved(Boolean(result.preOrder));
     return;
   }
 
@@ -411,7 +440,8 @@ async function mountPaymentBrick() {
   setMessage("");
 
   try {
-    const mp = new window.MercadoPago(checkoutConfig.publicKey, { locale: "pt-BR" });
+    const mpLocale = checkoutLang === "es" ? "es-AR" : checkoutLang === "pt" ? "pt-BR" : "en-US";
+    const mp = new window.MercadoPago(checkoutConfig.publicKey, { locale: mpLocale });
     const bricks = mp.bricks({ theme: "dark" });
 
     paymentBrickController = await bricks.create("payment", "paymentBrick_container", {
@@ -444,7 +474,7 @@ async function mountPaymentBrick() {
         },
         paymentMethods: {
           creditCard: "all",
-          bankTransfer: "all",
+          ...(checkoutLang === "pt" ? {bankTransfer: "all"} : {}),
           maxInstallments: 6,
         },
       },
@@ -456,7 +486,12 @@ async function mountPaymentBrick() {
         onSubmit: async ({ formData }) => {
           try {
             if (!validateBuyerFields()) {
-              throw new Error("Preencha nome completo, CPF e e-mail antes de pagar.");
+              throw new Error(isCounterFrame
+                ? "Informe nome e e-mail válidos antes de pagar."
+                : "Preencha nome completo, CPF e e-mail antes de pagar.");
+            }
+            if (isIosPreorder && !document.getElementById("confirmIosPreorder")?.checked) {
+              throw new Error(ct("iosConfirmError"));
             }
 
             await ensureCheckoutAccount();
@@ -544,7 +579,24 @@ document.getElementById("copyPixBtn").addEventListener("click", async () => {
 
 async function boot() {
   try {
-    checkoutConfig = await api("/api/checkout/config");
+    document.title = (isCounterFrame ? "Counter-Frame" : "CS2") + " | Legit Baratinho";
+    document.getElementById("checkoutProductName").textContent =
+      isCounterFrame ? "Counter-Frame • " + (isIosPreorder ? "iOS" : "Android") : "Counter-Strike 2";
+    document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : "CS";
+    document.getElementById("iosCheckoutNotice")?.classList.toggle("hidden", !isIosPreorder);
+    document.getElementById("cfTelegramChoice")?.classList.toggle("hidden", !isCounterFrame);
+    if (isCounterFrame) {
+      document.getElementById("buyerCpf").required = false;
+      document.getElementById("buyerCpfLabel").firstChild.textContent =
+        checkoutLang === "pt" ? "CPF (opcional para clientes internacionais)" :
+        checkoutLang === "es" ? "CPF (opcional para clientes extranjeros)" :
+        checkoutLang === "ru" ? "CPF (необязательно для иностранцев)" :
+        "CPF (optional for international buyers)";
+      document.getElementById("cfTelegramLink").href =
+        "https://t.me/LegitCheatsCFBot?start=cf_" + checkoutPlatform + "_" + selectedPlanKey;
+    }
+
+    checkoutConfig = await api("/api/checkout/config?product=" + encodeURIComponent(checkoutProduct));
     renderPlans();
 
     const profile = checkoutConfig.profile || {};

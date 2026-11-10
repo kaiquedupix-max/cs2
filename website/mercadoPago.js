@@ -10,6 +10,19 @@ const PLANS = [
   { key: "lifetime", name: "Lifetime", days: null, lifetime: true, priceCents: 10000 },
 ];
 
+const COUNTERFRAME_PLANS = [
+  { key: "d1", name: "1 dia", days: 1, priceCents: 490 },
+  { key: "d7", name: "7 dias", days: 7, priceCents: 1290 },
+  { key: "d15", name: "15 dias", days: 15, priceCents: 2190 },
+  { key: "d30", name: "30 dias", days: 30, priceCents: 3500 },
+];
+
+export function normalizeProduct(value) {
+  const product = String(value || "cs2").trim().toLowerCase();
+  if (product === "cf" || product === "counterframe") return "counterframe";
+  return "cs2";
+}
+
 export function digitsOnly(value) {
   return String(value || "").replace(/\D/g, "");
 }
@@ -35,7 +48,7 @@ export function validCpf(value) {
     digit(cpf.slice(0, 10), 11) === Number(cpf[10]);
 }
 
-export function checkoutConfig() {
+export function checkoutConfig(product = "cs2") {
   const publicKey = String(process.env.MP_PUBLIC_KEY || "").trim();
   const accessToken = String(process.env.MP_ACCESS_TOKEN || "").trim();
   const webhookSecret = String(process.env.MP_WEBHOOK_SECRET || "").trim();
@@ -52,13 +65,15 @@ export function checkoutConfig() {
     configured,
     publicKey,
     publicUrl,
-    plans: PLANS.map((plan) => ({ ...plan, available: configured })),
+    plans: (normalizeProduct(product) === "counterframe" ? COUNTERFRAME_PLANS : PLANS)
+      .map((plan) => ({ ...plan, available: configured })),
   };
 }
 
-export function checkoutPlan(key) {
+export function checkoutPlan(key, product = "cs2") {
   const normalized = String(key || "d30").trim().toLowerCase();
-  return PLANS.find((plan) => plan.key === normalized) || null;
+  const plans = normalizeProduct(product) === "counterframe" ? COUNTERFRAME_PLANS : PLANS;
+  return plans.find((plan) => plan.key === normalized) || null;
 }
 
 function safeEqual(a, b) {
@@ -162,8 +177,10 @@ export async function createPayment({
   formData,
   idempotencyKey,
   deviceId,
+  product = "cs2",
+  platform = "windows",
 }) {
-  const config = checkoutConfig();
+  const config = checkoutConfig(product);
   if (!config.configured) {
     throw Object.assign(new Error("Mercado Pago ainda não configurado."), { statusCode: 503 });
   }
@@ -178,18 +195,25 @@ export async function createPayment({
     throw Object.assign(new Error("Escolha uma forma de pagamento."), { statusCode: 400 });
   }
 
+  const suppliedIdentification = input.payer?.identification;
+  const identification = validCpf(buyer.cpf)
+    ? { type: "CPF", number: digitsOnly(buyer.cpf) }
+    : suppliedIdentification?.type && suppliedIdentification?.number
+      ? { type: String(suppliedIdentification.type).slice(0, 24),
+          number: String(suppliedIdentification.number).slice(0, 64) }
+      : null;
+
   const payer = {
     ...(input.payer && typeof input.payer === "object" ? input.payer : {}),
     email: buyer.email.trim().toLowerCase(),
-    identification: {
-      type: "CPF",
-      number: digitsOnly(buyer.cpf),
-    },
+    ...(identification ? { identification } : {}),
   };
 
   const payload = {
     transaction_amount: Number((plan.priceCents / 100).toFixed(2)),
-    description: "Legit Baratinho - " + plan.name,
+    description: "Legit Baratinho - " +
+      (normalizeProduct(product) === "counterframe" ? "Counter-Frame " + platform : "CS2") +
+      " - " + plan.name,
     payment_method_id: paymentMethodId,
     payer,
     external_reference: "lb:" + userId + ":" + localId + ":" + plan.key,
@@ -197,6 +221,8 @@ export async function createPayment({
       user_id: String(userId),
       local_payment_id: String(localId),
       plan_key: plan.key,
+      product_code: normalizeProduct(product) === "counterframe" ? "counterframe-" + platform : "cs2",
+      platform: platform,
     },
     notification_url: config.publicUrl + "/api/webhooks/mercadopago",
     binary_mode: false,

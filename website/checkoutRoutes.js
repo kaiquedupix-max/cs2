@@ -6,13 +6,14 @@ import {
   paymentView,
   validCpf,
   verifyWebhook,
+  normalizeProduct,
 } from "./mercadoPago.js";
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
 }
 
-function cleanBuyer(body) {
+function cleanBuyer(body, product) {
   const buyer = {
     fullName: String(body?.fullName || "").trim().slice(0, 160),
     cpf: String(body?.cpf || "").trim().slice(0, 32),
@@ -24,8 +25,8 @@ function cleanBuyer(body) {
     throw Object.assign(new Error("Informe o nome completo."), { statusCode: 400 });
   }
 
-  if (!validCpf(buyer.cpf)) {
-    throw Object.assign(new Error("Informe um CPF válido."), { statusCode: 400 });
+  if ((product === "cs2" || buyer.cpf) && !validCpf(buyer.cpf)) {
+    throw Object.assign(new Error("Informe um CPF válido ou deixe o documento vazio para compra internacional de Counter-Frame."), { statusCode: 400 });
   }
 
   if (!validEmail(buyer.email)) {
@@ -70,7 +71,7 @@ export function registerCheckoutRoutes(app, deps) {
     );
   }
 
-  async function createIntent({ userId, idempotencyKey, method, buyer, plan, installments = 1, card = null }) {
+  async function createIntent({ userId, idempotencyKey, method, buyer, plan, productCode, platform, installments = 1, card = null }) {
     await saveProfile(userId, buyer);
 
     const result = await pool.query(
@@ -78,12 +79,13 @@ export function registerCheckoutRoutes(app, deps) {
          user_id, provider, idempotency_key, payment_method, status, installments,
          buyer_name, buyer_cpf, buyer_email, buyer_phone, process_number,
          card_holder_name, card_last4, card_expiry,
-         plan_key, plan_name, plan_days, plan_lifetime, expected_amount
+         plan_key, plan_name, plan_days, plan_lifetime, expected_amount,
+         product_code, product_platform
        )
-       VALUES ($1,'mercadopago',$2,$3,'creating',$4,$5,$6,$7,'','',$8,$9,$10,$11,$12,$13,$14,$15)
+       VALUES ($1,'mercadopago',$2,$3,'creating',$4,$5,$6,$7,'','',$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        ON CONFLICT (idempotency_key)
        DO UPDATE SET updated_at = NOW()
-       RETURNING id`,
+       RETURNING id, product_code, product_platform, plan_key`,
       [
         userId,
         idempotencyKey,
@@ -100,10 +102,18 @@ export function registerCheckoutRoutes(app, deps) {
         plan.days,
         Boolean(plan.lifetime),
         Number(plan.priceCents || 0) / 100,
+        productCode,
+        platform,
       ]
     );
 
-    return Number(result.rows[0].id);
+    const created = result.rows[0];
+    if (created.product_code !== productCode ||
+        created.product_platform !== platform ||
+        created.plan_key !== plan.key) {
+      throw Object.assign(new Error("Chave de pagamento já utilizada para outro produto."), { statusCode: 409 });
+    }
+    return Number(created.id);
   }
 
   async function updateFromProvider(localId, payment, extra = {}) {
@@ -142,7 +152,8 @@ export function registerCheckoutRoutes(app, deps) {
       await client.query("BEGIN");
 
       const result = await client.query(
-        `SELECT user_id, access_granted_at, plan_key, plan_name, plan_days, plan_lifetime
+        `SELECT user_id, access_granted_at, plan_key, plan_name, plan_days, plan_lifetime,
+                product_code, product_platform
          FROM checkout_payments
          WHERE id = $1
          FOR UPDATE`,
@@ -155,8 +166,21 @@ export function registerCheckoutRoutes(app, deps) {
         return false;
       }
 
+      // iOS is an explicit pre-order. The payment is recorded, but access is not
+      // granted until the iOS app is actually released.
+      if (payment.product_code === "counterframe-ios") {
+        await client.query(
+          `UPDATE checkout_payments
+           SET status='paid', paid_at=COALESCE($2::timestamptz,paid_at,NOW()),updated_at=NOW()
+           WHERE id=$1`,
+          [localId,paidAt]
+        );
+        await client.query("COMMIT");
+        return true;
+      }
+
       if (!payment.access_granted_at) {
-        const fallback = checkoutPlan("d30");
+        const fallback = checkoutPlan("d30", payment.product_code === "cs2" ? "cs2" : "counterframe");
         const planName = String(payment.plan_name || fallback?.name || "1 mês");
         const planDays = Math.max(1, Number(payment.plan_days || fallback?.days || 30));
         const lifetime = Boolean(payment.plan_lifetime) || planName.toLowerCase() === "lifetime";
@@ -184,7 +208,7 @@ export function registerCheckoutRoutes(app, deps) {
                ELSE GREATEST(user_products.expires_at, NOW()) + ($4 || ' days')::interval
              END,
              revoked_at = NULL`,
-          [Number(payment.user_id), productCode, planName, String(planDays), lifetime]
+          [Number(payment.user_id), String(payment.product_code || productCode), planName, String(planDays), lifetime]
         );
       }
 
@@ -215,7 +239,7 @@ export function registerCheckoutRoutes(app, deps) {
       await client.query("BEGIN");
 
       const result = await client.query(
-        `SELECT user_id, access_granted_at
+        `SELECT user_id, access_granted_at, product_code
          FROM checkout_payments
          WHERE id = $1
          FOR UPDATE`,
@@ -244,7 +268,7 @@ export function registerCheckoutRoutes(app, deps) {
            WHERE user_id = $1
              AND product_code = $2
              AND revoked_at IS NULL`,
-          [Number(payment.user_id), productCode]
+          [Number(payment.user_id), String(payment.product_code || productCode)]
         );
       }
 
@@ -285,7 +309,8 @@ export function registerCheckoutRoutes(app, deps) {
   }
 
   app.get("/api/checkout/config", optionalUser, async (req, res) => {
-    const config = checkoutConfig();
+    const product = normalizeProduct(req.query.product);
+    const config = checkoutConfig(product);
 
     let row = {};
     if (req.userId && pool) {
@@ -307,6 +332,7 @@ export function registerCheckoutRoutes(app, deps) {
 
     res.json({
       configured: config.configured,
+      product,
       publicKey: config.publicKey,
       authenticated: Boolean(req.userId),
       account: req.userId ? {
@@ -331,8 +357,18 @@ export function registerCheckoutRoutes(app, deps) {
   });
 
   app.post("/api/checkout/payment", requireUser, async (req, res) => {
-    const config = checkoutConfig();
-    const plan = checkoutPlan(req.body?.planKey);
+    const requested = String(req.body?.product || "cs2").toLowerCase();
+    if (!["cs2", "counterframe", "cf"].includes(requested)) {
+      return res.status(400).json({ error: "unknown_product" });
+    }
+    const product = normalizeProduct(requested);
+    const platform = product === "counterframe" ? String(req.body?.platform || "") : "windows";
+    if (product === "counterframe" && !["android", "ios"].includes(platform)) {
+      return res.status(400).json({ error: "invalid_platform" });
+    }
+    const orderedProductCode = product === "counterframe" ? "counterframe-" + platform : productCode;
+    const config = checkoutConfig(product);
+    const plan = checkoutPlan(req.body?.planKey, product);
 
     if (!config.configured || !plan) {
       return res.status(503).json({
@@ -350,7 +386,7 @@ export function registerCheckoutRoutes(app, deps) {
     }
 
     try {
-      const buyer = cleanBuyer(req.body);
+      const buyer = cleanBuyer(req.body, product);
       const formData = req.body?.formData && typeof req.body.formData === "object"
         ? req.body.formData
         : {};
@@ -362,6 +398,8 @@ export function registerCheckoutRoutes(app, deps) {
         method,
         buyer,
         plan,
+        productCode: orderedProductCode,
+        platform,
         installments: Math.max(1, Math.min(12, Math.trunc(Number(formData.installments || 1)))),
       });
 
@@ -373,12 +411,16 @@ export function registerCheckoutRoutes(app, deps) {
         formData,
         idempotencyKey,
         deviceId: req.body?.device_id || req.body?.deviceId,
+        product,
+        platform,
       });
 
       const view = await syncMercadoPago(localId, rawPayment);
 
       return res.status(201).json({
         paymentId: localId,
+        product, platform,
+        preOrder: platform === "ios",
         status: view.status,
         rawStatus: view.rawStatus,
         statusDetail: view.statusDetail,
@@ -412,7 +454,7 @@ export function registerCheckoutRoutes(app, deps) {
       `SELECT
          id, payment_method, status, amount, provider_order_id, provider_ref_id,
          pix_expires_at, paid_at, card_brand, card_last4,
-         plan_key, plan_name, plan_days, plan_lifetime
+         plan_key, plan_name, plan_days, plan_lifetime, product_code, product_platform
        FROM checkout_payments
        WHERE id = $1 AND user_id = $2
        LIMIT 1`,
@@ -433,7 +475,7 @@ export function registerCheckoutRoutes(app, deps) {
           `SELECT
              id, payment_method, status, amount, provider_order_id, provider_ref_id,
              pix_expires_at, paid_at, card_brand, card_last4,
-             plan_key, plan_name, plan_days, plan_lifetime
+             plan_key, plan_name, plan_days, plan_lifetime, product_code, product_platform
            FROM checkout_payments
            WHERE id = $1 AND user_id = $2
            LIMIT 1`,
@@ -454,6 +496,9 @@ export function registerCheckoutRoutes(app, deps) {
         refId: payment.provider_ref_id,
         pixExpiresAt: payment.pix_expires_at,
         paidAt: payment.paid_at,
+        product: payment.product_code,
+        platform: payment.product_platform,
+        preOrder: payment.product_code === "counterframe-ios",
         cardBrand: payment.card_brand,
         cardLast4: payment.card_last4,
         plan: {

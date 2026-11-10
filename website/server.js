@@ -401,7 +401,9 @@ async function initDb() {
       ADD COLUMN IF NOT EXISTS plan_name TEXT NULL,
       ADD COLUMN IF NOT EXISTS plan_days INTEGER NULL,
       ADD COLUMN IF NOT EXISTS plan_lifetime BOOLEAN NOT NULL DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS expected_amount NUMERIC(12,2) NULL;
+      ADD COLUMN IF NOT EXISTS expected_amount NUMERIC(12,2) NULL,
+      ADD COLUMN IF NOT EXISTS product_code TEXT NOT NULL DEFAULT 'cs2',
+      ADD COLUMN IF NOT EXISTS product_platform TEXT NOT NULL DEFAULT 'windows';
 
     CREATE INDEX IF NOT EXISTS idx_checkout_payments_user_created
       ON checkout_payments(user_id, created_at DESC);
@@ -675,7 +677,7 @@ async function accountSnapshot(userId) {
       isFreeTrial: hasAccess && isFreeTrial,
     },
     trial: {
-      eligible: !trial && !hasAccess,
+      eligible: false,
       claimed: Boolean(trial),
       claimedAt: trial?.claimed_at || null,
       expiresAt: trial?.expires_at || null,
@@ -820,105 +822,13 @@ app.get("/api/account/me", requireUser, async (req, res) => {
   res.json(snapshot);
 });
 
-app.post("/api/account/free-trial", requireUser, async (req, res) => {
-  if (!pool) return res.status(503).json({ error: "database_not_configured" });
-
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const userResult = await client.query(
-      `SELECT id, disabled_at
-       FROM users
-       WHERE id = $1
-       FOR UPDATE`,
-      [req.userId]
-    );
-
-    const user = userResult.rows[0];
-    if (!user || user.disabled_at) {
-      await client.query("ROLLBACK");
-      return res.status(403).json({
-        error: "account_unavailable",
-        message: "Esta conta não está disponível.",
-      });
-    }
-
-    const currentResult = await client.query(
-      `SELECT plan, expires_at, revoked_at
-       FROM user_products
-       WHERE user_id = $1 AND product_code = $2
-       FOR UPDATE`,
-      [req.userId, PRODUCT_CODE]
-    );
-
-    const current = currentResult.rows[0] || null;
-    const currentPlan = String(current?.plan || "").toLowerCase();
-    const currentExpires = current?.expires_at
-      ? new Date(current.expires_at).getTime()
-      : 0;
-    const currentActive = Boolean(current) &&
-      !current.revoked_at &&
-      (currentPlan === "lifetime" || currentExpires > Date.now());
-
-    if (currentActive) {
-      await client.query("ROLLBACK");
-      return res.status(409).json({
-        error: "access_already_active",
-        message: "Você já possui um acesso ativo.",
-      });
-    }
-
-    const claimResult = await client.query(
-      `INSERT INTO free_trial_claims(user_id, claimed_at, expires_at)
-       VALUES ($1, NOW(), NOW() + INTERVAL '1 day')
-       ON CONFLICT (user_id) DO NOTHING
-       RETURNING expires_at`,
-      [req.userId]
-    );
-
-    const claim = claimResult.rows[0];
-    if (!claim) {
-      await client.query("ROLLBACK");
-      return res.status(409).json({
-        error: "free_trial_already_used",
-        message: "Esta conta já utilizou o teste grátis de 1 dia.",
-      });
-    }
-
-    await client.query(
-      `INSERT INTO user_products(user_id, product_code, plan, purchased_at, expires_at, revoked_at)
-       VALUES ($1, $2, 'free', NOW(), $3, NULL)
-       ON CONFLICT (user_id, product_code)
-       DO UPDATE SET
-         plan = 'free',
-         purchased_at = NOW(),
-         expires_at = EXCLUDED.expires_at,
-         revoked_at = NULL`,
-      [req.userId, PRODUCT_CODE, claim.expires_at]
-    );
-
-    await client.query("COMMIT");
-
-    res.status(201).json({
-      ok: true,
-      account: await accountSnapshot(req.userId),
-    });
-  } catch (error) {
-    try {
-      await client.query("ROLLBACK");
-    } catch {
-    }
-
-    console.error("Falha ao ativar teste grátis:", error);
-    res.status(500).json({
-      error: "free_trial_failed",
-      message: "Não foi possível ativar o teste grátis agora.",
-    });
-  } finally {
-    client.release();
-  }
+// New free-trial claims were discontinued. Existing trials remain in the
+// database for audit and their original expiry still applies.
+app.post("/api/account/free-trial", requireUser, (_req, res) => {
+  res.status(410).json({
+    error: "free_trial_discontinued",
+    message: "O teste grátis foi encerrado. Consulte os planos disponíveis."
+  });
 });
 
 app.get("/api/loader/latest", async (_req, res) => {
@@ -1821,6 +1731,45 @@ registerSupportRoutes(app, {
 
 app.get("/admin", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+
+app.get("/api/account/counterframe", requireUser, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  try {
+    const access = await pool.query(
+      `SELECT product_code,plan,purchased_at,expires_at,revoked_at
+       FROM user_products
+       WHERE user_id=$1 AND product_code IN ('counterframe-android','counterframe-ios')
+       ORDER BY purchased_at DESC`, [req.userId]
+    );
+    const preorders = await pool.query(
+      `SELECT id,plan_name,plan_days,created_at,paid_at,status
+       FROM checkout_payments
+       WHERE user_id=$1 AND product_code='counterframe-ios' AND status='paid'
+       ORDER BY paid_at DESC LIMIT 20`, [req.userId]
+    );
+    res.json({ access: access.rows, preorders: preorders.rows });
+  } catch(error) {
+    console.error("Falha ao consultar Counter-Frame:",error?.message||error);
+    res.status(500).json({error:"counterframe_account_failed"});
+  }
+});
+
+app.get("/api/admin/counterframe/preorders", requireAdmin, async (_req,res) => {
+  if (!pool) return res.status(503).json({error:"database_not_configured"});
+  try {
+    const result = await pool.query(
+      `SELECT cp.id,cp.plan_name,cp.plan_days,cp.paid_at,cp.access_granted_at,
+              u.username,u.email
+       FROM checkout_payments cp JOIN users u ON u.id=cp.user_id
+       WHERE cp.product_code='counterframe-ios' AND cp.status='paid'
+       ORDER BY cp.paid_at DESC LIMIT 200`
+    );
+    res.json({preorders:result.rows});
+  } catch(error) {
+    console.error("Erro ao listar pré-vendas:",error?.message||error);
+    res.status(500).json({error:"preorders_failed"});
+  }
 });
 
 app.get("/account", (_req, res) => {
