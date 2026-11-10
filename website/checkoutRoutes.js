@@ -9,6 +9,7 @@ import {
   normalizeProduct,
 } from "./mercadoPago.js";
 import { visitorMarket } from "./geoMarket.js";
+import { issuePurchaseKey } from "./counterframe.js";
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
@@ -168,19 +169,9 @@ export function registerCheckoutRoutes(app, deps) {
         return false;
       }
 
-      // iOS is an explicit pre-order. The payment is recorded, but access is not
-      // granted until the iOS app is actually released.
-      if (payment.product_code === "counterframe-ios") {
-        await client.query(
-          `UPDATE checkout_payments
-           SET status='paid', paid_at=COALESCE($2::timestamptz,paid_at,NOW()),updated_at=NOW()
-           WHERE id=$1`,
-          [localId,paidAt]
-        );
-        await client.query("COMMIT");
-        return true;
+      if (['counterframe-android','counterframe-ios'].includes(payment.product_code)) {
+        await issuePurchaseKey(client, localId, payment);
       }
-
       if (!payment.access_granted_at) {
         const fallback = checkoutPlan("d30", payment.product_code === "cs2" ? "cs2" : "counterframe");
         const planName = String(payment.plan_name || fallback?.name || "1 mês");
@@ -264,6 +255,9 @@ export function registerCheckoutRoutes(app, deps) {
       );
 
       if (payment.access_granted_at) {
+        if (['counterframe-android','counterframe-ios'].includes(payment.product_code)) {
+          await client.query('UPDATE cf_keys SET revoked_at=NOW() WHERE payment_id=$1',[localId]);
+        }
         await client.query(
           `UPDATE user_products
            SET revoked_at = NOW()
@@ -437,7 +431,7 @@ export function registerCheckoutRoutes(app, deps) {
         paymentId: localId,
         product, platform, market,
         settlementCurrency: "BRL",
-        preOrder: platform === "ios",
+        preOrder: false,
         status: view.status,
         rawStatus: view.rawStatus,
         statusDetail: view.statusDetail,
@@ -515,7 +509,7 @@ export function registerCheckoutRoutes(app, deps) {
         paidAt: payment.paid_at,
         product: payment.product_code,
         platform: payment.product_platform,
-        preOrder: payment.product_code === "counterframe-ios",
+        preOrder: false,
         cardBrand: payment.card_brand,
         cardLast4: payment.card_last4,
         plan: {
@@ -568,3 +562,4 @@ export function registerCheckoutRoutes(app, deps) {
     }
   });
 }
+

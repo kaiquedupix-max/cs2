@@ -6,7 +6,7 @@ const checkoutLang = ["pt","en","es","ru"].includes(checkoutParams.get("lang"))
   ? checkoutParams.get("lang") : (navigator.language || "pt").toLowerCase().split("-")[0];
 const isCounterFrame = checkoutProduct === "counterframe";
 let checkoutMarket = isCounterFrame ? "INTL" : "BR"; // Server config overrides it after IP geolocation.
-const isIosPreorder = isCounterFrame && checkoutPlatform === "ios";
+const isIosPreorder = false;
 const checkoutBox = document.getElementById("checkoutForm");
 const message = document.getElementById("checkoutMessage");
 const brickContainer = document.getElementById("paymentBrick_container");
@@ -591,7 +591,7 @@ async function boot() {
   try {
     document.title = (isCounterFrame ? "Counter-Frame" : "CS2") + " | Legit Baratinho";
     document.getElementById("checkoutProductName").textContent =
-      isCounterFrame ? "Counter-Frame • " + (isIosPreorder ? "iOS" : "Android") : "Counter-Strike 2";
+      isCounterFrame ? "Counter-Frame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : "Counter-Strike 2";
     document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : "CS";
     document.getElementById("iosCheckoutNotice")?.classList.toggle("hidden", !isIosPreorder);
     document.getElementById("cfTelegramChoice")?.classList.toggle("hidden", !isCounterFrame);
@@ -643,3 +643,4 @@ async function boot() {
 }
 
 boot();
+

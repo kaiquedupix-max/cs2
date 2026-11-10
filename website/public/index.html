@@ -77,11 +77,11 @@
           <div class="product-visual cf-visual" aria-label="Imagem do Counter-Frame">
             <img class="cf-real-shot product-shot" src="/media/counterframe_aimbot.jpg" alt="Captura real do Counter-Frame com menu de mira" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
             <div class="cf-twist" aria-hidden="true">CF</div>
-            <div class="platform-chips"><span data-i18n="androidAvailable">Android disponível</span><span data-i18n="iosPresale">iOS em pré-venda</span></div>
+            <div class="platform-chips"><span data-i18n="androidAvailable">Android disponível</span><span data-i18n="iosPresale">iOS disponível</span></div>
           </div>
           <div class="product-body">
             <div class="product-heading"><h3>Counter-Frame</h3><span class="product-tag violet">MOBILE</span></div>
-            <p data-i18n="cfSubtitle">Android disponível. Para iOS, a compra é uma pré-venda sem acesso imediato.</p>
+            <p data-i18n="cfSubtitle">Android e iOS disponíveis.</p>
             <button type="button" class="primary-btn card-buy" data-product="counterframe"><span data-i18n="buy">Comprar</span><span>→</span></button>
             <a class="cf-feature-link" href="#cf-functions"><span data-i18n="cfFeatureToggle">Ver todas as funções do Counter-Frame</span><span aria-hidden="true">↗</span></a>
             <button type="button" class="gallery-trigger" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
@@ -130,7 +130,7 @@
       <div class="faq-grid">
         <details><summary><span data-i18n="faqQ1">Como escolho meu plano?</span><span class="plus">+</span></summary><p data-i18n="faqA1">Clique em Comprar no produto desejado. Os planos aparecem antes de ir para o pagamento.</p></details>
         <details><summary><span data-i18n="faqQ2">Quais métodos de pagamento existem?</span><span class="plus">+</span></summary><p data-i18n="faqA2">O site utiliza Mercado Pago, com Pix e cartão conforme a região. O canal Telegram Stars depende da ativação do bot.</p></details>
-        <details><summary><span data-i18n="faqQ3">Como funciona o iOS?</span><span class="plus">+</span></summary><p data-i18n="faqA3">iOS está em pré-venda. O aplicativo não foi lançado, não há acesso imediato e a data de lançamento ainda não está confirmada.</p></details>
+        <details><summary><span data-i18n="faqQ3">Como funciona o iOS?</span><span class="plus">+</span></summary><p data-i18n="faqA3">Counter-Frame está disponível para iOS.</p></details>
         <details><summary><span data-i18n="faqQ4">Como consulto o status?</span><span class="plus">+</span></summary><p data-i18n="faqA4">Abra Status para ver as informações publicadas pela administração.</p></details>
       </div>
     </section>
@@ -160,8 +160,8 @@
         <strong id="detected-region" role="status">...</strong>
       </div>
       <div id="platform-choice" class="platform-choice" hidden>
-        <label><span data-i18n="platform">Plataforma</span><select id="purchase-platform"><option value="android">Android</option><option value="ios">iOS — Pré-venda</option></select></label>
-        <div id="ios-notice" class="ios-notice" hidden><strong data-i18n="presaleTitle">Pré-venda iOS</strong><p data-i18n="iosNotice">Você está comprando antecipadamente uma versão ainda não lançada. Não há acesso imediato e a data de lançamento não está confirmada.</p></div>
+        <label><span data-i18n="platform">Plataforma</span><select id="purchase-platform"><option value="android">Android</option><option value="ios">iOS</option></select></label>
+        <div id="ios-notice" hidden></div>
       </div>
       <div id="modal-plans" class="modal-plans"></div>
       <div class="dialog-actions">

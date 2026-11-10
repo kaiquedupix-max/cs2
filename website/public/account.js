@@ -161,8 +161,8 @@ async function loadCounterFrameAccess() {
       badge.textContent = "ACESSO ATIVO";
       badge.className = "access-badge active";
     } else if (preorders.length > 0) {
-      summary.textContent = "Pré-compra iOS registrada. O acesso só será liberado após o lançamento, sem data confirmada.";
-      badge.textContent = "PRÉ-VENDA iOS";
+      summary.textContent = "Compra iOS confirmada. Sua key está disponível nesta conta.";
+      badge.textContent = "COMPRA iOS";
       badge.className = "access-badge inactive";
     } else {
       summary.textContent = "Nenhuma compra de Counter-Frame nesta conta.";
@@ -170,7 +170,7 @@ async function loadCounterFrameAccess() {
       badge.className = "access-badge inactive";
     }
     purchases.textContent = preorders.length > 0
-      ? preorders.length + " pré-venda(s) iOS" : (android || ios ? "Licença ativa" : "Nenhuma");
+      ? preorders.length + " compra(s) iOS" : (android || ios ? "Licença ativa" : "Nenhuma");
   } catch {
     summary.textContent = "Não foi possível consultar suas compras agora.";
     badge.textContent = "INDISPONÍVEL";
@@ -274,3 +274,4 @@ async function boot() {
   }
 }
 boot();
+

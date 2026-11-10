@@ -4,12 +4,15 @@ import crypto from "node:crypto";
 import pg from "pg";
 import { registerCheckoutRoutes } from "./checkoutRoutes.js";
 import { registerSupportRoutes } from "./supportRoutes.js";
+import { registerCounterframe, initCounterframe } from "./counterframe.js";
+import { registerTelegram, initTelegram } from "./telegram.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY));
 const port = Number(process.env.PORT || 3000);
 
 const pool = process.env.DATABASE_URL
@@ -504,8 +507,8 @@ async function productStatuses() {
     status_message: "Status temporariamente indisponível.",
     cf_android_status: "online",
     cf_android_message: "Counter-Frame para Android já está disponível.",
-    cf_ios_status: "presale",
-    cf_ios_message: "Pré-venda disponível para iOS. O aplicativo ainda não foi lançado e a compra não oferece acesso imediato. Data de lançamento a confirmar.",
+    cf_ios_status: "online",
+    cf_ios_message: "Counter-Frame para iOS disponível.",
   };
 
   let current = defaults;
@@ -1140,6 +1143,7 @@ app.post("/api/client/login", async (req, res) => {
   }
 
   const userId = Number(user.id);
+  await pool.query("INSERT INTO access_audit(user_id,product,event,ip,device_hash,language) VALUES($1,'cs2','login',$2,$3,$4)", [userId, req.ip || req.socket.remoteAddress || '', hwidHash, String(req.headers['accept-language']||'en').slice(0,20)]);
   const token = signSession({
     kind: "loader",
     userId,
@@ -1716,6 +1720,8 @@ app.post("/api/admin/product-statuses/:product", requireAdmin, async (req, res) 
   }
 });
 
+registerCounterframe(app, {pool, requireUser, requireAdmin, verifyPassword, passwordHash, validUsername, validEmail, setting, setSetting});
+registerTelegram(app, {pool});
 registerCheckoutRoutes(app, {
   pool,
   requireUser,
@@ -1785,6 +1791,8 @@ app.get("*", (_req, res) => {
 });
 
 initDb()
+  .then(() => pool && initCounterframe(pool))
+  .then(() => pool && initTelegram(pool))
   .then(() => {
     app.listen(port, "0.0.0.0", () => {
       console.log(`legitbaratinho.xyz web ouvindo na porta ${port}`);
@@ -1794,3 +1802,4 @@ initDb()
     console.error("Falha ao inicializar banco:", error);
     app.listen(port, "0.0.0.0");
   });
+
