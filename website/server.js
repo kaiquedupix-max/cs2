@@ -435,6 +435,28 @@ async function initDb() {
     VALUES ('status_message', 'Sistema disponível.')
     ON CONFLICT (key) DO NOTHING;
   `);
+
+  // Atualização única da disponibilidade solicitada. Alterações futuras feitas
+  // pelo painel permanecem intactas mesmo depois de reiniciar o serviço.
+  await pool.query(`
+    WITH first_apply AS (
+      INSERT INTO app_settings(key, value)
+      VALUES ('cf_availability_revision_20261110', 'applied')
+      ON CONFLICT (key) DO NOTHING
+      RETURNING key
+    )
+    INSERT INTO app_settings(key, value)
+    SELECT item.key, item.value
+    FROM (VALUES
+      ('cf_android_status', 'online'),
+      ('cf_android_message', 'Counter-Frame para Android já está disponível.'),
+      ('cf_ios_status', 'presale'),
+      ('cf_ios_message', 'Pré-venda disponível para iOS. O aplicativo ainda não foi lançado e a compra não oferece acesso imediato. Data de lançamento a confirmar.')
+    ) AS item(key, value)
+    WHERE EXISTS (SELECT 1 FROM first_apply)
+    ON CONFLICT (key)
+    DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+  `);
 }
 
 async function setting(key, fallback) {
@@ -478,10 +500,10 @@ async function productStatuses() {
   const defaults = {
     product_status: "maintenance",
     status_message: "Status temporariamente indisponível.",
-    cf_android_status: "coming_soon",
-    cf_android_message: "Versão Android em preparação. Disponibilidade a confirmar.",
+    cf_android_status: "online",
+    cf_android_message: "Counter-Frame para Android já está disponível.",
     cf_ios_status: "presale",
-    cf_ios_message: "Versão iOS ainda não disponível. A pré-venda não dá acesso imediato; lançamento sem data confirmada.",
+    cf_ios_message: "Pré-venda disponível para iOS. O aplicativo ainda não foi lançado e a compra não oferece acesso imediato. Data de lançamento a confirmar.",
   };
 
   let current = defaults;
