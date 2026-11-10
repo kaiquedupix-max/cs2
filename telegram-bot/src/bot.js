@@ -14,7 +14,7 @@ function keyboard(rows){return {inline_keyboard:rows.map(row=>row.map(([label,da
 function homeButtons(lang){return keyboard([
  [[t(lang,"shop"),"shop"],[t(lang,"orders"),"orders"]],
  [[t(lang,"coupons"),"coupons"],[t(lang,"referrals"),"referrals"]],
- [[t(lang,"gallery"),"gallery"]],
+ [[t(lang,"gallery"),"gallery"],[t(lang,"features"),"features"]],
  [[t(lang,"language"),"language"],[t(lang,"region"),"region"]],
  [[t(lang,"support"),"support"]]
 ]);}
@@ -135,6 +135,7 @@ async function act(chatId,user,data){
  if(data==="home")return home(chatId,user);
  if(data==="shop")return shop(chatId,user);
  if(data==="gallery")return gallery(chatId,user);
+ if(data==="features")return say(chatId,lang,t(lang,"featureList"));
  if(data==="orders")return orders(chatId,user);
  if(data==="coupons")return say(chatId,lang,t(lang,"couponHelp"));
  if(data==="referrals")return referral(chatId,user);
@@ -181,6 +182,7 @@ async function message(chatId,from,raw){
  }
  if(command==="/shop")return shop(chatId,user);
  if(command==="/gallery"||command==="/photos")return gallery(chatId,user);
+ if(command==="/features"||command==="/functions")return say(chatId,user.language,t(user.language,"featureList"));
  if(command==="/orders"||command==="/mykeys")return orders(chatId,user);
  if(command==="/language")return say(chatId,user.language,t(user.language,"language"),languageButtons(user.language));
  if(command==="/region")return say(chatId,user.language,t(user.language,"chooseMarket"),regionButtons(user.language));
@@ -223,13 +225,13 @@ async function installCommands(){
  const cmds=[
   ["start","Start"],["shop","Shop"],["orders","Orders"],["mykeys","My licenses"],
   ["coupon","Coupon"],["referral","Referral link"],["region","Pricing region"],
-  ["language","Language"],["gallery","Real photos"],["support","Support"],["paysupport","Payment support"]
+  ["language","Language"],["gallery","Real photos"],["features","Features"],["support","Support"],["paysupport","Payment support"]
  ].map(([command,description])=>({command,description}));
  await api("setMyCommands",{commands:cmds},12000);
  const translations={
-  pt:["Iniciar","Comprar","Pedidos","Licenças","Cupom","Indicações","Região","Idioma","Fotos reais","Suporte","Pagamento"],
-  es:["Iniciar","Tienda","Pedidos","Licencias","Cupón","Referidos","Región","Idioma","Fotos reales","Soporte","Pagos"],
-  ru:["Старт","Магазин","Заказы","Лицензии","Купон","Рефералы","Регион","Язык","Фото","Поддержка","Оплата"]
+  pt:["Iniciar","Comprar","Pedidos","Licenças","Cupom","Indicações","Região","Idioma","Fotos reais","Funções","Suporte","Pagamento"],
+  es:["Iniciar","Tienda","Pedidos","Licencias","Cupón","Referidos","Región","Idioma","Fotos reales","Funciones","Soporte","Pagos"],
+  ru:["Старт","Магазин","Заказы","Лицензии","Купон","Рефералы","Регион","Язык","Фото","Функции","Поддержка","Оплата"]
  };
  for(const [language_code,labels] of Object.entries(translations)){
   try{
