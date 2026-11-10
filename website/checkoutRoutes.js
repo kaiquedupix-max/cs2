@@ -7,8 +7,8 @@ import {
   validCpf,
   verifyWebhook,
   normalizeProduct,
-  normalizeMarket,
 } from "./mercadoPago.js";
+import { visitorMarket } from "./geoMarket.js";
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
@@ -312,7 +312,10 @@ export function registerCheckoutRoutes(app, deps) {
 
   app.get("/api/checkout/config", optionalUser, async (req, res) => {
     const product = normalizeProduct(req.query.product);
-    const market = product === "counterframe" ? normalizeMarket(req.query.market) : "BR";
+    const geo = product === "counterframe"
+      ? await visitorMarket(req)
+      : { market:"BR",country:null,geolocated:false };
+    const market = geo.market;
     const config = checkoutConfig(product,market);
 
     let row = {};
@@ -337,6 +340,8 @@ export function registerCheckoutRoutes(app, deps) {
       configured: config.configured,
       product,
       market: config.market,
+      country: geo.country,
+      geoVerified: geo.geolocated,
       settlementCurrency: config.settlementCurrency,
       publicKey: config.publicKey,
       authenticated: Boolean(req.userId),
@@ -373,7 +378,10 @@ export function registerCheckoutRoutes(app, deps) {
       return res.status(400).json({ error: "invalid_platform" });
     }
     const orderedProductCode = product === "counterframe" ? "counterframe-" + platform : productCode;
-    const market = product === "counterframe" ? normalizeMarket(req.body?.market) : "BR";
+    // The submitted region is never trusted for pricing.
+    const market = product === "counterframe"
+      ? (await visitorMarket(req)).market
+      : "BR";
     const config = checkoutConfig(product,market);
     const plan = checkoutPlan(req.body?.planKey, product,market);
 
