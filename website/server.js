@@ -466,6 +466,45 @@ async function productStatus() {
   return { status, message };
 }
 
+
+const STATUS_VALUES = new Set(["online", "maintenance", "offline", "coming_soon", "presale"]);
+const PRODUCT_STATUS_KEYS = Object.freeze({
+  cs2: { status: "product_status", message: "status_message", allowed: ["online", "maintenance", "offline"] },
+  counterFrameAndroid: { status: "cf_android_status", message: "cf_android_message", allowed: ["online", "maintenance", "offline", "coming_soon"] },
+  counterFrameIos: { status: "cf_ios_status", message: "cf_ios_message", allowed: ["online", "maintenance", "offline", "coming_soon", "presale"] },
+});
+
+async function productStatuses() {
+  const defaults = {
+    product_status: "maintenance",
+    status_message: "Status temporariamente indisponível.",
+    cf_android_status: "coming_soon",
+    cf_android_message: "Versão Android em preparação. Disponibilidade a confirmar.",
+    cf_ios_status: "presale",
+    cf_ios_message: "Versão iOS ainda não disponível. A pré-venda não dá acesso imediato; lançamento sem data confirmada.",
+  };
+
+  let current = defaults;
+  if (pool) {
+    const result = await pool.query(
+      "SELECT key, value FROM app_settings WHERE key = ANY($1::text[])",
+      [Object.keys(defaults)]
+    );
+    current = { ...defaults, ...Object.fromEntries(result.rows.map(row => [row.key, row.value])) };
+  }
+
+  const read = (name, statusKey, messageKey) => ({
+    name,
+    status: STATUS_VALUES.has(current[statusKey]) ? current[statusKey] : defaults[statusKey],
+    message: String(current[messageKey] || defaults[messageKey]),
+  });
+  return {
+    cs2: read("CS2 — Windows", "product_status", "status_message"),
+    counterFrameAndroid: read("Counter-Frame — Android", "cf_android_status", "cf_android_message"),
+    counterFrameIos: read("Counter-Frame — iOS", "cf_ios_status", "cf_ios_message"),
+  };
+}
+
 async function activeProductAccess(userId) {
   if (!pool) return false;
 
@@ -636,6 +675,16 @@ app.get("/api/status", async (_req, res) => {
       status: "maintenance",
       message: "Status temporariamente indisponível.",
     });
+  }
+});
+
+app.get("/api/product-statuses", async (_req, res) => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    res.json(await productStatuses());
+  } catch (error) {
+    console.error("Falha ao consultar status de produtos:", error?.message || error);
+    res.status(503).json({ error: "status_unavailable" });
   }
 });
 
@@ -1701,6 +1750,38 @@ app.post("/api/admin/status", requireAdmin, async (req, res) => {
   await setSetting("product_status", status);
   await setSetting("status_message", message || "Status atualizado.");
   res.json({ ok: true, status, message });
+});
+
+app.post("/api/admin/product-statuses/:product", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+
+  const config = PRODUCT_STATUS_KEYS[String(req.params.product || "")];
+  if (!config) return res.status(404).json({ error: "unknown_product" });
+
+  const status = String(req.body?.status || "");
+  const message = String(req.body?.message || "").trim().slice(0, 220);
+  if (!config.allowed.includes(status) || !message) {
+    return res.status(400).json({ error: "invalid_status_or_message" });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `INSERT INTO app_settings(key, value)
+       VALUES ($1, $2), ($3, $4)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+      [config.status, status, config.message, message]
+    );
+    await client.query("COMMIT");
+    res.json({ ok: true, product: req.params.product, status, message });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Falha ao atualizar status:", error?.message || error);
+    res.status(500).json({ error: "status_save_failed" });
+  } finally {
+    client.release();
+  }
 });
 
 registerCheckoutRoutes(app, {

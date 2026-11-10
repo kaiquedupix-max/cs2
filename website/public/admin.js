@@ -47,7 +47,7 @@ async function checkAuth() {
     await api("/api/admin/me");
     loginBox.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    await Promise.all([loadStatus(), loadClients(), loadReleases(), loadSupportConversations()]);
+    await Promise.all([loadStatus(), loadProductStatuses(), loadClients(), loadReleases(), loadSupportConversations()]);
     startSupportPolling();
   } catch {
     stopSupportPolling();
@@ -94,6 +94,40 @@ document.getElementById("statusForm").addEventListener("submit", async (event) =
     }),
   });
   await loadStatus();
+});
+
+async function loadProductStatuses() {
+  const statuses = await api("/api/product-statuses");
+  document.querySelectorAll(".admin-product-status-form").forEach((form) => {
+    const config = statuses[form.dataset.product];
+    if (!config) return;
+    form.elements.status.value = config.status;
+    form.elements.message.value = config.message || "";
+  });
+}
+
+document.querySelectorAll(".admin-product-status-form").forEach((form) => {
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const feedback = form.querySelector(".admin-status-feedback");
+    const submit = form.querySelector('button[type="submit"]');
+    feedback.textContent = "Salvando...";
+    submit.disabled = true;
+    try {
+      await api("/api/admin/product-statuses/" + form.dataset.product, {
+        method: "POST",
+        body: JSON.stringify({
+          status: form.elements.status.value,
+          message: form.elements.message.value,
+        }),
+      });
+      feedback.textContent = "Status salvo e publicado no site.";
+    } catch (error) {
+      feedback.textContent = "Não foi possível salvar: " + error.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
 });
 
 async function loadClients() {

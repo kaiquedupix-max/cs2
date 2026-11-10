@@ -26,6 +26,76 @@ async function refreshPublicStatus() {
 refreshPublicStatus();
 setInterval(refreshPublicStatus, 30000);
 
+const productStatusNames = {
+  online: "ONLINE",
+  maintenance: "MANUTENÇÃO",
+  offline: "OFFLINE",
+  coming_soon: "EM BREVE",
+  presale: "PRÉ-VENDA",
+};
+const publicStatusTabs = Array.from(document.querySelectorAll("[data-status-product]"));
+let publicProductStatuses = {};
+
+function activateProductStatus(product) {
+  const selected = publicProductStatuses[product];
+  if (!selected) return;
+  publicStatusTabs.forEach((tab) => {
+    const active = tab.dataset.statusProduct === product;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+  const panel = document.getElementById("status-panel");
+  panel.setAttribute("aria-labelledby", "status-tab-" + product);
+  document.getElementById("product-status-name").textContent = selected.name;
+  const pill = document.getElementById("product-status-pill");
+  pill.textContent = productStatusNames[selected.status] || "INDISPONÍVEL";
+  pill.dataset.state = selected.status;
+  document.getElementById("product-status-message").textContent = selected.message;
+  document.getElementById("product-status-disclaimer").textContent =
+    product === "counterFrameIos" && selected.status === "presale"
+      ? "Pré-venda iOS: o acesso ainda não está disponível. O lançamento não possui data confirmada."
+      : "Status informativo publicado pela equipe; pode ser alterado sem aviso.";
+}
+
+publicStatusTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateProductStatus(tab.dataset.statusProduct));
+  tab.addEventListener("keydown", (event) => {
+    if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const targetIndex = event.key === "Home" ? 0 :
+      event.key === "End" ? publicStatusTabs.length - 1 :
+      (index + (event.key === "ArrowRight" ? 1 : -1) + publicStatusTabs.length) % publicStatusTabs.length;
+    publicStatusTabs[targetIndex].focus();
+    activateProductStatus(publicStatusTabs[targetIndex].dataset.statusProduct);
+  });
+});
+
+async function refreshProductStatusBoard() {
+  if (!publicStatusTabs.length) return;
+  try {
+    const response = await fetch("/api/product-statuses", { cache: "no-store" });
+    if (!response.ok) throw new Error("Status indisponível");
+    publicProductStatuses = await response.json();
+    publicStatusTabs.forEach((tab) => {
+      const state = publicProductStatuses[tab.dataset.statusProduct]?.status || "offline";
+      tab.dataset.state = state;
+      tab.querySelector(".status-tab-label").textContent = productStatusNames[state] || "INDISPONÍVEL";
+    });
+    const current = publicStatusTabs.find(tab => tab.getAttribute("aria-selected") === "true");
+    activateProductStatus(current?.dataset.statusProduct || "cs2");
+  } catch {
+    publicStatusTabs.forEach((tab) => {
+      tab.querySelector(".status-tab-label").textContent = "INDISPONÍVEL";
+      tab.dataset.state = "offline";
+    });
+    document.getElementById("product-status-message").textContent =
+      "Não foi possível consultar os status agora. Tente novamente mais tarde.";
+  }
+}
+refreshProductStatusBoard();
+setInterval(refreshProductStatusBoard, 30000);
+
 const glow = document.getElementById("cursorGlow");
 if (glow && matchMedia("(pointer:fine)").matches) {
   window.addEventListener("pointermove", (event) => {

@@ -87,3 +87,16 @@ body.account-body:before,body.checkout-body:before,body.admin-body:before{
   background:radial-gradient(circle at 45% 30%,#5d2b84,#241035 55%,#100a1b)
 }
 .account-body .product-state,.checkout-body .product-state{color:#d3a0f2}
+
+/* 2026-11-10 • Product statuses administration */
+.admin-body .admin-product-statuses{margin-top:22px}
+.admin-body .admin-product-statuses h2{margin:9px 0 8px}
+.admin-body .admin-product-statuses .admin-muted{color:#b9a7cc;font-size:12px;line-height:1.55}
+.admin-body .admin-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:19px 0 16px}
+.admin-body .admin-product-status-form{border:1px solid #52336d;border-radius:14px;padding:18px;background:#120a21;display:grid;gap:12px}
+.admin-body .admin-product-status-form h3{margin:0;color:#f2dfff;font-size:16px}
+.admin-body .admin-product-status-form label{display:grid;gap:6px;color:#cab6da;font-size:12px}
+.admin-body .admin-product-status-form select,.admin-body .admin-product-status-form textarea{width:100%;background:#0b0716;color:#f5ecff;border:1px solid #67418b;border-radius:8px;padding:11px;font:inherit}
+.admin-body .admin-product-status-form select:focus,.admin-body .admin-product-status-form textarea:focus{outline:2px solid #ae6bed;outline-offset:1px}
+.admin-body .admin-status-feedback{display:block;min-height:15px;color:#d3a8f8;font-size:11px}
+@media(max-width:750px){.admin-body .admin-status-grid{grid-template-columns:1fr}}
