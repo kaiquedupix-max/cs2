@@ -31,7 +31,7 @@ const productStatusNames = {
   maintenance: "MANUTENÇÃO",
   offline: "OFFLINE",
   coming_soon: "EM BREVE",
-  presale: "PRÉ-VENDA",
+  presale: "PRÉ-VENDA DISPONÍVEL",
 };
 const publicStatusTabs = Array.from(document.querySelectorAll("[data-status-product]"));
 let publicProductStatuses = {};
@@ -54,7 +54,7 @@ function activateProductStatus(product) {
   document.getElementById("product-status-message").textContent = selected.message;
   document.getElementById("product-status-disclaimer").textContent =
     product === "counterFrameIos" && selected.status === "presale"
-      ? "Pré-venda iOS: o acesso ainda não está disponível. O lançamento não possui data confirmada."
+      ? "Importante: esta é uma pré-compra para iOS. O aplicativo ainda não foi lançado; o acesso só será liberado após o lançamento, sem data confirmada."
       : "Status informativo publicado pela equipe; pode ser alterado sem aviso.";
 }
 

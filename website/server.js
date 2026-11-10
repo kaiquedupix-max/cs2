@@ -478,10 +478,10 @@ async function productStatuses() {
   const defaults = {
     product_status: "maintenance",
     status_message: "Status temporariamente indisponível.",
-    cf_android_status: "coming_soon",
-    cf_android_message: "Versão Android em preparação. Disponibilidade a confirmar.",
+    cf_android_status: "online",
+    cf_android_message: "Counter-Frame para Android já está disponível.",
     cf_ios_status: "presale",
-    cf_ios_message: "Versão iOS ainda não disponível. A pré-venda não dá acesso imediato; lançamento sem data confirmada.",
+    cf_ios_message: "Pré-venda disponível para iOS. O aplicativo ainda não foi lançado e a compra não oferece acesso imediato. Data de lançamento a confirmar.",
   };
 
   let current = defaults;
