@@ -325,3 +325,26 @@ body.campaign::before{
   .campaign .pulse-dot{animation:none}
   .campaign .button{transition:none}
 }
+
+/* 2026-11-10 • Product availability tabs */
+.campaign .product-status-board{padding-top:78px;padding-bottom:84px;scroll-margin-top:95px}
+.campaign .product-status-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:24px 0 0}
+.campaign .product-status-tab{border:1px solid #3c2856;border-radius:12px;background:linear-gradient(140deg,#1b1128,#100b1b);color:#f7eeff;padding:18px;text-align:left;display:grid;gap:10px;cursor:pointer;font:inherit;transition:border-color .18s,background .18s,transform .18s}
+.campaign .product-status-tab:hover,.campaign .product-status-tab:focus-visible{border-color:#b65aff;outline-offset:3px}
+.campaign .product-status-tab.active{border-color:#ad5cee;background:linear-gradient(135deg,#371950,#180e2a);box-shadow:0 0 25px #872fca22}
+.campaign .product-status-tab>span{font-weight:800;font-size:13px}
+.campaign .status-tab-label{font-size:10px;font-weight:900;letter-spacing:.09em;color:#c0a8d6}
+.campaign .product-status-tab[data-state="online"] .status-tab-label{color:#71edbb}
+.campaign .product-status-tab[data-state="maintenance"] .status-tab-label,.campaign .product-status-tab[data-state="presale"] .status-tab-label{color:#ffd78d}
+.campaign .product-status-tab[data-state="offline"] .status-tab-label{color:#ff91a7}
+.campaign .product-status-tab[data-state="coming_soon"] .status-tab-label{color:#d6a4ff}
+.campaign .product-status-detail{border:1px solid #402658;border-top:0;border-radius:0 0 14px 14px;background:#140d23;padding:28px 30px;min-height:190px}
+.campaign .product-status-detail-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.campaign .product-status-detail h3{font-size:clamp(19px,3vw,28px);margin:8px 0}
+.campaign .product-status-detail p{font-size:14px;line-height:1.65;color:#e0d0ec;max-width:780px;margin:9px 0 14px;white-space:pre-wrap}
+.campaign .product-status-detail small{color:#a894bd;font-size:11px}
+.campaign .product-status-pill{font-size:10px;letter-spacing:.1em;font-weight:900;border-radius:999px;padding:9px 12px;background:#36214e;color:#d6b7f3}
+.campaign .product-status-pill[data-state="online"]{color:#84f7c7;background:#153c2c}
+.campaign .product-status-pill[data-state="offline"]{color:#ff97ad;background:#431b31}
+.campaign .product-status-pill[data-state="maintenance"],.campaign .product-status-pill[data-state="presale"]{color:#ffe19f;background:#3e2d20}
+@media(max-width:700px){.campaign .product-status-tabs{grid-template-columns:1fr;gap:8px}.campaign .product-status-tab{padding:14px;grid-template-columns:1fr auto;align-items:center}.campaign .product-status-detail{border-top:1px solid #402658;border-radius:12px;padding:20px}}

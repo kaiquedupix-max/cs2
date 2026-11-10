@@ -11,7 +11,7 @@
   <title>Legit Baratinho | Cheat CS2 e Counter-Frame</title>
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260923-free-trial">
   <link rel="stylesheet" href="/styles.css?v=20260923-free-trial">
-  <link rel="stylesheet" href="/campaign.css?v=20261109-campaign">
+  <link rel="stylesheet" href="/campaign.css?v=20261110-product-statuses">
 </head>
 <body class="campaign">
   <a class="campaign-skip" href="#inicio">Pular para o conteúdo</a>
@@ -29,6 +29,7 @@
       <nav aria-label="Navegação principal">
         <a href="#inicio">Início</a>
         <a href="#produtos">Produtos</a>
+        <a href="#status-produtos">Status</a>
         <a href="#preview">Menu</a>
         <a href="#recursos">Recursos</a>
         <a href="#softwares">Planos</a>
@@ -80,6 +81,32 @@
         <div><span>◇</span><strong>PAGAMENTO ONLINE</strong><small>Mercado Pago integrado</small></div>
       </div>
     </div>
+
+    <section id="status-produtos" class="shell campaign-section product-status-board" aria-labelledby="productStatusTitle">
+      <div class="campaign-heading reveal">
+        <div><span class="section-index">STATUS EM TEMPO REAL DO PAINEL</span><h2 id="productStatusTitle">STATUS DOS <em>PRODUTOS.</em></h2></div>
+        <p>Confira os avisos de disponibilidade publicados pela administração antes de comprar.</p>
+      </div>
+      <div class="product-status-tabs" role="tablist" aria-label="Selecione o produto">
+        <button class="product-status-tab active" type="button" role="tab" id="status-tab-cs2" aria-controls="status-panel" aria-selected="true" data-status-product="cs2">
+          <span>CS2 • Windows</span><strong class="status-tab-label">Consultando...</strong>
+        </button>
+        <button class="product-status-tab" type="button" role="tab" id="status-tab-counterFrameAndroid" aria-controls="status-panel" aria-selected="false" tabindex="-1" data-status-product="counterFrameAndroid">
+          <span>Counter-Frame • Android</span><strong class="status-tab-label">Consultando...</strong>
+        </button>
+        <button class="product-status-tab" type="button" role="tab" id="status-tab-counterFrameIos" aria-controls="status-panel" aria-selected="false" tabindex="-1" data-status-product="counterFrameIos">
+          <span>Counter-Frame • iOS</span><strong class="status-tab-label">Consultando...</strong>
+        </button>
+      </div>
+      <div class="product-status-detail" id="status-panel" role="tabpanel" aria-labelledby="status-tab-cs2" tabindex="0">
+        <div class="product-status-detail-heading">
+          <div><span class="section-index">DISPONIBILIDADE ATUAL</span><h3 id="product-status-name">CS2 • Windows</h3></div>
+          <span id="product-status-pill" class="product-status-pill">Consultando...</span>
+        </div>
+        <p id="product-status-message" role="status" aria-live="polite">Carregando o status publicado pela administração.</p>
+        <small id="product-status-disclaimer">Os avisos são atualizados pela equipe no painel administrativo.</small>
+      </div>
+    </section>
 
     <section id="produtos" class="shell campaign-section" aria-labelledby="productsTitle">
       <div class="campaign-heading reveal"><div><span class="section-index">01 / NOSSOS PRODUTOS</span><h2 id="productsTitle">ESCOLHA SEU <em>HACK.</em></h2></div><p>CS2 já tem planos disponíveis. O hack mobile de Counter-Frame ainda está em desenvolvimento.</p></div>
@@ -186,7 +213,7 @@
     <a href="/account">Minha conta</a>
   </footer>
 
-  <script src="/app.js?v=20260923-free-trial"></script>
+  <script src="/app.js?v=20261110-product-statuses"></script>
   <script src="/support.js?v=20260923-support"></script>
 </body>
 </html>
