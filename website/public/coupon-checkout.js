@@ -1,0 +1,7 @@
+(() => {
+  const l=['pt','en','es','ru'].includes(checkoutLang)?checkoutLang:'en',i=['pt','en','es','ru'].indexOf(l),t=(...s)=>s[i];
+  const box=document.createElement('div');box.className='summary-row';box.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:14px 0';
+  const input=document.createElement('input');input.placeholder=t('Cupom de desconto','Discount coupon','Cupón de descuento','Промокод');input.setAttribute('aria-label',input.placeholder);input.maxLength=32;input.style.cssText='padding:12px;min-width:0;flex:1;border:1px solid #633e7d;border-radius:9px;background:#170f20;color:white';
+  const button=document.createElement('button');button.type='button';button.className='button button-outline';button.textContent=t('Aplicar','Apply','Aplicar','Применить');box.append(input,button);document.getElementById('planGrid')?.after(box);
+  button.onclick=async()=>{button.disabled=true;try{const r=await api('/api/checkout/coupon',{method:'POST',body:JSON.stringify({product:checkoutProduct,planKey:selectedPlanKey,code:input.value})});checkoutConfig.plans=basePlanPrices.map(p=>p.key===selectedPlanKey?{...p,...r.plan}:{...p});appliedCouponCode=r.code;paymentIntent=crypto.randomUUID();renderPlans();await mountPaymentBrick();setMessage(t('Cupom aplicado: ','Coupon applied: ','Cupón aplicado: ','Промокод применён: ')+r.percent+'%');}catch{setMessage(t('Cupom inválido ou expirado.','Invalid or expired coupon.','Cupón inválido o vencido.','Промокод неверен или истёк.'),'error');}finally{button.disabled=false;}};
+})();

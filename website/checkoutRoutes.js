@@ -10,6 +10,7 @@ import {
 } from "./mercadoPago.js";
 import { visitorMarket } from "./geoMarket.js";
 import { issuePurchaseKey } from "./counterframe.js";
+import { couponDiscount, discount } from './coupons.js';
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
@@ -361,6 +362,9 @@ export function registerCheckoutRoutes(app, deps) {
     });
   });
 
+  app.post('/api/checkout/coupon', async(req,res)=>{
+    try{const product=normalizeProduct(req.body?.product),market=product==='counterframe'?(await visitorMarket(req)).market:'BR';const coupon=await couponDiscount(pool,req.body?.code,product),plan=checkoutPlan(req.body?.planKey,product,market);if(!plan)return res.status(400).json({error:'invalid_plan'});res.json({code:coupon.code,percent:coupon.percent,plan:{...plan,priceCents:discount(plan.priceCents,coupon.percent),usdPriceCents:plan.usdPriceCents?discount(plan.usdPriceCents,coupon.percent):null}});}catch(e){res.status(e.statusCode||500).json({error:e.statusCode?e.message:'server_error'});}
+  });
   app.post("/api/checkout/payment", requireUser, async (req, res) => {
     const requested = String(req.body?.product || "cs2").toLowerCase();
     if (!["cs2", "counterframe", "cf"].includes(requested)) {
@@ -377,7 +381,7 @@ export function registerCheckoutRoutes(app, deps) {
       ? (await visitorMarket(req)).market
       : "BR";
     const config = checkoutConfig(product,market);
-    const plan = checkoutPlan(req.body?.planKey, product,market);
+    let plan = checkoutPlan(req.body?.planKey, product,market);
 
     if (!config.configured || !plan) {
       return res.status(503).json({
@@ -396,9 +400,12 @@ export function registerCheckoutRoutes(app, deps) {
 
     try {
       const buyer = cleanBuyer(req.body, product);
+      const coupon=await couponDiscount(pool,req.body?.couponCode,product);
+      plan={...plan,priceCents:discount(plan.priceCents,coupon.percent),usdPriceCents:plan.usdPriceCents?discount(plan.usdPriceCents,coupon.percent):null};
       const formData = req.body?.formData && typeof req.body.formData === "object"
         ? req.body.formData
         : {};
+      if(formData.transaction_amount!==undefined&&Math.round(Number(formData.transaction_amount)*100)!==plan.priceCents)throw Object.assign(Error('O preço mudou. Atualize o plano antes de pagar.'),{statusCode:409});
       const method = String(formData.payment_method_id || "unknown").slice(0, 60);
 
       const localId = await createIntent({
@@ -412,6 +419,7 @@ export function registerCheckoutRoutes(app, deps) {
         installments: Math.max(1, Math.min(12, Math.trunc(Number(formData.installments || 1)))),
       });
 
+      if(coupon.code)await pool.query('UPDATE checkout_payments SET coupon_code=$2 WHERE id=$1',[localId,coupon.code]);
       const rawPayment = await createPayment({
         userId: req.userId,
         localId,

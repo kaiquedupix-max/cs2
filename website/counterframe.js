@@ -1,6 +1,5 @@
 import crypto from 'node:crypto';
 import {visitorCountry} from './geoMarket.js';
-import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
@@ -184,6 +183,11 @@ export function registerCounterframe(app,deps) {
   app.post('/api/admin/cf/reset-device',requireAdmin,wrap(async(req,res)=>{
     const id=Number(req.body?.userId);if(!Number.isSafeInteger(id)||id<1)throw fail('invalid_user');
     await transaction(async db=>{await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[id]);await db.query('DELETE FROM cf_sessions WHERE user_id=$1',[id]);await db.query('DELETE FROM cf_devices WHERE user_id=$1',[id]);await audit(db,req,id,'admin_device_reset');});res.json({ok:true});
+  }));
+  app.post('/api/admin/cf/key',requireAdmin,wrap(async(req,res)=>{
+    const days=Number(req.body?.days);if(!Number.isInteger(days)||days<1||days>3650)throw fail('invalid_duration');
+    const key='CF-'+crypto.randomBytes(18).toString('hex').toUpperCase();
+    await pool.query('INSERT INTO cf_keys(key_hash,key_cipher,days,plan) VALUES($1,$2,$3,$4)',[hash(key),encrypt(key),days,`${days}d`]);res.json({key,days});
   }));
   app.post('/api/admin/cf/release',requireAdmin,wrap(async(req,res)=>{
     const r=req.body||{};const url=new URL(r.url);

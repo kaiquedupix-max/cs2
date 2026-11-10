@@ -6,6 +6,8 @@ import { registerCheckoutRoutes } from "./checkoutRoutes.js";
 import { registerSupportRoutes } from "./supportRoutes.js";
 import { registerCounterframe, initCounterframe } from "./counterframe.js";
 import { registerTelegram, initTelegram } from "./telegram.js";
+import { initCoupons, registerCoupons } from "./coupons.js";
+import { visitorCountry } from "./geoMarket.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -1143,7 +1145,9 @@ app.post("/api/client/login", async (req, res) => {
   }
 
   const userId = Number(user.id);
-  await pool.query("INSERT INTO access_audit(user_id,product,event,ip,device_hash,language) VALUES($1,'cs2','login',$2,$3,$4)", [userId, req.ip || req.socket.remoteAddress || '', hwidHash, String(req.headers['accept-language']||'en').slice(0,20)]);
+  const loginIp=req.ip || req.socket.remoteAddress || '';
+  const loginCountry=await visitorCountry({headers:{},socket:{remoteAddress:loginIp}});
+  await pool.query("INSERT INTO access_audit(user_id,product,event,ip,device_hash,language,country) VALUES($1,'cs2','login',$2,$3,$4,$5)", [userId, loginIp, hwidHash, String(req.headers['accept-language']||'en').slice(0,20), loginCountry]);
   const token = signSession({
     kind: "loader",
     userId,
@@ -1722,6 +1726,7 @@ app.post("/api/admin/product-statuses/:product", requireAdmin, async (req, res) 
 
 registerCounterframe(app, {pool, requireUser, requireAdmin, verifyPassword, passwordHash, validUsername, validEmail, setting, setSetting});
 registerTelegram(app, {pool});
+registerCoupons(app, {pool, requireAdmin});
 registerCheckoutRoutes(app, {
   pool,
   requireUser,
@@ -1793,6 +1798,7 @@ app.get("*", (_req, res) => {
 initDb()
   .then(() => pool && initCounterframe(pool))
   .then(() => pool && initTelegram(pool))
+  .then(() => pool && initCoupons(pool))
   .then(() => {
     app.listen(port, "0.0.0.0", () => {
       console.log(`legitbaratinho.xyz web ouvindo na porta ${port}`);

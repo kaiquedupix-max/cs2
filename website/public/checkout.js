@@ -27,6 +27,8 @@ const checkoutLoginIdentifier = document.getElementById("checkoutLoginIdentifier
 const checkoutLoginPassword = document.getElementById("checkoutLoginPassword");
 
 let checkoutConfig = null;
+let appliedCouponCode='';
+let basePlanPrices=[];
 let selectedPlanKey = checkoutParams.get("plan") || "d30";
 let paymentIntent = crypto.randomUUID();
 let paymentBrickController = null;
@@ -255,6 +257,7 @@ async function ensureCheckoutAccount() {
 }
 
 async function choosePlan(key) {
+  if(appliedCouponCode){checkoutConfig.plans=basePlanPrices.map(p=>({...p}));appliedCouponCode='';}
   const plan = checkoutConfig?.plans?.find((item) => item.key === key);
   if (!plan || !plan.available) return;
 
@@ -518,6 +521,7 @@ async function mountPaymentBrick() {
               body: JSON.stringify({
                 ...buyerPayload(),
                 planKey: activePlan.key,
+                couponCode: appliedCouponCode,
                 idempotencyKey: paymentIntent,
                 device_id: window.MP_DEVICE_SESSION_ID || undefined,
                 formData,
@@ -608,6 +612,7 @@ async function boot() {
 
     const checkoutQuery = new URLSearchParams({product: checkoutProduct});
     checkoutConfig = await api("/api/checkout/config?" + checkoutQuery);
+    basePlanPrices=checkoutConfig.plans.map(p=>({...p}));
     checkoutMarket = isCounterFrame && checkoutConfig.market !== "BR" ? "INTL" : "BR";
     if(isCounterFrame && checkoutMarket==="INTL"){
       const intro=document.getElementById("checkoutIntro");

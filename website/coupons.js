@@ -1,0 +1,12 @@
+export function discount(priceCents,percent){if(!Number.isSafeInteger(priceCents)||priceCents<1||!Number.isInteger(percent)||percent<0||percent>90)throw Error('invalid_discount');return Math.max(1,Math.round(priceCents*(100-percent)/100));}
+export async function couponDiscount(pool,code,product){
+  if(!code)return {code:'',percent:0};code=String(code).trim().toUpperCase();
+  if(!/^[A-Z0-9_-]{3,32}$/.test(code))throw Object.assign(Error('invalid_coupon'),{status:400,statusCode:400});
+  const {rows}=await pool.query("SELECT code,percent FROM sale_coupons WHERE code=$1 AND enabled=TRUE AND (expires_at IS NULL OR expires_at>NOW()) AND (product='all' OR product=$2)",[code,product]);
+  if(!rows[0])throw Object.assign(Error('invalid_coupon'),{status:400,statusCode:400});return rows[0];
+}
+export async function initCoupons(pool){await pool.query(`CREATE TABLE IF NOT EXISTS sale_coupons(code TEXT PRIMARY KEY,percent INTEGER NOT NULL CHECK(percent BETWEEN 1 AND 90),product TEXT NOT NULL,enabled BOOLEAN NOT NULL DEFAULT TRUE,expires_at TIMESTAMPTZ,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());ALTER TABLE checkout_payments ADD COLUMN IF NOT EXISTS coupon_code TEXT;ALTER TABLE cf_bot_users ADD COLUMN IF NOT EXISTS coupon_code TEXT;ALTER TABLE cf_bot_orders ADD COLUMN IF NOT EXISTS coupon_code TEXT;`);}
+export function registerCoupons(app,{pool,requireAdmin}){
+  app.get('/api/admin/coupons',requireAdmin,async(_req,res)=>{try{res.json({coupons:(await pool.query('SELECT * FROM sale_coupons ORDER BY created_at DESC LIMIT 200')).rows});}catch{res.status(500).json({error:'server_error'});}});
+  app.post('/api/admin/coupons',requireAdmin,async(req,res)=>{try{const {percent,product,enabled,expiresAt}=req.body||{},code=String(req.body?.code||'').trim().toUpperCase();if(!/^[A-Z0-9_-]{3,32}$/.test(code)||!Number.isInteger(percent)||percent<1||percent>90||!['all','cs2','counterframe'].includes(product)||typeof enabled!=='boolean'||(expiresAt&&!Number.isFinite(Date.parse(expiresAt))))return res.status(400).json({error:'invalid_coupon'});await pool.query('INSERT INTO sale_coupons(code,percent,product,enabled,expires_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT(code) DO UPDATE SET percent=EXCLUDED.percent,product=EXCLUDED.product,enabled=EXCLUDED.enabled,expires_at=EXCLUDED.expires_at',[code,percent,product,enabled,expiresAt||null]);res.json({ok:true});}catch{res.status(500).json({error:'server_error'});}});
+}
