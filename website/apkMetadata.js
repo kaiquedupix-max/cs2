@@ -10,7 +10,7 @@ export async function inspectApk(file,kind,run=execute){
   const badging=await run(process.env.AAPT_BIN||'aapt',['dump','badging',file],options);
   const match=/package: name='([^']+)' versionCode='(\d+)' versionName='([^']*)'/.exec(badging.stdout);
   const expected=kind==='loader'?'com.cf.overlay':'com.ScarletWork.CounterFlame';
-  if(!match||match[1]!==expected)throw Error('wrong_package');
+  if(!match||!['com.cf.overlay','com.ScarletWork.CounterFlame'].includes(match[1])||(kind!=='auto'&&match[1]!==expected))throw Error('wrong_package');
   const versionCode=Number(match[2]);if(!Number.isSafeInteger(versionCode)||versionCode<1)throw Error('invalid_version');
-  return {packageName:match[1],versionCode,versionName:match[3],certificateSha256:certs[0][1].toLowerCase(),label:kind==='loader'?'LC - CounterFlame Private':`CounterFlame ${match[3]} (${versionCode})`};
+  return {packageName:match[1],versionCode,versionName:match[3],certificateSha256:certs[0][1].toLowerCase(),label:match[1]==='com.cf.overlay'?'LC - CounterFlame Private':`CounterFlame ${match[3]} (${versionCode})`};
 }

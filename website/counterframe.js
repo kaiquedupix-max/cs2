@@ -135,8 +135,8 @@ export function registerCounterframe(app,deps) {
   const fileDir=process.env.CF_FILE_DIR||path.resolve('data/counterframe');
   app.post('/api/admin/cf/upload',requireAdmin,wrap(async(req,res)=>{
     if(!String(req.headers['content-type']||'').startsWith('application/octet-stream'))throw fail('binary_required');
-    const kind=String(req.headers['x-release-kind']||'');if(!['loader','game'].includes(kind))throw fail('invalid_release');
-    const loader=kind==='loader',maxSize=loader?50000000:4500000000;
+    const kind=String(req.headers['x-release-kind']||'auto');if(!['auto','loader','game'].includes(kind))throw fail('invalid_release');
+    let loader=kind==='loader';const maxSize=loader?50000000:4500000000;
     const uploadId=String(req.headers['x-upload-id']||''),offset=Number(req.headers['x-upload-offset']),total=Number(req.headers['x-upload-total']);
     if(!/^[a-f0-9-]{36}$/.test(uploadId)||!Number.isSafeInteger(offset)||offset<0||!Number.isSafeInteger(total)||total<1||total>maxSize||offset>=total)throw fail('invalid_upload');
     await fs.promises.mkdir(fileDir,{recursive:true});const tmp=path.join(fileDir,uploadId+'.part');
@@ -148,6 +148,7 @@ export function registerCounterframe(app,deps) {
       if(offset+size<total){retain=true;res.json({ok:true,offset:offset+size});return;}
       size=total;for await(const bytes of fs.createReadStream(tmp))digest.update(bytes);
       let meta;try{meta=await inspectApk(tmp,kind);}catch(e){throw fail(['wrong_package','invalid_signature','invalid_version'].includes(e.message)?e.message:'apk_validation_failed');}
+      loader=meta.packageName==='com.cf.overlay';if(loader&&size>50000000)throw fail('invalid_size');
       const previous=JSON.parse(await setting(loader?'cf_loader_release':'cf_release','null'));
       const trustedCert=previous?.certificateSha256||process.env.CF_APK_CERT_SHA256||'92168fe76e8dd4f557e690bb84b071605d872672bc1b7cb6a4ef536fe2f94166';
       if(meta.certificateSha256!==trustedCert)throw fail('invalid_signature');
@@ -159,7 +160,7 @@ export function registerCounterframe(app,deps) {
       await setSetting(loader?'cf_loader_release':'cf_release',JSON.stringify({...meta,sha256:meta.sha256.toLowerCase(),certificateSha256:meta.certificateSha256.toLowerCase(),url}));res.json({ok:true,url});
     }finally{if(!retain)await fs.promises.unlink(tmp).catch(()=>{});}
   }));
-  app.get('/api/cf/loader-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'Legit-CF-Private.apk');}));
+  app.get('/api/cf/loader-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'LC-CounterFlame-Private.apk');}));
   app.get('/api/cf/game-apk',auth,wrap(async(req,res)=>{if(!(await snapshot(req.cf)).expiresAt)throw fail('license_required',403);if((await status()).availability!=='online')throw fail('maintenance',503);const r=JSON.parse(await setting('cf_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'CounterFlame.apk');}));
   app.post('/api/admin/cf/loader-release',requireAdmin,wrap(async(req,res)=>{
     const r=req.body||{},url=new URL(r.url);
