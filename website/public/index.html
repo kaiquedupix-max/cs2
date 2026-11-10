@@ -3,217 +3,128 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090510">
-  <meta name="description" content="Legit Baratinho: hack para CS2 com Aimbot, ESP, RCS e outros recursos, teste grátis de 1 dia, planos acessíveis e suporte integrado. Counter-Frame em desenvolvimento.">
+  <meta name="theme-color" content="#0b0714">
+  <meta name="description" content="Legit Baratinho. CS2 e Counter-Frame, com planos digitais e pagamentos seguros.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Legit Baratinho | Cheat CS2">
-  <meta property="og:description" content="Conheça o cheat de CS2 da Legit Baratinho. Veja o menu real, teste grátis de 1 dia e escolha seu plano.">
-  <title>Legit Baratinho | Cheat CS2 e Counter-Frame</title>
-  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260923-free-trial">
-  <link rel="stylesheet" href="/styles.css?v=20260923-free-trial">
-  <link rel="stylesheet" href="/campaign.css?v=20261110-product-statuses">
+  <meta property="og:title" content="Legit Baratinho | Loja digital">
+  <meta property="og:description" content="Escolha seu produto, veja o status e compre em poucos passos.">
+  <title>Legit Baratinho | Loja digital</title>
+  <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
+  <link rel="stylesheet" href="/landing.css?v=20261110-compact-v1">
 </head>
-<body class="campaign">
-  <a class="campaign-skip" href="#inicio">Pular para o conteúdo</a>
-  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
-  <div class="noise" aria-hidden="true"></div>
-  <div class="campaign-grid" aria-hidden="true"></div>
-
+<body>
+  <a class="skip" href="#inicio" data-i18n="skip">Pular para o conteúdo</a>
   <header class="topbar">
-    <div class="campaign-ribbon"><span class="ribbon-indicator"></span> LEGIT BARATINHO <i aria-hidden="true">✦</i> CHEAT CS2 <i aria-hidden="true">✦</i> TESTE GRÁTIS DE 1 DIA</div>
-    <div class="shell nav">
-      <a class="brand" href="/" aria-label="Legit Baratinho, início">
-        <span class="campaign-crown" aria-hidden="true">♛</span>
-        <span class="brand-copy"><b>LEGIT</b><small>BARATINHO</small></span>
+    <div class="container header-inner">
+      <a href="#inicio" class="brand" aria-label="Legit Baratinho">
+        <span class="brand-mark">LB</span><span class="brand-words">LEGIT <b>BARATINHO</b></span>
       </a>
-      <nav aria-label="Navegação principal">
-        <a href="#inicio">Início</a>
-        <a href="#produtos">Produtos</a>
-        <a href="#status-produtos">Status</a>
-        <a href="#preview">Menu</a>
-        <a href="#recursos">Recursos</a>
-        <a href="#softwares">Planos</a>
-        <a href="#faq">FAQ</a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="nav-link" href="#inicio" data-i18n="navHome">Início</a>
+        <a class="nav-link" href="#produtos" data-i18n="navProducts">Produtos</a>
+        <a class="nav-link" href="#status" data-i18n="navStatus">Status</a>
+        <a class="nav-link" href="#faq">FAQ</a>
       </nav>
-      <a class="button button-small button-outline" href="/account">Área do cliente <span aria-hidden="true">↗</span></a>
+      <div class="header-actions">
+        <label class="lang-picker"><span aria-hidden="true">◎</span><span class="sr-only" data-i18n="language">Idioma</span>
+          <select id="site-language" aria-label="Language">
+            <option value="pt">🇧🇷 PT</option><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="ru">🇷🇺 RU</option>
+          </select>
+        </label>
+        <a class="account-link" href="/account" data-i18n="account">Minha conta</a>
+      </div>
     </div>
   </header>
 
   <main>
-    <section class="campaign-hero shell" id="inicio" aria-labelledby="heroTitle">
-      <div class="campaign-hero-copy">
-        <div class="hero-badge reveal"><span class="pulse-dot"></span> CHEAT BRASILEIRO PARA CS2</div>
-        <p class="campaign-kicker reveal">NÃO ACEITE MAIS FICAR NO NEGATIVO</p>
-        <h1 id="heroTitle" class="reveal delay-1">ELEVE SEU <span>JOGO.</span><br>CONTROLE SEU <span>MENU.</span></h1>
-        <p class="hero-text reveal delay-2">Aimbot, ESP, RCS, TriggerBot, Bhop e muito mais — tudo no cheat CS2 Legit Baratinho. Um menu completo, preços acessíveis e gerenciamento direto na sua conta.</p>
-        <div class="campaign-hero-actions reveal delay-3">
-          <a class="button button-primary magnetic" href="#softwares">VER PLANOS <span aria-hidden="true">↗</span></a>
-          <a class="button button-dark magnetic" href="/account?trial=1">TESTAR 1 DIA GRÁTIS</a>
+    <section class="hero container" id="inicio">
+      <div class="hero-copy">
+        <span class="eyebrow"><i class="spark"></i><span data-i18n="eyebrow">SUA LOJA DIGITAL</span></span>
+        <h1 data-i18n-html="heroTitle">Seu próximo nível <em>começa aqui.</em></h1>
+        <p data-i18n="heroLead">Produtos para PC e mobile, planos claros e compra em poucos passos.</p>
+        <div class="hero-actions">
+          <a class="primary-btn" href="#produtos"><span data-i18n="explore">Ver produtos</span><span>↗</span></a>
+          <a class="secondary-btn" href="#status" data-i18n="checkStatus">Ver status</a>
         </div>
-        <div class="campaign-hero-points reveal delay-3">
-          <span>✓ Ativação após confirmação</span><span>✓ Suporte pelo site</span><span>✓ Atualizações pelo painel</span>
-        </div>
-        <div class="campaign-status reveal delay-4">
-          <div class="status-live"><span id="statusDot" class="status-dot maintenance"></span><div><small>STATUS DO CHEAT CS2</small><strong id="statusLabel">Consultando...</strong></div></div>
-          <span id="statusPill" class="status-pill maintenance">AGUARDE</span>
-        </div>
+        <div class="hero-trust"><span>✦ <b data-i18n="trust1">Pagamento seguro</b></span><span>✦ <b data-i18n="trust2">Suporte</b></span><span>✦ <b data-i18n="trust3">Atualizações</b></span></div>
       </div>
-      <div class="campaign-hero-visual reveal delay-2" aria-label="Apresentação visual do cheat CS2">
-        <div class="campaign-halo halo-one"></div><div class="campaign-halo halo-two"></div>
-        <span class="campaign-bigtype" aria-hidden="true">CS<span>2</span></span>
-        <div class="campaign-ui-float">
-          <div class="ui-head"><b><span>♛</span> LEGIT BARATINHO</b><small>PRÉVIA ILUSTRATIVA</small></div>
-          <div class="ui-body">
-            <div class="ui-side"><span class="ui-selected">◈ AIMBOT</span><span>◉ VISUAIS</span><span>⚙ CONFIG</span><span>✧ SKINS</span></div>
-            <div class="ui-settings"><div class="ui-title"><strong>AIMBOT</strong><span class="ui-on">ATIVO</span></div><div class="ui-line"><span>FOV</span><b>5.0</b></div><div class="ui-track"><i style="width:72%"></i></div><div class="ui-line"><span>SMOOTHING</span><b>3.5</b></div><div class="ui-track"><i style="width:57%"></i></div><div class="ui-option"><span>SELEÇÃO DE OSSO</span><b>CABEÇA ▾</b></div><div class="ui-check">▣ CHECAGEM DE VISIBILIDADE</div><div class="ui-check">▣ TEAM CHECK</div></div>
+      <div class="hero-art" aria-label="Counter-Frame" role="img">
+        <div class="art-glow"></div><div class="art-outline"></div>
+        <span class="art-top">LB <small>LEGIT BARATINHO</small></span>
+        <div class="art-core">C<span>F</span></div>
+        <div class="art-caption"><span>COUNTER-FRAME</span><small>ANDROID · iOS</small></div>
+        <div class="art-live"><i></i><span data-i18n="androidLive">Android disponível</span></div>
+      </div>
+    </section>
+
+    <section class="products section container" id="produtos">
+      <div class="section-heading">
+        <div><span class="overline" data-i18n="ourProducts">ESCOLHA SEU PRODUTO</span><h2 data-i18n="productsTitle">Produtos</h2></div>
+        <p data-i18n="productsLead">Escolha o produto e abra os planos disponíveis.</p>
+      </div>
+      <div class="product-grid">
+        <article class="product-card">
+          <div class="product-visual cs-visual" aria-hidden="true"><span class="visual-glyph">CS<span>2</span></span><small>PC • WINDOWS</small></div>
+          <div class="product-body">
+            <div class="product-heading"><h3>Counter-Strike 2</h3><span class="product-tag" data-i18n="windows">Windows</span></div>
+            <p data-i18n="csSubtitle">Planos para o projeto CS2 no Windows.</p>
+            <button type="button" class="primary-btn card-buy" data-product="cs2"><span data-i18n="buy">Comprar</span><span>→</span></button>
           </div>
-        </div>
-        <div class="campaign-float-tag tag-top">CS2 <small>PC / WINDOWS</small></div>
-        <div class="campaign-float-tag tag-bottom"><strong>01 DIA</strong><small>TESTE GRÁTIS</small></div>
-      </div>
-    </section>
-
-    <div class="campaign-strip" aria-label="Destaques">
-      <div class="shell campaign-strip-grid">
-        <div><span>◎</span><strong>CHEAT COMPLETO</strong><small>Aimbot, visuais e utilidades</small></div>
-        <div><span>↻</span><strong>ATUALIZAÇÕES</strong><small>Publicadas pelo painel</small></div>
-        <div><span>♧</span><strong>SUPORTE DIRETO</strong><small>Atendimento dentro do site</small></div>
-        <div><span>◇</span><strong>PAGAMENTO ONLINE</strong><small>Mercado Pago integrado</small></div>
-      </div>
-    </div>
-
-    <section id="status-produtos" class="shell campaign-section product-status-board" aria-labelledby="productStatusTitle">
-      <div class="campaign-heading reveal">
-        <div><span class="section-index">STATUS EM TEMPO REAL DO PAINEL</span><h2 id="productStatusTitle">STATUS DOS <em>PRODUTOS.</em></h2></div>
-        <p>Confira os avisos de disponibilidade publicados pela administração antes de comprar.</p>
-      </div>
-      <div class="product-status-tabs" role="tablist" aria-label="Selecione o produto">
-        <button class="product-status-tab active" type="button" role="tab" id="status-tab-cs2" aria-controls="status-panel" aria-selected="true" data-status-product="cs2">
-          <span>CS2 • Windows</span><strong class="status-tab-label">Consultando...</strong>
-        </button>
-        <button class="product-status-tab" type="button" role="tab" id="status-tab-counterFrameAndroid" aria-controls="status-panel" aria-selected="false" tabindex="-1" data-status-product="counterFrameAndroid">
-          <span>Counter-Frame • Android</span><strong class="status-tab-label">Consultando...</strong>
-        </button>
-        <button class="product-status-tab" type="button" role="tab" id="status-tab-counterFrameIos" aria-controls="status-panel" aria-selected="false" tabindex="-1" data-status-product="counterFrameIos">
-          <span>Counter-Frame • iOS</span><strong class="status-tab-label">Consultando...</strong>
-        </button>
-      </div>
-      <div class="product-status-detail" id="status-panel" role="tabpanel" aria-labelledby="status-tab-cs2" tabindex="0">
-        <div class="product-status-detail-heading">
-          <div><span class="section-index">DISPONIBILIDADE ATUAL</span><h3 id="product-status-name">CS2 • Windows</h3></div>
-          <span id="product-status-pill" class="product-status-pill">Consultando...</span>
-        </div>
-        <p id="product-status-message" role="status" aria-live="polite">Carregando o status publicado pela administração.</p>
-        <small id="product-status-disclaimer">Os avisos são atualizados pela equipe no painel administrativo.</small>
-      </div>
-    </section>
-
-    <section id="produtos" class="shell campaign-section" aria-labelledby="productsTitle">
-      <div class="campaign-heading reveal"><div><span class="section-index">01 / NOSSOS PRODUTOS</span><h2 id="productsTitle">ESCOLHA SEU <em>HACK.</em></h2></div><p>CS2 já tem planos disponíveis. O hack mobile de Counter-Frame ainda está em desenvolvimento.</p></div>
-      <div class="campaign-products">
-        <article class="campaign-product product-cs reveal">
-          <div class="campaign-product-top"><span>PC / COUNTER-STRIKE 2</span><b>PLANOS DISPONÍVEIS</b></div>
-          <div class="campaign-product-center"><span class="product-glyph" aria-hidden="true">CS<span>2</span></span><span class="product-overline">LEGIT BARATINHO</span><h3>CHEAT CS2</h3><p>Aimbot, ESP, recursos visuais, configurações e loader vinculados à sua conta.</p></div>
-          <div class="campaign-product-bottom"><span>Teste 1 dia grátis • planos desde R$ 5,90</span><a href="#softwares" class="button button-primary">VER PLANOS ↗</a></div>
         </article>
-        <article class="campaign-product product-cf reveal delay-1">
-          <div class="campaign-product-top"><span>MOBILE / COUNTER-FRAME</span><b class="product-soon">ANDROID DISPONÍVEL</b></div>
-          <div class="campaign-product-center"><span class="product-glyph product-cf-glyph" aria-hidden="true">CF</span><span class="product-overline">ANDROID E iOS</span><h3>HACK COUNTER-FRAME</h3><p>A versão Android está disponível. Para iOS, a pré-venda está aberta: a versão ainda não foi lançada, a compra não oferece acesso imediato e a data de lançamento não está confirmada.</p></div>
-          <div class="campaign-product-bottom"><span>iOS: PRÉ-COMPRA, SEM ACESSO IMEDIATO</span><a href="#status-produtos" class="campaign-coming-cta">CONSULTAR STATUS</a></div>
+        <article class="product-card featured-card">
+          <div class="product-visual cf-visual" aria-label="Imagem do Counter-Frame">
+            <div class="cf-twist" aria-hidden="true">CF</div>
+            <div class="platform-chips"><span data-i18n="androidAvailable">Android disponível</span><span data-i18n="iosPresale">iOS em pré-venda</span></div>
+          </div>
+          <div class="product-body">
+            <div class="product-heading"><h3>Counter-Frame</h3><span class="product-tag violet">MOBILE</span></div>
+            <p data-i18n="cfSubtitle">Android disponível. Para iOS, a compra é uma pré-venda sem acesso imediato.</p>
+            <button type="button" class="primary-btn card-buy" data-product="counterframe"><span data-i18n="buy">Comprar</span><span>→</span></button>
+          </div>
         </article>
       </div>
     </section>
 
-    <section id="preview" class="campaign-preview campaign-section" aria-labelledby="previewTitle">
-      <div class="shell">
-        <div class="campaign-heading reveal"><div><span class="section-index">02 / OLHE ANTES DE ESCOLHER</span><h2 id="previewTitle">CONHEÇA O <em>MENU.</em></h2></div><p>Não é apenas uma lista de funções: veja uma captura já presente no repositório do projeto e explore os principais módulos.</p></div>
-        <div class="campaign-preview-stage reveal">
-          <div class="campaign-preview-image"><img loading="lazy" decoding="async" src="https://raw.githubusercontent.com/kaiquedupix-max/cs2/main/Docs/Previews/Preview-2.3.png" alt="Captura de tela do menu do projeto CS2, retirada do repositório oficial" referrerpolicy="no-referrer"><div class="preview-caption"><span><i></i> CAPTURA DO PROJETO</span><small>Versão ilustrada no repositório; interface pode variar por atualização.</small></div></div>
-          <div class="campaign-preview-side">
-            <span class="section-index">EXPLORE OS RECURSOS</span>
-            <h3>TUDO ORGANIZADO. <em>SEM ENROLAÇÃO.</em></h3>
-            <div class="preview-feature"><span>01</span><div><strong>AIMBOT & TRIGGERBOT</strong><p>Configurações de mira, FOV, smoothing e acionamento.</p></div></div>
-            <div class="preview-feature"><span>02</span><div><strong>ESP & VISUAIS</strong><p>Bone, Box, radar, informações e elementos visuais.</p></div></div>
-            <div class="preview-feature"><span>03</span><div><strong>MOVIMENTAÇÃO & CONFIGS</strong><p>Bhop, hotkeys e ajustes que ficam no mesmo menu.</p></div></div>
-            <a class="button button-primary" href="#recursos">VER RECURSOS <span aria-hidden="true">↗</span></a>
-          </div>
+    <section class="status-section section" id="status">
+      <div class="container">
+        <div class="section-heading"><div><span class="overline" data-i18n="service">DISPONIBILIDADE</span><h2 data-i18n="statusTitle">Status</h2></div><p data-i18n="statusLead">Situação informada no painel administrativo.</p></div>
+        <div class="status-grid">
+          <button type="button" class="status-card" data-status="cs2"><span class="status-card-name">CS2 <small>Windows</small></span><span class="status-badge" data-value="loading">...</span></button>
+          <button type="button" class="status-card" data-status="counterFrameAndroid"><span class="status-card-name">Counter-Frame <small>Android</small></span><span class="status-badge" data-value="loading">...</span></button>
+          <button type="button" class="status-card" data-status="counterFrameIos"><span class="status-card-name">Counter-Frame <small>iOS</small></span><span class="status-badge" data-value="loading">...</span></button>
         </div>
-        <div class="campaign-mini-previews reveal">
-          <div class="mini-preview"><span>COMBATE</span><strong>AIMBOT</strong><div class="mini-faux-slider"><i></i></div><small>CONTROLE DE FOV / SMOOTHING</small></div>
-          <div class="mini-preview"><span>VISUAIS</span><strong>ESP</strong><div class="mini-faux-bars"><i></i><i></i><i></i></div><small>CAIXAS / BONES / RADAR</small></div>
-          <div class="mini-preview"><span>PERSONALIZAÇÃO</span><strong>CONFIGS</strong><div class="mini-faux-chips"><i>✓</i><i>✓</i><i>✓</i></div><small>HOTKEYS E AJUSTES</small></div>
-        </div>
+        <div id="status-info" class="status-info" hidden><strong id="status-info-title"></strong><p id="status-info-body"></p></div>
       </div>
     </section>
 
-    <section id="recursos" class="shell campaign-section" aria-labelledby="featuresTitle">
-      <div class="campaign-heading reveal"><div><span class="section-index">03 / O QUE VEM NO CHEAT</span><h2 id="featuresTitle">RECURSOS DE <em>VERDADE.</em></h2></div><p>Os módulos abaixo já estão descritos no código do CS2. Confira o que você encontra no menu.</p></div>
-      <div class="campaign-feature-grid">
-        <article class="campaign-feature reveal"><div class="campaign-feature-icon">⌖</div><h3>AIMBOT & COMBATE</h3><p>FOV configurável, smoothing X/Y, seleção de osso, checagem de visibilidade, TriggerBot e RCS.</p><div class="campaign-feature-pills"><span>AIMBOT</span><span>TRIGGERBOT</span><span>RCS</span></div></article>
-        <article class="campaign-feature reveal delay-1"><div class="campaign-feature-icon">◈</div><h3>ESP & VISUAIS</h3><p>Box ESP, Bone ESP, radar, Chams, Health Bar, informações de jogadores e muito mais.</p><div class="campaign-feature-pills"><span>BOX ESP</span><span>BONE ESP</span><span>RADAR</span></div></article>
-        <article class="campaign-feature reveal delay-2"><div class="campaign-feature-icon">⚙</div><h3>MOVIMENTO & CONFIG</h3><p>Bhop, FOV Changer, sons, Jump Hack, hotkeys e opções personalizáveis.</p><div class="campaign-feature-pills"><span>BHOP</span><span>HOTKEYS</span><span>CONFIGS</span></div></article>
-      </div>
-      <div class="campaign-benefit-banner reveal"><div><span class="section-index">TUDO EM UMA CONTA</span><h3>COMPROU? ACOMPANHE PELO PAINEL.</h3><p>Plano, prazo, arquivos e atendimento reunidos no mesmo lugar. A ativação acontece após a confirmação do pagamento.</p></div><a href="/account" class="button button-dark">ACESSAR PAINEL ↗</a></div>
-    </section>
-
-    <section id="softwares" class="campaign-pricing campaign-section" aria-labelledby="plansTitle">
-      <div class="shell">
-        <div class="campaign-heading reveal"><div><span class="section-index">04 / PLANOS DO CHEAT CS2</span><h2 id="plansTitle">ESCOLHA SEU <em>PLANO.</em></h2></div><p>Os mesmos recursos em todos os planos pagos. Só muda o tempo de acesso.</p></div>
-        <div class="campaign-offer reveal">
-          <div class="offer-text"><span class="offer-flash">✦ OFERTA DE ENTRADA</span><h3>CONHEÇA O CHEAT <em>ANTES DE COMPRAR.</em></h3><p>Faça um teste grátis de 1 dia, uma vez por conta e computador elegível. Depois escolha o plano que preferir.</p></div>
-          <div class="offer-price"><small>TESTE GRÁTIS</small><strong>R$ 0,00</strong><a class="button button-primary" href="/account?trial=1">TESTAR AGORA ↗</a></div>
-        </div>
-        <div class="campaign-pricing-head reveal"><h3>PLANOS DISPONÍVEIS <span>CS2 / WINDOWS</span></h3><div class="software-status"><span id="catalogStatusDot" class="status-dot maintenance"></span><b id="catalogStatus">Consultando status...</b></div></div>
-        <div class="home-plan-grid reveal">
-          <a class="free-trial" href="/account?trial=1"><small>TESTE GRÁTIS</small><strong>R$ 0,00</strong><span>1 dia • 1 por PC</span></a>
-          <a href="/checkout?plan=d1"><small>1 DIA</small><strong>R$ 5,90</strong><span>Para renovar por 1 dia</span></a>
-          <a href="/checkout?plan=d7"><small>7 DIAS</small><strong>R$ 9,90</strong><span>Uma semana completa</span></a>
-          <a href="/checkout?plan=d15"><small>15 DIAS</small><strong>R$ 14,90</strong><span>Quinzena</span></a>
-          <a class="featured" href="/checkout?plan=d30"><small>1 MÊS</small><strong>R$ 19,90</strong><span>Mais escolhido</span></a>
-          <a href="/checkout?plan=d90"><small>3 MESES</small><strong>R$ 39,90</strong><span>Ótimo custo/dia</span></a>
-          <a href="/checkout?plan=d180"><small>6 MESES</small><strong>R$ 64,90</strong><span>Para longo prazo</span></a>
-          <a class="lifetime" href="/checkout?plan=lifetime"><small>LIFETIME</small><strong>R$ 100,00</strong><span>Pague uma vez</span></a>
-        </div>
-        <p class="campaign-pricing-note">As compras seguem para o checkout existente, com processamento pelo Mercado Pago. Consulte o status do produto antes de ativar.</p>
+    <section class="faq section container" id="faq">
+      <div class="section-heading"><div><span class="overline" data-i18n="help">DÚVIDAS RÁPIDAS</span><h2>FAQ</h2></div><p data-i18n="faqLead">O essencial antes da compra.</p></div>
+      <div class="faq-grid">
+        <details><summary><span data-i18n="faqQ1">Como escolho meu plano?</span><span class="plus">+</span></summary><p data-i18n="faqA1">Clique em Comprar no produto desejado. Os planos aparecem antes de ir para o pagamento.</p></details>
+        <details><summary><span data-i18n="faqQ2">Quais métodos de pagamento existem?</span><span class="plus">+</span></summary><p data-i18n="faqA2">O site utiliza Mercado Pago, com Pix e cartão conforme a região. O canal Telegram Stars depende da ativação do bot.</p></details>
+        <details><summary><span data-i18n="faqQ3">Como funciona o iOS?</span><span class="plus">+</span></summary><p data-i18n="faqA3">iOS está em pré-venda. O aplicativo não foi lançado, não há acesso imediato e a data de lançamento ainda não está confirmada.</p></details>
+        <details><summary><span data-i18n="faqQ4">Como consulto o status?</span><span class="plus">+</span></summary><p data-i18n="faqA4">Abra Status para ver as informações publicadas pela administração.</p></details>
       </div>
     </section>
-
-    <section class="shell campaign-section campaign-flow" id="processo" aria-labelledby="flowTitle">
-      <div class="campaign-heading reveal"><div><span class="section-index">05 / COMO FUNCIONA</span><h2 id="flowTitle">COMPRAR É <em>SIMPLES.</em></h2></div><p>Escolha o período, finalize pelo checkout e gerencie o seu cheat no painel.</p></div>
-      <div class="campaign-flow-grid">
-        <article class="reveal"><span>01</span><h3>ESCOLHA O PLANO</h3><p>1, 7, 15, 30, 90, 180 dias ou Lifetime. Os valores são mostrados antes do pagamento.</p></article>
-        <article class="reveal delay-1"><span>02</span><h3>FINALIZE O PAGAMENTO</h3><p>O checkout do site usa Mercado Pago. A ativação ocorre após a aprovação.</p></article>
-        <article class="reveal delay-2"><span>03</span><h3>ACESSE SEU PAINEL</h3><p>Use sua conta para acompanhar o acesso, arquivos disponíveis e suporte.</p></article>
-      </div>
-    </section>
-
-    <section class="shell campaign-section campaign-faq" id="faq" aria-labelledby="faqTitle">
-      <div class="campaign-heading reveal"><div><span class="section-index">06 / RESPOSTAS RÁPIDAS</span><h2 id="faqTitle">SEM DÚVIDAS. <em>SEM ENROLAÇÃO.</em></h2></div><p>Informações práticas antes de escolher um dos planos do CS2.</p></div>
-      <div class="campaign-faq-layout">
-        <div class="faq-grid">
-          <details class="reveal"><summary>Posso testar o cheat antes de pagar?<span>+</span></summary><p>Sim. Há teste grátis de 1 dia, uma única vez por conta. O primeiro PC usado fica vinculado ao teste, e o mesmo PC não pode iniciar outro teste grátis por outra conta.</p></details>
-          <details class="reveal"><summary>Os planos têm os mesmos recursos?<span>+</span></summary><p>Sim. Os planos do CS2 dão acesso ao mesmo projeto. O que muda é o período contratado.</p></details>
-          <details class="reveal"><summary>Quando meu acesso é ativado?<span>+</span></summary><p>Depois da aprovação do pagamento pelo Mercado Pago, a ativação é registrada automaticamente na sua conta.</p></details>
-          <details class="reveal"><summary>Como recebo o cheat?<span>+</span></summary><p>Acesse sua conta no site para acompanhar plano, arquivos e versão disponibilizada pela administração.</p></details>
-          <details class="reveal"><summary>O cheat é indetectável?<span>+</span></summary><p>Não existe garantia de indetectabilidade permanente. Consulte o status oficial do produto e as atualizações informadas pelo painel.</p></details>
-          <details class="reveal"><summary>Quando sai o Counter-Frame?<span>+</span></summary><p>O produto mobile ainda está em desenvolvimento. Preço e data de lançamento não foram anunciados.</p></details>
-          <details class="reveal"><summary>Como falo com o suporte?<span>+</span></summary><p>Use o chat de atendimento no canto da página para enviar mensagens e acompanhar as respostas.</p></details>
-          <details class="reveal"><summary>Como funciona o Lifetime?<span>+</span></summary><p>O sistema trata Lifetime como acesso permanente, sem a contagem regular de dias dos demais planos.</p></details>
-        </div>
-        <aside class="campaign-help reveal" id="suporte"><span class="section-index">PRECISA DE AJUDA?</span><div class="help-glyph">♛</div><h3>SUPORTE BRASILEIRO.</h3><p>Dúvidas sobre conta, pagamento ou acesso? Nosso chat fica no canto da página.</p><a class="button button-primary" href="/account">IR PARA MINHA CONTA ↗</a></aside>
-      </div>
-    </section>
-
-    <section class="shell campaign-end reveal"><div><span class="section-index">CHEGOU SUA VEZ</span><h2>CONHEÇA O <em>LEGIT BARATINHO.</em></h2><p>Comece pelo teste grátis de 1 dia ou escolha seu plano de CS2.</p></div><a class="button button-primary magnetic" href="#softwares">VER PLANOS ↗</a></section>
   </main>
+  <footer class="footer"><div class="container footer-inner"><span>© <span id="year"></span> Legit Baratinho.</span><a href="/account" data-i18n="account">Minha conta</a></div></footer>
 
-  <footer class="shell footer">
-    <a class="brand" href="/"><span class="campaign-crown" aria-hidden="true">♛</span><span class="brand-copy"><b>LEGIT</b><small>BARATINHO</small></span></a>
-    <span>© <span id="year"></span> Legit Baratinho · Projeto brasileiro.</span>
-    <a href="/account">Minha conta</a>
-  </footer>
-
-  <script src="/app.js?v=20261110-product-statuses"></script>
-  <script src="/support.js?v=20260923-support"></script>
+  <dialog id="purchase-dialog" class="purchase-dialog" aria-labelledby="purchase-title">
+    <div class="dialog-inner">
+      <div class="dialog-head"><div><span class="overline" data-i18n="selectPlan">ESCOLHA SEU PLANO</span><h2 id="purchase-title">Counter-Frame</h2></div><button type="button" class="dialog-close" id="close-dialog" aria-label="Close">×</button></div>
+      <div id="platform-choice" class="platform-choice" hidden>
+        <label><span data-i18n="platform">Plataforma</span><select id="purchase-platform"><option value="android">Android</option><option value="ios">iOS — Pré-venda</option></select></label>
+        <div id="ios-notice" class="ios-notice" hidden><strong data-i18n="presaleTitle">Pré-venda iOS</strong><p data-i18n="iosNotice">Você está comprando antecipadamente uma versão ainda não lançada. Não há acesso imediato e a data de lançamento não está confirmada.</p></div>
+      </div>
+      <div id="modal-plans" class="modal-plans"></div>
+      <div class="dialog-actions">
+        <button id="pay-card" type="button" class="primary-btn" disabled><span data-i18n="payCard">Continuar com Pix ou cartão</span><span>→</span></button>
+        <a id="pay-stars" class="secondary-btn" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener" hidden><span data-i18n="openTelegram">Abrir bot do Telegram</span></a>
+      </div>
+      <p id="checkout-note" class="dialog-note" role="status"></p>
+    </div>
+  </dialog>
+  <script src="/landing.js?v=20261110-compact-v1" defer></script>
+  <script src="/support.js?v=20260923-support" defer></script>
 </body>
 </html>
