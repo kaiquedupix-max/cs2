@@ -14,7 +14,7 @@
       faqQ3:"Como funciona o iOS?",faqA3:"iOS está em pré-venda. O aplicativo não foi lançado, não há acesso imediato e a data de lançamento ainda não está confirmada.",
       faqQ4:"Como consulto o status?",faqA4:"Abra Status para ver as informações publicadas pela administração.",
       selectPlan:"ESCOLHA SEU PLANO",platform:"Plataforma",presaleTitle:"Pré-venda iOS",iosNotice:"Você está comprando antecipadamente uma versão ainda não lançada. Não há acesso imediato e a data de lançamento não está confirmada.",
-      payCard:"Continuar com Pix ou cartão",openTelegram:"Abrir bot do Telegram",noteStars:"O bot do Telegram ainda precisa ser ativado para processar pagamentos com Stars.",
+      pricingRegion:"Região de preços",intlCardUnavailable:"O cartão internacional ainda precisa da configuração de câmbio. Preços em USD são referências; nenhuma cobrança será feita enquanto essa configuração estiver ausente.",intlCardNote:"Os preços internacionais estão em USD; o Mercado Pago liquida em reais (BRL), com o valor exato mostrado no checkout.",viewPhotos:"Ver fotos reais do menu",realScreenshots:"CAPTURAS REAIS",realScreenshotsNote:"Fotos reais do menu durante o jogo. Consulte o status da sua plataforma.",payCard:"Continuar com Pix ou cartão",openTelegram:"Abrir bot do Telegram",noteStars:"O bot do Telegram ainda precisa ser ativado para processar pagamentos com Stars.",
       buyNote:"Selecione um plano para prosseguir.",checkoutUnavailable:"Pagamento online não configurado. Entre em contato com o suporte.",
       days:"dias",day:"dia",lifetime:"Vitalício",status_loading:"Consultando",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MANUTENÇÃO",status_coming_soon:"EM BREVE",status_presale:"PRÉ-VENDA",
       statusGeneric_online:"Produto disponível conforme o painel.",statusGeneric_offline:"Produto indisponível.",statusGeneric_maintenance:"Produto em manutenção.",statusGeneric_coming_soon:"Lançamento em preparação.",statusGeneric_presale:"Pré-venda disponível; versão ainda não lançada.",
@@ -33,7 +33,7 @@
       faqQ3:"What about iOS?",faqA3:"iOS is available for pre-order only. The app has not launched, access is not immediate and no release date is confirmed.",
       faqQ4:"How do I check the status?",faqA4:"Open Status to see availability updates from the admin team.",
       selectPlan:"CHOOSE YOUR PLAN",platform:"Platform",presaleTitle:"iOS pre-order",iosNotice:"You are pre-ordering an unreleased iOS version. Access is not immediate and there is no confirmed release date.",
-      payCard:"Continue with Pix or card",openTelegram:"Open Telegram bot",noteStars:"Telegram Stars payments are not active until the bot is deployed.",
+      pricingRegion:"Pricing region",intlCardUnavailable:"International card checkout is pending exchange-rate configuration. USD prices are references; no payment will be taken until billing is ready.",intlCardNote:"International prices are listed in USD; Mercado Pago settles in Brazilian reais (BRL). The exact BRL charge is shown at checkout.",viewPhotos:"View real menu screenshots",realScreenshots:"REAL SCREENSHOTS",realScreenshotsNote:"Real menu screenshots taken during gameplay. Check your platform status.",payCard:"Continue with Pix or card",openTelegram:"Open Telegram bot",noteStars:"Telegram Stars payments are not active until the bot is deployed.",
       buyNote:"Select a plan to continue.",checkoutUnavailable:"Online checkout is not configured. Contact support.",
       days:"days",day:"day",lifetime:"Lifetime",status_loading:"Loading",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MAINTENANCE",status_coming_soon:"COMING SOON",status_presale:"PRE-ORDER",
       statusGeneric_online:"Available as reported by the admin team.",statusGeneric_offline:"Currently unavailable.",statusGeneric_maintenance:"Temporarily under maintenance.",statusGeneric_coming_soon:"Launch in preparation.",statusGeneric_presale:"Pre-orders are open; the version has not been released.",
@@ -52,7 +52,7 @@
       faqQ3:"¿Cómo funciona iOS?",faqA3:"iOS está en preventa. La aplicación aún no se lanzó, no hay acceso inmediato ni fecha confirmada.",
       faqQ4:"¿Cómo consulto el estado?",faqA4:"Abre Estado para ver la información publicada por administración.",
       selectPlan:"ELIGE TU PLAN",platform:"Plataforma",presaleTitle:"Preventa iOS",iosNotice:"Compras por adelantado una versión de iOS aún no publicada. No hay acceso inmediato ni fecha confirmada de lanzamiento.",
-      payCard:"Continuar con Pix o tarjeta",openTelegram:"Abrir bot de Telegram",noteStars:"Los pagos con Telegram Stars requieren activar el bot.",
+      pricingRegion:"Región de precios",intlCardUnavailable:"El pago internacional con tarjeta requiere configurar el tipo de cambio. Los precios en USD son referencias; no se cobrará hasta activarlo.",intlCardNote:"Los precios internacionales están en USD; Mercado Pago cobra en reales brasileños (BRL) y muestra el importe antes de pagar.",viewPhotos:"Ver capturas reales del menú",realScreenshots:"CAPTURAS REALES",realScreenshotsNote:"Capturas reales del menú durante el juego. Consulta el estado de tu plataforma.",payCard:"Continuar con Pix o tarjeta",openTelegram:"Abrir bot de Telegram",noteStars:"Los pagos con Telegram Stars requieren activar el bot.",
       buyNote:"Selecciona un plan para continuar.",checkoutUnavailable:"El pago online no está configurado. Contacta con soporte.",
       days:"días",day:"día",lifetime:"De por vida",status_loading:"Cargando",status_online:"DISPONIBLE",status_offline:"SIN SERVICIO",status_maintenance:"MANTENIMIENTO",status_coming_soon:"PRÓXIMAMENTE",status_presale:"PREVENTA",
       statusGeneric_online:"Disponible según administración.",statusGeneric_offline:"No disponible actualmente.",statusGeneric_maintenance:"En mantenimiento temporal.",statusGeneric_coming_soon:"Lanzamiento en preparación.",statusGeneric_presale:"Preventa abierta; versión aún no lanzada.",
@@ -71,7 +71,7 @@
       faqQ3:"Что с iOS?",faqA3:"Для iOS открыт только предзаказ. Приложение ещё не вышло, мгновенного доступа нет, дата релиза не объявлена.",
       faqQ4:"Где проверить статус?",faqA4:"Откройте раздел «Статус» для информации администрации.",
       selectPlan:"ВЫБЕРИТЕ ТАРИФ",platform:"Платформа",presaleTitle:"Предзаказ iOS",iosNotice:"Это предзаказ ещё не выпущенной версии для iOS. Мгновенного доступа нет, дата выпуска не подтверждена.",
-      payCard:"Перейти к оплате картой или Pix",openTelegram:"Открыть Telegram-бота",noteStars:"Оплата через Telegram Stars будет доступна после запуска бота.",
+      pricingRegion:"Регион цен",intlCardUnavailable:"Оплата иностранной картой ещё требует настройки обменного курса. Цены USD справочные, списаний пока нет.",intlCardNote:"Международные цены указаны в USD, но Mercado Pago списывает BRL. Сумма в реалах будет показана до оплаты.",viewPhotos:"Реальные скриншоты меню",realScreenshots:"РЕАЛЬНЫЕ СНИМКИ",realScreenshotsNote:"Реальные снимки меню во время игры. Проверяйте статус платформы.",payCard:"Перейти к оплате картой или Pix",openTelegram:"Открыть Telegram-бота",noteStars:"Оплата через Telegram Stars будет доступна после запуска бота.",
       buyNote:"Выберите тариф для продолжения.",checkoutUnavailable:"Онлайн-оплата не настроена. Обратитесь в поддержку.",
       days:"дней",day:"день",lifetime:"Навсегда",status_loading:"Загрузка",status_online:"ДОСТУПНО",status_offline:"НЕДОСТУПНО",status_maintenance:"НА ОБСЛУЖИВАНИИ",status_coming_soon:"СКОРО",status_presale:"ПРЕДЗАКАЗ",
       statusGeneric_online:"Доступно по данным администрации.",statusGeneric_offline:"Сейчас недоступно.",statusGeneric_maintenance:"Временно на обслуживании.",statusGeneric_coming_soon:"Подготовка к запуску.",statusGeneric_presale:"Предзаказ открыт; приложение ещё не выпущено.",
@@ -81,22 +81,29 @@
 
   const pricesFallback = {
     cs2: [{key:"d1",days:1,priceCents:590},{key:"d7",days:7,priceCents:990},{key:"d15",days:15,priceCents:1490},{key:"d30",days:30,priceCents:1990},{key:"d90",days:90,priceCents:3990},{key:"d180",days:180,priceCents:6490},{key:"lifetime",lifetime:true,priceCents:10000}],
-    counterframe: [{key:"d1",days:1,priceCents:490},{key:"d7",days:7,priceCents:1290},{key:"d15",days:15,priceCents:2190},{key:"d30",days:30,priceCents:3500}]
+    counterframe: [{key:"d1",days:1,priceCents:490,usdPriceCents:150},{key:"d7",days:7,priceCents:1290,usdPriceCents:400},{key:"d15",days:15,priceCents:2190,usdPriceCents:700},{key:"d30",days:30,priceCents:3500,usdPriceCents:1000}]
   };
   const statuses = ["cs2","counterFrameAndroid","counterFrameIos"];
   const stateLabels = new Set(["online","offline","maintenance","coming_soon","presale"]);
   const statusNames = {"cs2":"CS2 • Windows","counterFrameAndroid":"Counter-Frame • Android","counterFrameIos":"Counter-Frame • iOS"};
   const langSelect = document.getElementById("site-language");
   const dlg = document.getElementById("purchase-dialog");
+  const galleryDlg = document.getElementById("gallery-dialog");
   const productTitle = document.getElementById("purchase-title");
   const planGrid = document.getElementById("modal-plans");
   const platformChoice = document.getElementById("platform-choice");
+  const marketChoice = document.getElementById("pricing-region-choice");
+  const marketSelect = document.getElementById("pricing-region");
   const platformSelect = document.getElementById("purchase-platform");
   const iosNotice = document.getElementById("ios-notice");
   const cardBtn = document.getElementById("pay-card");
   const telegramBtn = document.getElementById("pay-stars");
   const checkoutNote = document.getElementById("checkout-note");
   let lang = "pt", selectedProduct = null, selectedPlan = "d30", loadedPlans = pricesFallback, checkoutAvailable = true, productStatuses = {};
+  const savedMarket = localStorage.getItem("lb_store_market");
+  let market = ["BR","INTL"].includes(savedMarket) ? savedMarket :
+    ((navigator.languages?.[0] || navigator.language || "en").toLowerCase().startsWith("pt") ? "BR" : "INTL");
+  marketSelect.value = market;
 
   function guessLanguage() {
     const param = new URLSearchParams(location.search).get("lang");
@@ -122,12 +129,18 @@
   function money(cents) {
     return (Number(cents)/100).toLocaleString({pt:"pt-BR",en:"en-US",es:"es-ES",ru:"ru-RU"}[lang],{style:"currency",currency:"BRL"});
   }
+  function priceForPlan(plan) {
+    if(selectedProduct === "counterframe" && market === "INTL") {
+      return plan.usdPriceCents != null ? "$" + (plan.usdPriceCents / 100).toFixed(2) + " USD" : "USD";
+    }
+    return money(plan.priceCents);
+  }
   function planName(plan) {
     if (plan.lifetime) return tr("lifetime");
     return String(plan.days) + " " + tr(plan.days===1?"day":"days");
   }
   function purchaseLink() {
-    const params = new URLSearchParams({product:selectedProduct,plan:selectedPlan,lang});
+    const params = new URLSearchParams({product:selectedProduct,plan:selectedPlan,lang,market:market.toLowerCase()});
     if (selectedProduct==="counterframe") params.set("platform",platformSelect.value);
     return "/checkout?"+params;
   }
@@ -141,7 +154,7 @@
       button.type = "button";button.className = "plan-button" + (selectedPlan===plan.key?" selected":"");
       button.setAttribute("aria-pressed",String(selectedPlan===plan.key));
       const label = document.createElement("span");label.textContent=planName(plan);
-      const price = document.createElement("strong");price.textContent=money(plan.priceCents);
+      const price = document.createElement("strong");price.textContent=priceForPlan(plan);
       button.append(label,price);
       button.addEventListener("click",()=>{selectedPlan=plan.key;renderPlans();});
       planGrid.appendChild(button);
@@ -149,9 +162,14 @@
     const ios = selectedProduct==="counterframe" && platformSelect.value==="ios";
     iosNotice.hidden = !ios;
     platformChoice.hidden = selectedProduct!=="counterframe";
+    marketChoice.hidden = selectedProduct!=="counterframe";
     telegramBtn.hidden = selectedProduct!=="counterframe";
     cardBtn.disabled = !checkoutAvailable;
-    const note = !checkoutAvailable ? tr("checkoutUnavailable") : selectedProduct==="counterframe" ? tr("noteStars") : tr("buyNote");
+    const international = selectedProduct === "counterframe" && market === "INTL";
+    const note = !checkoutAvailable
+      ? (international ? tr("intlCardUnavailable") : tr("checkoutUnavailable"))
+      : international ? tr("intlCardNote") + " " + tr("noteStars")
+      : selectedProduct==="counterframe" ? tr("noteStars") : tr("buyNote");
     checkoutNote.textContent = ios ? tr("iosRequired")+" "+note : note;
     if (selectedProduct==="counterframe") {
       telegramBtn.href = "https://t.me/LegitCheatsCFBot?start=cf_"+platformSelect.value+"_"+selectedPlan;
@@ -165,7 +183,8 @@
     // MP readiness is verified on the payment page too.
     checkoutAvailable = true;
     try {
-      const response = await fetch("/api/checkout/config?product="+encodeURIComponent(product), {cache:"no-store"});
+      const query = new URLSearchParams({product,market:market.toLowerCase()});
+      const response = await fetch("/api/checkout/config?"+query, {cache:"no-store"});
       if(response.ok) {
         const config = await response.json();
         if(Array.isArray(config.plans) && config.plans.length) {
@@ -212,9 +231,19 @@
   langSelect.addEventListener("change",()=>applyLanguage(langSelect.value,true));
   for(const button of document.querySelectorAll("[data-product]"))button.addEventListener("click",()=>openPurchase(button.dataset.product));
   for(const button of document.querySelectorAll("[data-status]"))button.addEventListener("click",()=>showStatus(button.dataset.status));
+  document.getElementById("close-gallery").addEventListener("click",()=>galleryDlg.close());
+  galleryDlg.addEventListener("click",(event)=>{if(event.target===galleryDlg)galleryDlg.close();});
+  for(const opener of document.querySelectorAll("[data-gallery-open]")) {
+    opener.addEventListener("click",()=>{if(!galleryDlg.open)galleryDlg.showModal();});
+  }
   document.getElementById("close-dialog").addEventListener("click",()=>dlg.close());
   dlg.addEventListener("click",(event)=>{if(event.target===dlg) dlg.close();});
   platformSelect.addEventListener("change",renderPlans);
+  marketSelect.addEventListener("change",()=>{
+    market = marketSelect.value === "INTL" ? "INTL" : "BR";
+    localStorage.setItem("lb_store_market",market);
+    if(selectedProduct==="counterframe")openPurchase(selectedProduct);
+  });
   cardBtn.addEventListener("click",()=>{if(selectedProduct&&checkoutAvailable)location.assign(purchaseLink());});
   document.getElementById("year").textContent=new Date().getFullYear();
   applyLanguage(guessLanguage());

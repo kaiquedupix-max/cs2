@@ -1,0 +1,39 @@
+name: Counter-Frame Telegram bot validation
+
+on:
+  pull_request:
+    paths:
+      - "telegram-bot/**"
+      - "website/public/media/**"
+      - ".github/workflows/telegram-bot-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "telegram-bot/**"
+      - "website/public/media/**"
+      - ".github/workflows/telegram-bot-validation.yml"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate bot JavaScript syntax
+        run: |
+          node --check telegram-bot/src/catalog.js
+          node --check telegram-bot/src/strings.js
+          node --check telegram-bot/src/db.js
+          node --check telegram-bot/src/bot.js
+      - name: Run bot logic tests
+        working-directory: telegram-bot
+        run: node --test tests/*.test.js
+      - name: Check media files are present
+        run: |
+          test -s website/public/media/counterframe_gameplay.jpg
+          test -s website/public/media/counterframe_esp.jpg
+          test -s website/public/media/counterframe_aimbot.jpg
+          test -s website/public/media/telegram_promo_menu.jpg
+          test -s website/public/media/telegram_promo_plans.jpg

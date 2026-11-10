@@ -11,11 +11,35 @@ const PLANS = [
 ];
 
 const COUNTERFRAME_PLANS = [
-  { key: "d1", name: "1 dia", days: 1, priceCents: 490 },
-  { key: "d7", name: "7 dias", days: 7, priceCents: 1290 },
-  { key: "d15", name: "15 dias", days: 15, priceCents: 2190 },
-  { key: "d30", name: "30 dias", days: 30, priceCents: 3500 },
+  { key: "d1", name: "1 dia", days: 1, priceCents: 490, usdPriceCents: 150 },
+  { key: "d7", name: "7 dias", days: 7, priceCents: 1290, usdPriceCents: 400 },
+  { key: "d15", name: "15 dias", days: 15, priceCents: 2190, usdPriceCents: 700 },
+  { key: "d30", name: "30 dias", days: 30, priceCents: 3500, usdPriceCents: 1000 },
 ];
+
+export function normalizeMarket(value) {
+  return String(value || "br").trim().toLowerCase() === "intl" ? "INTL" : "BR";
+}
+
+export function internationalBrlRate() {
+  const rate = Number(process.env.CF_USD_BRL_RATE || 0);
+  return Number.isFinite(rate) && rate >= 1 && rate <= 20 ? rate : null;
+}
+
+function quotePlan(plan, product, market) {
+  if (normalizeProduct(product) !== "counterframe" || normalizeMarket(market) !== "INTL") {
+    return { ...plan };
+  }
+  const rate = internationalBrlRate();
+  return {
+    ...plan,
+    // Mercado Pago BR settles BRL; display USD as a reference, and show BRL
+    // settlement amount BEFORE confirming payment.
+    priceCents: rate ? Math.round(plan.usdPriceCents * rate) : null,
+    settlementCurrency: "BRL",
+    billedInBrl: true,
+  };
+}
 
 export function normalizeProduct(value) {
   const product = String(value || "cs2").trim().toLowerCase();
@@ -48,7 +72,7 @@ export function validCpf(value) {
     digit(cpf.slice(0, 10), 11) === Number(cpf[10]);
 }
 
-export function checkoutConfig(product = "cs2") {
+export function checkoutConfig(product = "cs2", market = "BR") {
   const publicKey = String(process.env.MP_PUBLIC_KEY || "").trim();
   const accessToken = String(process.env.MP_ACCESS_TOKEN || "").trim();
   const webhookSecret = String(process.env.MP_WEBHOOK_SECRET || "").trim();
@@ -61,19 +85,24 @@ export function checkoutConfig(product = "cs2") {
     /^https?:\/\//i.test(publicUrl)
   );
 
+  const intl = normalizeProduct(product) === "counterframe" && normalizeMarket(market) === "INTL";
+  const settlementConfigured = !intl || Boolean(internationalBrlRate());
   return {
-    configured,
+    configured: configured && settlementConfigured,
     publicKey,
     publicUrl,
+    market: intl ? "INTL" : "BR",
+    settlementCurrency: "BRL",
     plans: (normalizeProduct(product) === "counterframe" ? COUNTERFRAME_PLANS : PLANS)
-      .map((plan) => ({ ...plan, available: configured })),
+      .map((plan) => ({ ...quotePlan(plan, product, market), available: configured && settlementConfigured })),
   };
 }
 
-export function checkoutPlan(key, product = "cs2") {
+export function checkoutPlan(key, product = "cs2", market = "BR") {
   const normalized = String(key || "d30").trim().toLowerCase();
   const plans = normalizeProduct(product) === "counterframe" ? COUNTERFRAME_PLANS : PLANS;
-  return plans.find((plan) => plan.key === normalized) || null;
+  const selected = plans.find((plan) => plan.key === normalized);
+  return selected ? quotePlan(selected, product, market) : null;
 }
 
 function safeEqual(a, b) {
@@ -179,8 +208,9 @@ export async function createPayment({
   deviceId,
   product = "cs2",
   platform = "windows",
+  market = "BR",
 }) {
-  const config = checkoutConfig(product);
+  const config = checkoutConfig(product, market);
   if (!config.configured) {
     throw Object.assign(new Error("Mercado Pago ainda não configurado."), { statusCode: 503 });
   }
