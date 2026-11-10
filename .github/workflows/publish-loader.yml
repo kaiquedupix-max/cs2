@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths-ignore:
       - "website/**"
+      - "telegram-bot/**"
+      - ".github/workflows/**"
       - "**/*.md"
   workflow_dispatch:
 
