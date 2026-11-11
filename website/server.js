@@ -6,6 +6,7 @@ import { registerCheckoutRoutes } from "./checkoutRoutes.js";
 import { registerSupportRoutes } from "./supportRoutes.js";
 import { registerCounterframe, initCounterframe } from "./counterframe.js";
 import { registerTelegram, initTelegram } from "./telegram.js";
+import { registerTelegramAdmin } from "./telegramAdmin.js";
 import { initCoupons, registerCoupons } from "./coupons.js";
 import { visitorCountry } from "./geoMarket.js";
 import { initReferrals, registerReferrals } from './referrals.js';
@@ -1729,6 +1730,7 @@ app.post("/api/admin/product-statuses/:product", requireAdmin, async (req, res) 
 
 registerCounterframe(app, {pool, requireUser, requireAdmin, verifyPassword, passwordHash, validUsername, validEmail, setting, setSetting});
 registerTelegram(app, {pool});
+registerTelegramAdmin(app, {pool, requireAdmin});
 registerCoupons(app, {pool, requireAdmin});
 registerReferrals(app, {pool, requireUser});
 registerCheckoutRoutes(app, {
@@ -1796,7 +1798,7 @@ app.get("/checkout", (_req, res) => {
 });
 
 app.get("/telegram-admin", (_req, res) => {
-  res.redirect(302, "/admin.html");
+  res.redirect(302, "/admin.html#counterframe-telegram");
 });
 
 app.get("*", (_req, res) => {
