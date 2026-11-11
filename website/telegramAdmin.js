@@ -13,7 +13,7 @@ export function registerTelegramAdmin(app, { pool, requireAdmin }) {
           (SELECT COUNT(*)::int FROM cf_bot_events e WHERE e.telegram_id = b.telegram_id) AS action_count
           FROM cf_bot_users b LEFT JOIN users u ON u.id = b.linked_user_id
           ORDER BY COALESCE(b.last_seen_at, b.first_started_at) DESC NULLS LAST LIMIT 1000`),
-        pool.query(`SELECT o.payload, o.telegram_id::text AS telegram_id, o.days, o.stars,
+        pool.query(`SELECT o.payload, o.telegram_id::text AS telegram_id, o.days, o.stars, o.lifetime, o.plan_key,
           o.coupon_code, o.charge_id, o.created_at, o.refunded_at, o.key_id,
           bu.username AS bot_username, u.username AS loader_username,
           ref.username AS referrer_username
