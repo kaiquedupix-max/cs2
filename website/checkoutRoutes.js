@@ -10,7 +10,7 @@ import {
 } from "./mercadoPago.js";
 import { visitorMarket } from "./geoMarket.js";
 import { issuePurchaseKey } from "./counterframe.js";
-import { couponDiscount, discount } from './coupons.js';
+import { couponDiscount, discount, reserveCoupon } from './coupons.js';
 import {resolveReferrer,grantReferral,reverseReferral,recomputeCounterframe} from './referrals.js';
 import {TERMS_VERSION} from './terms.js';
 
@@ -456,7 +456,7 @@ export function registerCheckoutRoutes(app, deps) {
         installments: Math.max(1, Math.min(12, Math.trunc(Number(formData.installments || 1)))),
       });
 
-      if(coupon.code)await pool.query('UPDATE checkout_payments SET coupon_code=$2 WHERE id=$1',[localId,coupon.code]);
+      if(coupon.code){await reserveCoupon(pool,coupon.code,product,'checkout:'+localId);await pool.query('UPDATE checkout_payments SET coupon_code=$2 WHERE id=$1',[localId,coupon.code]);}
       await pool.query('UPDATE checkout_payments SET terms_version=$2,terms_accepted_at=COALESCE(terms_accepted_at,NOW()) WHERE id=$1',[localId,TERMS_VERSION]);
       const referrer=await resolveReferrer(pool,req.body?.referralCode,req.userId);
       if(referrer)await pool.query('UPDATE checkout_payments SET referrer_id=COALESCE(referrer_id,$2) WHERE id=$1',[localId,referrer]);
