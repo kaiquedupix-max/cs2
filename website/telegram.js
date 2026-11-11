@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import {language} from './counterframe.js';
 import {checkoutPlan} from './mercadoPago.js';
-import {couponDiscount} from './coupons.js';
+import {couponDiscount,reserveCoupon} from './coupons.js';
 import {TERMS_VERSION} from './terms.js';
 import {recomputeCounterframe} from './referrals.js';
 
@@ -194,7 +194,7 @@ export function registerTelegram(app,{pool,telegramApi}){
      }
      else if(action.startsWith('/coupon ')){try{const c=await couponDiscount(pool,action.slice(8).trim(),'counterframe');await pool.query('INSERT INTO cf_bot_users(telegram_id,language,coupon_code) VALUES($1,$2,$3) ON CONFLICT(telegram_id) DO UPDATE SET coupon_code=EXCLUDED.coupon_code',[from.id,lang,c.code]);await send(t.couponApplied+' '+c.percent+'%');}catch{await send(t.couponInvalid);}}
      else if(action==='coupon'||action==='/coupon')await send(t.couponPrompt);
-     else if(action.startsWith('plan:')){const plan=plans().find(p=>String(p.days)===action.slice(5));if(!plan){await send(t.off);return res.sendStatus(200);}let coupon;try{coupon=await couponDiscount(pool,row.rows[0]?.coupon_code,'counterframe');}catch{await send(t.couponInvalid);return res.sendStatus(200);}const stars=Math.max(1,Math.ceil(plan.stars*(100-coupon.percent)/100)),payload=crypto.randomBytes(24).toString('hex');await pool.query('INSERT INTO cf_bot_orders(payload,telegram_id,days,stars,coupon_code,referrer_telegram_id) VALUES($1,$2,$3,$4,$5,$6)',[payload,from.id,plan.days,stars,coupon.code,row.rows[0]?.referrer_telegram_id||null]);await api('sendInvoice',{chat_id:from.id,title:t.invoice,description:`${plan.days} ${t.days}`,payload,currency:'XTR',prices:[{label:t.invoice,amount:stars}]});}
+     else if(action.startsWith('plan:')){const plan=plans().find(p=>String(p.days)===action.slice(5));if(!plan){await send(t.off);return res.sendStatus(200);}let coupon;try{coupon=await couponDiscount(pool,row.rows[0]?.coupon_code,'counterframe');}catch{await send(t.couponInvalid);return res.sendStatus(200);}const stars=Math.max(1,Math.ceil(plan.stars*(100-coupon.percent)/100)),payload=crypto.randomBytes(24).toString('hex');if(coupon.code)await reserveCoupon(pool,coupon.code,'counterframe','telegram:'+payload);await pool.query('INSERT INTO cf_bot_orders(payload,telegram_id,days,stars,coupon_code,referrer_telegram_id) VALUES($1,$2,$3,$4,$5,$6)',[payload,from.id,plan.days,stars,coupon.code,row.rows[0]?.referrer_telegram_id||null]);await api('sendInvoice',{chat_id:from.id,title:t.invoice,description:`${plan.days} ${t.days}`,payload,currency:'XTR',prices:[{label:t.invoice,amount:stars}]});}
      else if(action==='buy'){const p=plans();await send(p.length?t.buy:t.off,p.map(p=>[{text:`${p.days} ${t.days} · ${p.stars} ⭐`,callback_data:`plan:${p.days}`} ]));}
      else {const buttons=[[{text:t.buy,callback_data:'buy'},{text:t.keys,callback_data:'keys'}],[{text:t.affiliate,callback_data:'affiliate'},{text:t.redeem,callback_data:'redeem'}],[{text:t.features,callback_data:'features'},{text:t.lang,callback_data:'language'}],[{text:t.coupon,callback_data:'coupon'},{text:t.terms,callback_data:'terms'}]];await send(t.welcome,buttons);}
      res.sendStatus(200);
