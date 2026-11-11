@@ -1795,6 +1795,10 @@ app.get("/checkout", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "checkout.html"));
 });
 
+app.get("/telegram-admin", (_req, res) => {
+  res.redirect(302, "/admin.html");
+});
+
 app.get("*", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
