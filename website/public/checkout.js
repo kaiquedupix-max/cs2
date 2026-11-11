@@ -119,11 +119,10 @@ function money(cents) {
 function ct(key) { return window.lbCheckoutText?.(key) || key; }
 
 function priceLabel(plan) {
-  const base=money(plan.priceCents);
-  if(checkoutMarket === "INTL" && isCounterFrame && Number.isFinite(plan.usdPriceCents)) {
-    return base+" · $"+(plan.usdPriceCents/100).toFixed(2)+" USD (ref.)";
+  if(checkoutMarket === "INTL" && Number.isFinite(plan.usdPriceCents)) {
+    return new Intl.NumberFormat(({pt:"pt-BR",en:"en-US",es:"es-ES",ru:"ru-RU"}[checkoutLang]||"en-US"),{style:"currency",currency:"USD"}).format(plan.usdPriceCents/100);
   }
-  return base;
+  return money(plan.priceCents);
 }
 function selectedPlan() {
   return checkoutConfig?.plans?.find((plan) => plan.key === selectedPlanKey) || null;
