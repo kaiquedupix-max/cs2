@@ -337,23 +337,20 @@ function stopPaymentPolling() {
 async function showApproved(preOrder = isIosPreorder) {
   stopPaymentPolling();
   await destroyPaymentBrick();
-
   pixResult.classList.add("hidden");
   brickContainer.classList.add("hidden");
-  stripeCheckoutButton.classList.add('hidden');
+  stripeCheckoutButton.classList.add("hidden");
   paymentLoading.classList.add("hidden");
   paymentApproved.classList.remove("hidden");
-
+  const loaderDownload=document.getElementById("approvedLoaderDownload");
+  if(loaderDownload)loaderDownload.classList.toggle("hidden",!(isCounterFrame&&checkoutPlatform==="android"));
   if (preOrder) {
-    paymentApproved.querySelector("strong").textContent =
-      ct("preorderApproved");
-    paymentApproved.querySelector("p").textContent =
-      ct("preorderApprovedNote");
+    paymentApproved.querySelector("strong").textContent = ct("preorderApproved");
+    paymentApproved.querySelector("p").textContent = ct("preorderApprovedNote");
     setMessage(ct("preorderMessage"), "success");
   } else {
     paymentApproved.querySelector("strong").textContent = ct("approved");
-    paymentApproved.querySelector("p").textContent =
-      ct("approvedNote");
+    paymentApproved.querySelector("p").textContent = ct("approvedNote");
     setMessage(ct("approvedMessage"), "success");
   }
 }
@@ -624,29 +621,21 @@ async function boot() {
       isCounterFrame ? "Counter Flame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : "Counter-Strike 2";
     document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : "CS";
     document.getElementById("iosCheckoutNotice")?.classList.toggle("hidden", !isIosPreorder);
-    document.getElementById("cfTelegramChoice")?.classList.toggle("hidden", !isCounterFrame);
-    if (isCounterFrame) {
-      document.getElementById("buyerCpf").required = false;
-      document.getElementById("buyerCpfLabel").firstChild.textContent =
-        checkoutLang === "pt" ? "CPF (opcional para clientes internacionais)" :
-        checkoutLang === "es" ? "CPF (opcional para clientes extranjeros)" :
-        checkoutLang === "ru" ? "CPF (необязательно для иностранцев)" :
-        "CPF (optional for international buyers)";
-      document.getElementById("cfTelegramLink").href =
-        "https://t.me/LegitCheatsCFBot?start=cf_" + checkoutPlatform + "_" + selectedPlanKey;
-    }
+    if (isCounterFrame) document.getElementById("buyerCpf").required = false;
 
     const checkoutQuery = new URLSearchParams({product: checkoutProduct});
     checkoutConfig = await api("/api/checkout/config?" + checkoutQuery);
     basePlanPrices=checkoutConfig.plans.map(p=>({...p}));
     checkoutMarket = checkoutConfig.market === "BR" ? "BR" : "INTL";
+    const cpfLabel=document.getElementById('buyerCpfLabel');
     document.getElementById('buyerCpf').required=!isCounterFrame&&checkoutMarket==='BR';
-    if(checkoutMarket==='INTL'&&!isCounterFrame)document.getElementById('buyerCpfLabel').firstChild.textContent=({pt:'CPF (opcional para clientes internacionais)',en:'CPF (optional for international buyers)',es:'CPF (opcional para clientes extranjeros)',ru:'CPF (необязательно для иностранцев)'})[checkoutLang];
+    cpfLabel.classList.toggle('hidden',checkoutMarket==='INTL');
+    document.querySelector('.checkout-security')?.classList.toggle('hidden',checkoutMarket==='INTL');
+    document.getElementById('checkoutSecureNote')?.classList.add('hidden');
     if(checkoutMarket==='INTL'){
       const intro=document.getElementById("checkoutIntro");
-      if(intro)intro.textContent=checkoutConfig.provider==='stripe'?({pt:'Clientes fora do Brasil pagam com cartão pelo Stripe.',en:'Customers outside Brazil pay by card through Stripe.',es:'Los clientes fuera de Brasil pagan con tarjeta por Stripe.',ru:'Покупатели за пределами Бразилии оплачивают картой через Stripe.'})[checkoutLang]:"Clientes fora do Brasil pagam com cartão pelo Stripe.";
-      document.getElementById('checkoutSecureNote').textContent=({pt:'🔒 Pagamento internacional com cartão processado pelo Stripe.',en:'🔒 International card payment processed by Stripe.',es:'🔒 Pago internacional con tarjeta procesado por Stripe.',ru:'🔒 Международный платёж картой обрабатывается Stripe.'})[checkoutLang];
-      document.getElementById('checkoutProviderNote').textContent=({pt:'Checkout de cartão do Stripe e confirmação automática após o webhook.',en:'Stripe card checkout with automatic confirmation after its webhook.',es:'Pago con tarjeta de Stripe y confirmación automática mediante webhook.',ru:'Оплата картой Stripe с автоматическим подтверждением через webhook.'})[checkoutLang];
+      if(intro)intro.textContent=({pt:'Pague com cartão pelo Stripe.',en:'Pay by card with Stripe.',es:'Paga con tarjeta mediante Stripe.',ru:'Оплатите картой через Stripe.'})[checkoutLang];
+      document.getElementById('paymentLoading').textContent=({pt:'Carregando opções de pagamento…',en:'Loading payment options…',es:'Cargando opciones de pago…',ru:'Загрузка способов оплаты…'})[checkoutLang];
     }
     renderPlans();
 
@@ -664,9 +653,9 @@ async function boot() {
     if (!checkoutConfig.configured) {
       if(checkoutConfig.provider==='stripe'){
         brickContainer.classList.add('hidden');paymentLoading.classList.add('hidden');stripeCheckoutButton.classList.remove('hidden');stripeCheckoutButton.disabled=true;
-        stripeCheckoutButton.textContent=({pt:'Stripe • configuração pendente',en:'Stripe • setup pending',es:'Stripe • configuración pendiente',ru:'Stripe • настройка ожидается'})[checkoutLang];
+        stripeCheckoutButton.textContent='Pagar com Stripe';
       }
-      setMessage(checkoutMarket==='INTL'?({pt:'Stripe pendente. Configure a chave secreta e o segredo do webhook no serviço de hospedagem.',en:'Stripe is pending. Add its secret key and webhook signing secret to the hosting service.',es:'Stripe está pendiente. Configura la clave secreta y el secreto de firma del webhook en el alojamiento.',ru:'Stripe ожидает настройки. Добавьте секретный ключ и секрет вебхука в параметры хостинга.'})[checkoutLang]:'Configure MP_PUBLIC_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e PUBLIC_URL para habilitar pagamentos.','error');
+      setMessage(checkoutMarket==='INTL'?({pt:'Pagamento indisponível no momento. Tente novamente mais tarde.',en:'Payment is unavailable right now. Please try again later.',es:'El pago no está disponible en este momento. Inténtalo más tarde.',ru:'Оплата сейчас недоступна. Попробуйте позже.'})[checkoutLang]:'Não foi possível carregar o pagamento. Tente novamente mais tarde.','error');
       return;
     }
 
