@@ -148,12 +148,10 @@ async function loadCounterFrameAccess() {
     const info = await api("/api/account/counterframe");
     const now = Date.now();
     const android = (info.access || []).find((row) =>
-      row.product_code === "counterframe-android" && !row.revoked_at &&
-      new Date(row.expires_at).getTime() > now
+      row.product_code === "counterframe-android" && !row.revoked_at && new Date(row.expires_at).getTime() > now
     );
     const ios = (info.access || []).find((row) =>
-      row.product_code === "counterframe-ios" && !row.revoked_at &&
-      new Date(row.expires_at).getTime() > now
+      row.product_code === "counterframe-ios" && !row.revoked_at && new Date(row.expires_at).getTime() > now
     );
     const preorders = info.preorders || [];
     if (android || ios) {
@@ -170,13 +168,42 @@ async function loadCounterFrameAccess() {
       badge.textContent = "SEM ACESSO";
       badge.className = "access-badge inactive";
     }
-    purchases.textContent = preorders.length > 0
-      ? preorders.length + " compra(s) iOS" : (android || ios ? "Licença ativa" : "Nenhuma");
+    purchases.textContent = preorders.length > 0 ? preorders.length + " compra(s) iOS" : (android || ios ? "Licença ativa" : "Nenhuma");
+    document.getElementById("cfDeviceResetControls")?.classList.toggle("hidden", !(android || ios));
+    if (android || ios) await loadDeviceResetRequest();
   } catch {
     summary.textContent = "Não foi possível consultar suas compras agora.";
     badge.textContent = "INDISPONÍVEL";
   }
 }
+
+async function loadDeviceResetRequest() {
+  const button = document.getElementById("cfDeviceResetRequest");
+  const status = document.getElementById("cfDeviceResetStatus");
+  if (!button || !status) return;
+  try {
+    const request = await api("/api/account/cf/device-reset-request");
+    button.disabled = !request.device_bound || request.status === "pending" || request.status === "approved";
+    status.textContent = !request.device_bound ? "Entre no loader neste aparelho antes de solicitar a troca." :
+      request.status === "pending" ? "Solicitação aguardando aprovação da administração." :
+      request.status === "approved" ? "Aprovado. Entre no loader pelo novo celular para concluir a troca." :
+      request.status === "denied" ? "Solicitação negada. Você pode enviar um novo pedido." : "A troca de celular precisa de aprovação da administração.";
+  } catch {
+    status.textContent = "Não foi possível consultar a solicitação.";
+  }
+}
+
+document.getElementById("cfDeviceResetRequest")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await api("/api/account/cf/device-reset-request", { method: "POST" });
+    await loadDeviceResetRequest();
+  } catch (error) {
+    document.getElementById("cfDeviceResetStatus").textContent = error.message;
+    button.disabled = false;
+  }
+});
 
 async function loadCounterFrameKeys() {
   const host=document.getElementById("cfKeysList");
