@@ -338,7 +338,7 @@ async function showApproved(preOrder = isIosPreorder) {
   paymentLoading.classList.add("hidden");
   paymentApproved.classList.remove("hidden");
   const loaderDownload=document.getElementById("approvedLoaderDownload");
-  if(loaderDownload)loaderDownload.classList.toggle("hidden",!(isCounterFrame&&checkoutPlatform==="android"));
+  if(loaderDownload){loaderDownload.textContent=({pt:"Baixar loader Android",en:"Download Android loader",es:"Descargar loader Android",ru:"Скачать загрузчик для Android"})[checkoutLang];loaderDownload.classList.toggle("hidden",!(isCounterFrame&&checkoutPlatform==="android"));}
   if (preOrder) {
     paymentApproved.querySelector("strong").textContent = ct("preorderApproved");
     paymentApproved.querySelector("p").textContent = ct("preorderApprovedNote");
