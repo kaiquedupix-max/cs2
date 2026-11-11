@@ -64,6 +64,10 @@ try{
  assert.equal((await call('cf/notifications?after='+notice.data.id)).data.notifications.length,0,'seen notifications must not repeat');
  assert.equal((await call('cf/notifications?after=0',null,{device:other})).status,401,'other device must not read notifications');
  assert.equal((await call('cf/notifications?after=0',null,{ip:'192.0.2.9'})).status,200,'IP change must not block background polling');
+ const multi=await call('admin/cf/notifications',{texts:{pt:{title:'Aviso',body:'Nova versão'},en:{title:'Notice',body:'New version'}}},{admin:true});assert.equal(multi.status,200);assert.deepEqual(Object.keys(multi.data.texts).sort(),['en','pt']);
+ const enInbox=await fetch(base+'/api/cf/notifications?after='+(multi.data.id-1),{headers:{Authorization:'Bearer '+token,'X-Device-Id':device,'Accept-Language':'en-US,en;q=0.9'}}).then(r=>r.json());assert.equal(enInbox.notifications[0].title,'Notice');assert.equal(enInbox.notifications[0].texts,undefined);
+ const ruInbox=await fetch(base+'/api/cf/notifications?after='+(multi.data.id-1),{headers:{Authorization:'Bearer '+token,'X-Device-Id':device,'Accept-Language':'ru'}}).then(r=>r.json());assert.equal(ruInbox.notifications[0].title,'Aviso','missing translation must fall back to Portuguese');
+ assert.equal((await call('admin/cf/notifications',{texts:{en:{title:'Only English',body:'x'}}},{admin:true})).status,400,'Portuguese is required');
  assert.equal(discount(3500,20),2800);assert.throws(()=>discount(3500,100));
  await db.query("INSERT INTO sale_coupons(code,percent,product) VALUES('TEST10',10,'counterframe')");assert.equal((await couponDiscount(pool,'test10','counterframe')).percent,10);await assert.rejects(couponDiscount(pool,'test10','cs2'));
  const bot=async update=>{const r=await fetch(base+'/api/cf/telegram',{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Bot-Api-Secret-Token':process.env.CF_TELEGRAM_WEBHOOK_SECRET},body:JSON.stringify(update)});assert.equal(r.status,200);};

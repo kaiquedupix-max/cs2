@@ -33,6 +33,7 @@ export async function initCounterframe(pool) {
     CREATE INDEX IF NOT EXISTS access_audit_user ON access_audit(user_id,created_at DESC);
     CREATE TABLE IF NOT EXISTS cf_bot_users(telegram_id BIGINT PRIMARY KEY,language TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS cf_notifications(id BIGSERIAL PRIMARY KEY,title TEXT NOT NULL,body TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    ALTER TABLE cf_notifications ADD COLUMN IF NOT EXISTS texts JSONB;
     ALTER TABLE access_audit ADD COLUMN IF NOT EXISTS device_model TEXT,ADD COLUMN IF NOT EXISTS loader_version TEXT,ADD COLUMN IF NOT EXISTS timezone TEXT;
     ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS lifetime BOOLEAN NOT NULL DEFAULT FALSE;
     ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS duration_seconds BIGINT;
@@ -142,14 +143,16 @@ export function registerCounterframe(app,deps) {
     const token=String(req.headers.authorization||'').replace(/^Bearer /,''),after=Math.max(0,Number(req.query.after)||0);
     const {rows}=await pool.query('SELECT 1 FROM cf_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.device_hash=$2 AND s.expires_at>NOW() AND u.disabled_at IS NULL',[tokenHash(token),device(req)]);
     if(!rows[0])throw fail('unauthorized',401);
-    const list=await pool.query("SELECT id,title,body,created_at FROM cf_notifications WHERE id>$1 AND created_at>NOW()-INTERVAL '7 days' ORDER BY id LIMIT 20",[after]);
-    res.json({notifications:list.rows});
+    const lang=language(req.headers['accept-language']);
+    const list=await pool.query("SELECT id,title,body,texts,created_at FROM cf_notifications WHERE id>$1 AND created_at>NOW()-INTERVAL '7 days' ORDER BY id LIMIT 20",[after]);
+    res.json({notifications:list.rows.map(({texts,...row})=>({...row,...(texts?.[lang]||texts?.pt||{})}))});
   }));
-  app.get('/api/admin/cf/notifications',requireAdmin,wrap(async(_req,res)=>res.json({notifications:(await pool.query('SELECT id,title,body,created_at FROM cf_notifications ORDER BY id DESC LIMIT 50')).rows})));
+  app.get('/api/admin/cf/notifications',requireAdmin,wrap(async(_req,res)=>res.json({notifications:(await pool.query('SELECT id,title,body,texts,created_at FROM cf_notifications ORDER BY id DESC LIMIT 50')).rows})));
   app.post('/api/admin/cf/notifications',requireAdmin,wrap(async(req,res)=>{
-    const title=String(req.body?.title||'').trim(),body=String(req.body?.body||'').trim();
-    if(!title||title.length>80||!body||body.length>500)throw fail('invalid_notification');
-    res.json((await pool.query('INSERT INTO cf_notifications(title,body) VALUES($1,$2) RETURNING id,title,body,created_at',[title,body])).rows[0]);
+    const langs=['pt','en','es','ru'],source=req.body?.texts&&typeof req.body.texts==='object'?req.body.texts:{pt:{title:req.body?.title,body:req.body?.body}},texts={};
+    for(const l of langs){const t=source[l];if(!t)continue;const title=String(t.title||'').trim(),body=String(t.body||'').trim();if(!title&&!body)continue;if(!title||title.length>80||!body||body.length>500)throw fail('invalid_notification');texts[l]={title,body};}
+    if(!texts.pt)throw fail('invalid_notification');
+    res.json((await pool.query('INSERT INTO cf_notifications(title,body,texts) VALUES($1,$2,$3) RETURNING id,title,body,texts,created_at',[texts.pt.title,texts.pt.body,JSON.stringify(texts)])).rows[0]);
   }));
   app.post('/api/cf/activate',auth,wrap(async(req,res)=>{
     rate(req);await transaction(async db=>{
