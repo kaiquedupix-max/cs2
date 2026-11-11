@@ -42,12 +42,30 @@ async function api(url, options = {}) {
   return data;
 }
 
+const adminGameSelect = document.getElementById("adminGameSelect");
+function selectAdminGame(product, updateHash = false) {
+  const counterFrame = product === "counterframe";
+  document.getElementById("cs2AdminPanel")?.toggleAttribute("hidden", counterFrame);
+  document.getElementById("counterFrameAdminPanel")?.toggleAttribute("hidden", !counterFrame);
+  if (adminGameSelect) adminGameSelect.value = counterFrame ? "counterframe" : "cs2";
+  if (updateHash) history.replaceState(null, "", location.pathname + location.search + (counterFrame ? "#counterframe" : "#cs2"));
+}
+adminGameSelect?.addEventListener("change", () => selectAdminGame(adminGameSelect.value, true));
+window.addEventListener("hashchange", () => selectAdminGame(location.hash.includes("counterframe") ? "counterframe" : "cs2"));
+selectAdminGame(location.hash.includes("counterframe") ? "counterframe" : "cs2");
+window.addEventListener("admin:ready", () => {
+  if (location.hash === "#counterframe-telegram") {
+    document.getElementById("counterframe-telegram")?.scrollIntoView({ block: "start" });
+  }
+});
+
 async function checkAuth() {
   try {
     await api("/api/admin/me");
     loginBox.classList.add("hidden");
     dashboard.classList.remove("hidden");
     await Promise.all([loadStatus(), loadProductStatuses(), loadClients(), loadReleases(), loadSupportConversations()]);
+    window.dispatchEvent(new Event("admin:ready"));
     startSupportPolling();
   } catch {
     stopSupportPolling();
