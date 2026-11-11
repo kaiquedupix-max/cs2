@@ -274,11 +274,6 @@ async function choosePlan(key) {
   const url = new URL(location.href);
   url.searchParams.set("plan", selectedPlanKey);
   history.replaceState(null, "", url);
-  if (isCounterFrame) {
-    document.getElementById("cfTelegramLink").href =
-      "https://t.me/LegitCheatsCFBot?start=cf_" + checkoutPlatform + "_" + selectedPlanKey;
-  }
-
   pixResult.classList.add("hidden");
   paymentApproved.classList.add("hidden");
   brickContainer.classList.remove("hidden");
