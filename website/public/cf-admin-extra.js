@@ -2,24 +2,24 @@
   const host=document.getElementById('cfAdminExtra');
   if(!host)return;
   const $=id=>document.getElementById(id);
-  const section=title=>{const s=document.createElement('section'),h=document.createElement('h2');s.className='admin-card cf-admin-extra';h.textContent=title;s.append(h);host.append(s);return s;};
+  const section=(title,id)=>{const s=document.createElement('section'),h=document.createElement('h2');s.id=id;s.className='admin-card cf-admin-extra cf-panel';s.hidden=true;h.textContent=title;s.append(h);host.append(s);return s;};
 
-  const coupons=section('Cupons de desconto • site e Telegram');
+  const coupons=section('Cupons de desconto • site e Telegram','cfAdminCouponsPanel');
   const form=document.createElement('form');
   form.innerHTML='<label>Código<input name="code" required maxlength="32" pattern="[A-Za-z0-9_-]{3,32}"></label><label>Desconto (%)<input name="percent" type="number" min="1" max="90" required></label><label>Produto<select name="product"><option value="all">Todos</option><option value="counterframe">Counter Flame</option><option value="cs2">CS2</option></select></label><label>Limite de usos<input name="maxUses" type="number" min="1" max="1000000" placeholder="Sem limite"></label><label>Ativo<input name="enabled" type="checkbox" checked></label><button class="button primary">Salvar cupom</button>';
   const list=document.createElement('div');coupons.append(form,list);
   async function loadCoupons(){try{const r=await fetch('/api/admin/coupons',{cache:'no-store'});if(!r.ok)return;const data=await r.json();list.replaceChildren();for(const c of data.coupons||[]){const p=document.createElement('p');p.textContent=`${c.code} • ${c.percent}% • ${c.product} • ${c.enabled?'Ativo':'Desativado'} • Usos: ${c.used_count||0}/${c.max_uses||'∞'}`;p.tabIndex=0;p.onclick=()=>{form.elements.code.value=c.code;form.elements.percent.value=c.percent;form.elements.product.value=c.product;form.elements.enabled.checked=c.enabled;form.elements.maxUses.value=c.max_uses||'';};list.append(p);}}
   catch{}}
   form.onsubmit=async e=>{e.preventDefault();try{const d=Object.fromEntries(new FormData(form));d.percent=Number(d.percent);d.maxUses=d.maxUses?Number(d.maxUses):null;d.enabled=form.elements.enabled.checked;const r=await fetch('/api/admin/coupons',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});if(!r.ok)throw Error('Não foi possível salvar o cupom.');await loadCoupons();$('message').textContent='Cupom salvo.';}catch(e){$('message').textContent=e.message;}};
-  window.addEventListener('admin:ready',loadCoupons);
+  loadCoupons();window.addEventListener('admin:ready',loadCoupons);
 
-  const keys=section('Gerar key Counter Flame');
+  const keys=section('Gerar key Counter Flame','cfAdminKeysPanel');
   const keyForm=document.createElement('form');keyForm.innerHTML='<label>Licença<select name="type"><option value="days">Por dias</option><option value="lifetime">Vitalícia</option></select></label><label>Dias de licença<input name="days" type="number" min="1" max="3650" value="1" required></label><button class="button primary">Gerar key</button>';
   const output=document.createElement('code');output.style.overflowWrap='anywhere';keys.append(keyForm,output);
   keyForm.elements.type.onchange=()=>{keyForm.elements.days.disabled=keyForm.elements.type.value==='lifetime';};
   keyForm.onsubmit=async e=>{e.preventDefault();try{const r=await cfApi('/key',{days:Number(keyForm.elements.days.value),lifetime:keyForm.elements.type.value==='lifetime'});output.textContent=r.key+' • '+(r.lifetime?'Vitalícia':r.days+' dias');}catch(e){$('message').textContent=e.message;}};
 
-  const upload=section('Publicar nova versão Android');
+  const upload=section('Publicar nova versão Android','cfAdminReleasePanel');
   const desc=document.createElement('p');desc.textContent='Arraste o APK e clique em Publicar. A versão e a assinatura são verificadas automaticamente.';
   const kind=document.createElement('select');kind.setAttribute('aria-label','Aplicativo');kind.innerHTML='<option value="auto">Automático</option>';kind.hidden=true;
   const zone=document.createElement('div');zone.style.cssText='border:2px dashed #8753a6;border-radius:15px;padding:30px;text-align:center;margin:15px 0';zone.textContent='Arraste seu APK aqui ou selecione o arquivo';
