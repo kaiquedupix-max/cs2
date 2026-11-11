@@ -5,12 +5,12 @@
   document.documentElement.lang={pt:"pt-BR",en:"en",es:"es",ru:"ru"}[lang];
   const dict={
     pt:{
-      account:"Minha conta",secure:"CHECKOUT SEGURO",finalize:"Finalize sua compra.",intro:"Escolha o plano, informe seus dados e finalize pelo Mercado Pago. A compra fica registrada na sua conta.",
+      account:"Minha conta",secure:"PAGAMENTO",finalize:"Finalize sua compra.",intro:"Escolha o plano, informe seus dados e finalize pelo Mercado Pago. A compra fica registrada na sua conta.",
       plan:"ESCOLHA SEU PLANO",howLong:"Quanto tempo você quer?",buyer:"DADOS DO COMPRADOR",who:"Quem está comprando",name:"Nome completo",cpf:"CPF",email:"E-mail",
       yourAccount:"SUA CONTA",loginOrCreate:"Crie ou entre sem sair da compra",logged:"Conta conectada",linked:"Sua compra será vinculada a esta conta.",
       create:"Criar conta",login:"Já tenho conta",username:"Usuário",password:"Senha",accountNote:"O e-mail informado acima será usado na sua conta.",
       loginIdentifier:"Usuário ou e-mail",loginNote:"Entre aqui e continue o pagamento.",method:"FORMA DE PAGAMENTO",howPay:"Como deseja pagar?",
-      loading:"Carregando pagamento seguro...",pixCreated:"Pix gerado com sucesso",copyPix:"Copiar código Pix",waiting:"Aguardando pagamento...",
+      loading:"Carregando opções de pagamento...",pixCreated:"Pix gerado com sucesso",copyPix:"Copiar código Pix",waiting:"Aguardando pagamento...",
       approved:"Pagamento aprovado",approvedNote:"Compra confirmada. Consulte seu acesso na área do cliente.",goAccount:"Ir para minha conta",
       security:"Pagamento processado pelo Mercado Pago. A ativação depende da aprovação.",
       summary:"RESUMO DO PEDIDO",planLabel:"Plano",duration:"Duração",total:"Total",buySecure:"Compra segura",
@@ -22,12 +22,12 @@
       approvedMessage:"Pagamento confirmado.",iosConfirmError:"Counter Flame está disponível para iOS."
     },
     en:{
-      account:"My account",secure:"SECURE CHECKOUT",finalize:"Complete your purchase.",intro:"Select a plan, enter your details and pay with Mercado Pago. Your purchase will be linked to your account.",
+      account:"My account",secure:"PAYMENT",finalize:"Complete your purchase.",intro:"Select a plan, enter your details and pay with Mercado Pago. Your purchase will be linked to your account.",
       plan:"CHOOSE YOUR PLAN",howLong:"Choose your duration",buyer:"BUYER DETAILS",who:"Your details",name:"Full name",cpf:"CPF (optional for foreign buyers)",email:"Email",
       yourAccount:"YOUR ACCOUNT",loginOrCreate:"Create an account or sign in",logged:"Account connected",linked:"Your purchase will be linked to this account.",
       create:"Create account",login:"I have an account",username:"Username",password:"Password",accountNote:"The email above will be used for your account.",
       loginIdentifier:"Username or email",loginNote:"Sign in to complete your purchase.",method:"PAYMENT",howPay:"How would you like to pay?",
-      loading:"Loading secure checkout...",pixCreated:"Pix generated",copyPix:"Copy Pix code",waiting:"Waiting for payment...",
+      loading:"Loading payment options...",pixCreated:"Pix generated",copyPix:"Copy Pix code",waiting:"Waiting for payment...",
       approved:"Payment approved",approvedNote:"Purchase confirmed. Check your access in My account.",goAccount:"Go to my account",
       security:"Mercado Pago processes payments in BRL. Activation follows payment approval.",
       summary:"ORDER SUMMARY",planLabel:"Plan",duration:"Duration",total:"Total",buySecure:"Secure purchase",
@@ -39,12 +39,12 @@
       approvedMessage:"Payment confirmed.",iosConfirmError:"Please confirm that you understand the Counter Flame for iOS conditions before paying."
     },
     es:{
-      account:"Mi cuenta",secure:"PAGO SEGURO",finalize:"Finaliza tu compra.",intro:"Elige un plan, introduce tus datos y paga con Mercado Pago. Tu compra se vinculará a tu cuenta.",
+      account:"Mi cuenta",secure:"PAGO",finalize:"Finaliza tu compra.",intro:"Elige un plan, introduce tus datos y paga con Mercado Pago. Tu compra se vinculará a tu cuenta.",
       plan:"ELIGE TU PLAN",howLong:"¿Cuánto tiempo necesitas?",buyer:"DATOS DEL COMPRADOR",who:"Tus datos",name:"Nombre completo",cpf:"CPF (opcional para extranjeros)",email:"Correo electrónico",
       yourAccount:"TU CUENTA",loginOrCreate:"Crea una cuenta o inicia sesión",logged:"Cuenta conectada",linked:"Tu compra se vinculará a esta cuenta.",
       create:"Crear cuenta",login:"Ya tengo cuenta",username:"Usuario",password:"Contraseña",accountNote:"El correo de arriba se usará para tu cuenta.",
       loginIdentifier:"Usuario o correo",loginNote:"Entra aquí para completar la compra.",method:"PAGO",howPay:"¿Cómo quieres pagar?",
-      loading:"Cargando pago seguro...",pixCreated:"Pix generado",copyPix:"Copiar código Pix",waiting:"Esperando el pago...",
+      loading:"Cargando opciones de pago...",pixCreated:"Pix generado",copyPix:"Copiar código Pix",waiting:"Esperando el pago...",
       approved:"Pago aprobado",approvedNote:"Compra confirmada. Consulta tu acceso en Mi cuenta.",goAccount:"Ir a mi cuenta",
       security:"Mercado Pago procesa pagos en BRL. La activación depende de la aprobación.",
       summary:"RESUMEN DEL PEDIDO",planLabel:"Plan",duration:"Duración",total:"Total",buySecure:"Compra segura",
@@ -56,12 +56,12 @@
       approvedMessage:"Pago confirmado.",iosConfirmError:"Counter Flame está disponible para iOS."
     },
     ru:{
-      account:"Мой аккаунт",secure:"БЕЗОПАСНАЯ ОПЛАТА",finalize:"Оформите покупку.",intro:"Выберите тариф, укажите данные и оплатите через Mercado Pago. Покупка будет привязана к аккаунту.",
+      account:"Мой аккаунт",secure:"ОПЛАТА",finalize:"Оформите покупку.",intro:"Выберите тариф, укажите данные и оплатите через Mercado Pago. Покупка будет привязана к аккаунту.",
       plan:"ВЫБЕРИТЕ ТАРИФ",howLong:"Выберите срок",buyer:"ДАННЫЕ ПОКУПАТЕЛЯ",who:"Ваши данные",name:"Полное имя",cpf:"CPF (необязателен для иностранцев)",email:"Эл. почта",
       yourAccount:"АККАУНТ",loginOrCreate:"Создайте аккаунт или войдите",logged:"Аккаунт подключён",linked:"Покупка будет привязана к аккаунту.",
       create:"Регистрация",login:"У меня есть аккаунт",username:"Имя пользователя",password:"Пароль",accountNote:"Указанная почта будет использоваться для аккаунта.",
       loginIdentifier:"Логин или почта",loginNote:"Войдите, чтобы продолжить покупку.",method:"ОПЛАТА",howPay:"Как вы хотите оплатить?",
-      loading:"Загрузка оплаты...",pixCreated:"Код Pix создан",copyPix:"Скопировать Pix",waiting:"Ожидание оплаты...",
+      loading:"Загрузка способов оплаты...",pixCreated:"Код Pix создан",copyPix:"Скопировать Pix",waiting:"Ожидание оплаты...",
       approved:"Оплата подтверждена",approvedNote:"Покупка оформлена. Проверьте доступ в аккаунте.",goAccount:"Мой аккаунт",
       security:"Mercado Pago принимает оплату в BRL. Активация после подтверждения оплаты.",
       summary:"ВАШ ЗАКАЗ",planLabel:"Тариф",duration:"Длительность",total:"Итого",buySecure:"Безопасная покупка",
