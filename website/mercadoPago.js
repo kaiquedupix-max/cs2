@@ -11,10 +11,11 @@ const PLANS = [
 ];
 
 const COUNTERFRAME_PLANS = [
-  { key: "d1", name: "1 dia", days: 1, priceCents: 490, usdPriceCents: 150 },
-  { key: "d7", name: "7 dias", days: 7, priceCents: 1290, usdPriceCents: 400 },
-  { key: "d15", name: "15 dias", days: 15, priceCents: 2190, usdPriceCents: 700 },
-  { key: "d30", name: "30 dias", days: 30, priceCents: 3500, usdPriceCents: 1000 },
+  { key: "d1", name: "1 dia", days: 1, priceCents: 245, usdPriceCents: 75 },
+  { key: "d7", name: "7 dias", days: 7, priceCents: 645, usdPriceCents: 200 },
+  { key: "d15", name: "15 dias", days: 15, priceCents: 1095, usdPriceCents: 350 },
+  { key: "d30", name: "30 dias", days: 30, priceCents: 1750, usdPriceCents: 500 },
+  { key: "lifetime", name: "Permanente", days: null, lifetime: true, priceCents: 5000, usdPriceCents: 1000 },
 ];
 
 export function normalizeMarket(value) {
