@@ -75,7 +75,7 @@ function browserFingerprint() {
 function buyerPayload() {
   return {
     fullName: document.getElementById("buyerName").value,
-    cpf: document.getElementById("buyerCpf").value,
+    cpf: checkoutMarket==="BR"&&!isCounterFrame ? document.getElementById("buyerCpf").value : "",
     email: document.getElementById("buyerEmail").value,
     fingerprint: browserFingerprint(),
     product: checkoutProduct,
@@ -630,6 +630,7 @@ async function boot() {
     if(checkoutMarket==='INTL'){
       const intro=document.getElementById("checkoutIntro");
       if(intro)intro.textContent=({pt:'Pague com cartão pelo Stripe.',en:'Pay by card with Stripe.',es:'Paga con tarjeta mediante Stripe.',ru:'Оплатите картой через Stripe.'})[checkoutLang];
+      stripeCheckoutButton.textContent=({pt:'Pagar com Stripe',en:'Pay with Stripe',es:'Pagar con Stripe',ru:'Оплатить через Stripe'})[checkoutLang];
       document.getElementById('paymentLoading').textContent=({pt:'Carregando opções de pagamento…',en:'Loading payment options…',es:'Cargando opciones de pago…',ru:'Загрузка способов оплаты…'})[checkoutLang];
     }
     renderPlans();
@@ -648,7 +649,7 @@ async function boot() {
     if (!checkoutConfig.configured) {
       if(checkoutConfig.provider==='stripe'){
         brickContainer.classList.add('hidden');paymentLoading.classList.add('hidden');stripeCheckoutButton.classList.remove('hidden');stripeCheckoutButton.disabled=true;
-        stripeCheckoutButton.textContent='Pagar com Stripe';
+        stripeCheckoutButton.textContent=({pt:'Pagar com Stripe',en:'Pay with Stripe',es:'Pagar con Stripe',ru:'Оплатить через Stripe'})[checkoutLang];
       }
       setMessage(checkoutMarket==='INTL'?({pt:'Pagamento indisponível no momento. Tente novamente mais tarde.',en:'Payment is unavailable right now. Please try again later.',es:'El pago no está disponible en este momento. Inténtalo más tarde.',ru:'Оплата сейчас недоступна. Попробуйте позже.'})[checkoutLang]:'Não foi possível carregar o pagamento. Tente novamente mais tarde.','error');
       return;
