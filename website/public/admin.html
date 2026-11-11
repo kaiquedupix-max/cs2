@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0610">
   <link rel="stylesheet" href="/styles.css?v=20260918-0610">
   <link rel="stylesheet" href="/purple-ui.css?v=20261109">
-<style>.admin-game-picker{display:flex;align-items:center;gap:12px;margin:18px 0;padding:16px 18px;border:1px solid #493052;border-radius:14px;background:#17101e}.admin-game-picker label{font-weight:700}.admin-game-picker select{min-width:220px;padding:10px 12px;border:1px solid #64407b;border-radius:9px;background:#24172d;color:#f5eafa}.admin-summary{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}.admin-summary .metric{padding:12px 16px;background:#21162a;border-radius:12px;min-width:130px}.admin-summary .metric b{display:block;font-size:24px}.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.admin-tabs button.active{background:#8b43bd}.cf-access-admin h3{margin-top:20px}.cf-admin-extra{margin-top:18px}.telegram-admin-section{scroll-margin-top:20px}#counterFrameAdminPanel[hidden],#cs2AdminPanel[hidden]{display:none!important}</style></head>
+<style>.admin-game-picker{display:flex;align-items:center;gap:12px;margin:18px 0;padding:16px 18px;border:1px solid #493052;border-radius:14px;background:#17101e}.admin-game-picker label{font-weight:700}.admin-game-picker select{min-width:220px;padding:10px 12px;border:1px solid #64407b;border-radius:9px;background:#24172d;color:#f5eafa}.admin-summary{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}.admin-summary .metric{padding:12px 16px;background:#21162a;border-radius:12px;min-width:130px}.admin-summary .metric b{display:block;font-size:24px}.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.admin-tabs button.active{background:#8b43bd}.cf-admin-tabs{position:sticky;top:8px;z-index:15;overflow:auto;flex-wrap:nowrap;background:rgba(15,10,20,.96);backdrop-filter:blur(10px);border:1px solid #493052;border-radius:14px;padding:8px}.cf-admin-tabs button{flex:0 0 auto}.cf-panel[hidden]{display:none!important}.cf-access-admin h3{margin-top:20px}.cf-admin-extra{margin-top:18px}.telegram-admin-section{scroll-margin-top:20px}#counterFrameAdminPanel[hidden],#cs2AdminPanel[hidden]{display:none!important}</style></head>
 <body class="admin-body">
   <div class="glow glow-a"></div>
   <main class="admin-shell">
@@ -191,6 +191,16 @@
       </article>
       </div>
       <div id="counterFrameAdminPanel" hidden>
+        <nav class="admin-tabs cf-admin-tabs" role="tablist" aria-label="Seções do painel Counter Flame">
+          <button class="button ghost small active" role="tab" aria-selected="true" aria-controls="cfStatusPanel" data-cf-tab="cfStatusPanel" type="button">Status</button>
+          <button class="button ghost small" role="tab" aria-selected="false" aria-controls="cfClientsPanel" data-cf-tab="cfClientsPanel" type="button">Clientes e ativações</button>
+          <button class="button ghost small" role="tab" aria-selected="false" aria-controls="cfEventsPanel" data-cf-tab="cfEventsPanel" type="button">Histórico</button>
+          <button class="button ghost small" role="tab" aria-selected="false" aria-controls="cfAdminCouponsPanel" data-cf-tab="cfAdminCouponsPanel" type="button">Cupons</button>
+          <button class="button ghost small" role="tab" aria-selected="false" aria-controls="cfAdminKeysPanel" data-cf-tab="cfAdminKeysPanel" type="button">Gerar key</button>
+          <button class="button ghost small" role="tab" aria-selected="false" aria-controls="cfAdminReleasePanel" data-cf-tab="cfAdminReleasePanel" type="button">Publicar versão</button>
+          <button class="button ghost small" role="tab" aria-selected="false" aria-controls="cfTelegramPanel" data-cf-tab="cfTelegramPanel" type="button">Telegram</button>
+        </nav>
+        <div class="cf-panel" id="cfStatusPanel" role="tabpanel">
       <article class="admin-card admin-product-statuses" id="product-status-admin">
         <div class="section-label">DISPONIBILIDADE POR PLATAFORMA</div>
         <h2>Counter Flame • Status independentes</h2>
@@ -232,28 +242,30 @@
         </div>
         <p class="admin-muted">O status é uma informação publicada pela administração. Marcar como Online não ativa o aplicativo nem libera compras automaticamente.</p>
       </article>
-        <article class="admin-card cf-access-admin">
-          <div class="section-label">LICENÇAS E ACESSOS</div>
-          <h2>Counter Flame • clientes e ativações</h2>
-          <p class="admin-muted">Ativações, aparelhos, validade e último acesso registrado.</p>
-          <form id="status">
-            <label>Sistema<select name="availability"><option value="online">Online</option><option value="maintenance">Manutenção</option><option value="offline">Offline</option></select></label>
-            <label>Segurança<select name="safety"><option value="unknown">Não informado</option><option value="safe">Seguro</option><option value="unsafe">Não seguro</option></select></label>
-            <label>Detecção<select name="detection"><option value="unknown">Não informado</option><option value="undetected">Indetectado</option><option value="detected">Detectado</option></select></label>
-            <button class="button primary" type="submit">Salvar status</button>
-          </form>
-          <p id="updated" class="admin-muted"></p>
-          <p id="message" class="admin-status-feedback" role="status" aria-live="polite"></p>
-          <div id="summary" class="admin-summary"></div>
-          <div class="admin-client-toolbar">
-            <input id="search" placeholder="Buscar usuário, e-mail, IP ou aparelho">
-            <button id="refresh" class="button ghost small" type="button">Atualizar</button>
+          <article class="admin-card cf-access-admin">
+            <div class="section-label">LICENÇAS E ACESSOS</div><h2>Status do sistema Counter Flame</h2>
+            <form id="status">
+              <label>Sistema<select name="availability"><option value="online">Online</option><option value="maintenance">Manutenção</option><option value="offline">Offline</option></select></label>
+              <label>Segurança<select name="safety"><option value="unknown">Não informado</option><option value="safe">Seguro</option><option value="unsafe">Não seguro</option></select></label>
+              <label>Detecção<select name="detection"><option value="unknown">Não informado</option><option value="undetected">Indetectado</option><option value="detected">Detectado</option></select></label>
+              <button class="button primary" type="submit">Salvar status</button>
+            </form>
+            <p id="updated" class="admin-muted"></p><p id="message" class="admin-status-feedback" role="status" aria-live="polite"></p><div id="summary" class="admin-summary"></div>
+          </article>
+        </div>
+        <section class="admin-card cf-panel" id="cfClientsPanel" role="tabpanel" hidden>
+          <div class="table-title"><div><div class="section-label">LICENÇAS E ACESSOS</div><h2>Clientes Counter Flame</h2></div>
+            <div><input id="search" placeholder="Buscar usuário, e-mail, IP ou aparelho"><button id="refresh" class="button ghost small" type="button">Atualizar</button></div>
           </div>
-          <h3>Counter Flame</h3><div class="table-wrap"><table id="cf"></table></div>
-          <h3>CS2</h3><div class="table-wrap"><table id="cs2"></table></div>
-          <h3>Histórico de acessos</h3><div class="table-wrap"><table id="events"></table></div>
-        </article>
+          <div class="table-wrap"><table id="cf"></table></div>
+          <h3>Solicitações para trocar de celular</h3><p class="admin-muted">A aprovação libera a troca no próximo login; o aparelho atual continua vinculado até esse login.</p>
+          <div class="table-wrap"><table id="cfResetRequests"></table></div>
+        </section>
+        <section class="admin-card cf-panel" id="cfEventsPanel" role="tabpanel" hidden>
+          <h2>Histórico de ativações e acessos Counter Flame</h2><p class="admin-muted">Horários no fuso deste navegador; até os 500 eventos mais recentes.</p><div class="table-wrap"><table id="events"></table></div>
+        </section>
         <div id="cfAdminExtra"></div>
+        <section class="cf-panel" id="cfTelegramPanel" role="tabpanel" hidden>
         <section class="admin-card telegram-admin-section" id="counterframe-telegram">
           <div class="section-label">TELEGRAM</div>
           <h2>Clientes, vendas e atividade do bot</h2>
@@ -273,12 +285,13 @@
           <p id="tgMessage" class="admin-status-feedback" role="status" aria-live="polite"></p>
           <div class="table-wrap"><table id="tgTable"></table></div>
         </section>
+        </section>
       </div>
     </section>
   </main>
   <script src="/admin.js?v=20261111-product-selector"></script>
-  <script src="/cf-admin.js?v=20261111-single-admin"></script>
-  <script src="/cf-admin-extra.js?v=20261111-coupon-usage"></script>
+  <script src="/cf-admin.js?v=20261111-tabs-device-approval"></script>
+  <script src="/cf-admin-extra.js?v=20261111-tabs-device-approval"></script>
   <script src="/telegram-admin.js?v=20261111-single-admin"></script>
 </body>
 </html>
