@@ -135,6 +135,7 @@ function renderAccount(data) {
 
   loadRelease(product.hasAccess);
   loadCounterFrameAccess();
+  loadCounterFrameKeys();
 }
 
 async function loadCounterFrameAccess() {
@@ -174,6 +175,34 @@ async function loadCounterFrameAccess() {
   } catch {
     summary.textContent = "Não foi possível consultar suas compras agora.";
     badge.textContent = "INDISPONÍVEL";
+  }
+}
+
+async function loadCounterFrameKeys() {
+  const host=document.getElementById("cfKeysList");
+  if(!host)return;
+  try {
+    const data=await api("/api/account/cf/keys");
+    host.replaceChildren();
+    if(!data.keys?.length){host.textContent="Nenhuma key Counter Flame foi entregue nesta conta ainda.";return;}
+    for(const item of data.keys){
+      const row=document.createElement("div");
+      row.className="credential-box";
+      const label=document.createElement("small");
+      label.textContent=(item.plan||"Counter Flame")+" • "+(item.revoked_at?"Revogada":item.expires_at?("Expira "+new Date(item.expires_at).toLocaleString("pt-BR")):"Disponível");
+      const value=document.createElement("b");
+      value.textContent=item.key;
+      value.style.overflowWrap="anywhere";
+      const copy=document.createElement("button");
+      copy.type="button";
+      copy.className="button button-outline";
+      copy.textContent="Copiar key";
+      copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(item.key);copy.textContent="Copiada";setTimeout(()=>copy.textContent="Copiar key",1200);}catch{copy.textContent="Não foi possível copiar";}});
+      row.append(label,value,copy);
+      host.append(row);
+    }
+  } catch {
+    host.textContent="Não foi possível consultar suas keys agora.";
   }
 }
 
