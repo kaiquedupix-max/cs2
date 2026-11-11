@@ -27,6 +27,7 @@ export async function initCounterframe(pool) {
     ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
     CREATE TABLE IF NOT EXISTS cf_devices(user_id BIGINT PRIMARY KEY REFERENCES users(id), device_hash TEXT NOT NULL, bound_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), ip TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS cf_sessions(token_hash TEXT PRIMARY KEY,user_id BIGINT NOT NULL REFERENCES users(id),device_hash TEXT NOT NULL,ip TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),expires_at TIMESTAMPTZ NOT NULL,last_seen TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    CREATE TABLE IF NOT EXISTS cf_device_reset_requests(user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,status TEXT NOT NULL CHECK(status IN ('pending','approved','denied')),requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),reviewed_at TIMESTAMPTZ);
     CREATE TABLE IF NOT EXISTS cf_keys(id BIGSERIAL PRIMARY KEY,payment_id BIGINT UNIQUE REFERENCES checkout_payments(id),buyer_id BIGINT REFERENCES users(id),key_hash TEXT UNIQUE NOT NULL,key_cipher TEXT NOT NULL,days INTEGER NOT NULL,plan TEXT NOT NULL,claimed_by BIGINT REFERENCES users(id),activated_at TIMESTAMPTZ,expires_at TIMESTAMPTZ,revoked_at TIMESTAMPTZ);
     CREATE TABLE IF NOT EXISTS access_audit(id BIGSERIAL PRIMARY KEY,user_id BIGINT REFERENCES users(id),product TEXT NOT NULL,event TEXT NOT NULL,ip TEXT NOT NULL,device_hash TEXT NOT NULL DEFAULT '',language TEXT NOT NULL DEFAULT 'en',country TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     CREATE INDEX IF NOT EXISTS access_audit_user ON access_audit(user_id,created_at DESC);
@@ -84,8 +85,13 @@ export function registerCounterframe(app,deps) {
   };
   const bindSession=async(db,req,u,token)=>{
     const id=device(req);await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[u.id]);
-    const {rows}=await db.query('SELECT device_hash FROM cf_devices WHERE user_id=$1',[u.id]);
-    if(rows[0]&&rows[0].device_hash!==id)throw fail('device_mismatch',403);
+    const {rows}=await db.query('SELECT device_hash FROM cf_devices WHERE user_id=$1 FOR UPDATE',[u.id]);
+    if(rows[0]&&rows[0].device_hash!==id){
+      const approval=await db.query("SELECT status FROM cf_device_reset_requests WHERE user_id=$1 AND status='approved' FOR UPDATE",[u.id]);
+      if(!approval.rowCount)throw fail('device_mismatch',403);
+      await db.query('UPDATE cf_devices SET device_hash=$2,bound_at=NOW(),ip=$3 WHERE user_id=$1',[u.id,id,ip(req)]);
+      await db.query('DELETE FROM cf_device_reset_requests WHERE user_id=$1',[u.id]);
+    }
     await db.query('INSERT INTO cf_devices(user_id,device_hash,ip) VALUES($1,$2,$3) ON CONFLICT(user_id) DO NOTHING',[u.id,id,ip(req)]);
     await db.query('DELETE FROM cf_sessions WHERE user_id=$1',[u.id]);
     await db.query("INSERT INTO cf_sessions(token_hash,user_id,device_hash,ip,expires_at) VALUES($1,$2,$3,$4,NOW()+INTERVAL '30 days')",[tokenHash(token),u.id,id,ip(req)]);
@@ -108,14 +114,25 @@ export function registerCounterframe(app,deps) {
     const u=rows[0];if(!u||u.disabled_at||!verifyPassword(password,u.password_hash))throw fail('invalid_credentials',401);
     const token=crypto.randomBytes(32).toString('base64url');
     await transaction(async db=>{
-      await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[u.id]);
-      const {rows}=await db.query('SELECT device_hash FROM cf_devices WHERE user_id=$1',[u.id]);
-      if(rows[0]&&rows[0].device_hash!==id)throw fail('device_mismatch',403);
-      await db.query('INSERT INTO cf_devices(user_id,device_hash,ip) VALUES($1,$2,$3) ON CONFLICT(user_id) DO NOTHING',[u.id,id,ip(req)]);
-      await db.query('DELETE FROM cf_sessions WHERE user_id=$1',[u.id]);
-      await db.query("INSERT INTO cf_sessions(token_hash,user_id,device_hash,ip,expires_at) VALUES($1,$2,$3,$4,NOW()+INTERVAL '30 days')",[tokenHash(token),u.id,id,ip(req)]);
+      await bindSession(db,req,u,token);
       await audit(db,req,u.id,'login');
     });res.json({token,...await snapshot({user_id:u.id,username:u.username})});
+  }));
+  app.get('/api/account/cf/device-reset-request',requireUser,wrap(async(req,res)=>{
+    const {rows}=await pool.query('SELECT r.status,r.requested_at,r.reviewed_at,(d.user_id IS NOT NULL) AS device_bound FROM cf_devices d FULL JOIN cf_device_reset_requests r ON r.user_id=d.user_id WHERE COALESCE(d.user_id,r.user_id)=$1',[req.userId]);
+    res.json(rows[0]||{status:'none',device_bound:false});
+  }));
+  app.post('/api/account/cf/device-reset-request',requireUser,wrap(async(req,res)=>{
+    const result=await transaction(async db=>{
+      await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[req.userId]);
+      const deviceRow=await db.query('SELECT user_id FROM cf_devices WHERE user_id=$1',[req.userId]);
+      if(!deviceRow.rowCount)throw fail('device_not_bound',409);
+      const {rows}=await db.query(`INSERT INTO cf_device_reset_requests(user_id,status) VALUES($1,'pending')
+        ON CONFLICT(user_id) DO UPDATE SET status='pending',requested_at=NOW(),reviewed_at=NULL
+        WHERE cf_device_reset_requests.status <> 'approved' RETURNING status,requested_at,reviewed_at`,[req.userId]);
+      if(!rows[0])return (await db.query('SELECT status,requested_at,reviewed_at FROM cf_device_reset_requests WHERE user_id=$1',[req.userId])).rows[0];
+      await audit(db,req,req.userId,'device_reset_request');return rows[0];
+    });res.json(result);
   }));
   app.get('/api/cf/me',auth,wrap(async(req,res)=>res.json({...await snapshot(req.cf),status:await status()})));
   app.post('/api/cf/logout',auth,wrap(async(req,res)=>{await pool.query('DELETE FROM cf_sessions WHERE token_hash=$1',[req.cf.token_hash]);res.json({ok:true});}));
@@ -183,22 +200,32 @@ export function registerCounterframe(app,deps) {
     const {rows}=await pool.query(`SELECT u.id,u.username,u.email,d.device_hash,d.bound_at,d.ip AS activation_ip,
       (SELECT MAX(expires_at) FROM cf_keys k WHERE k.claimed_by=u.id AND k.revoked_at IS NULL) AS expires_at,
       (SELECT MAX(last_seen) FROM cf_sessions s WHERE s.user_id=u.id) AS last_seen
-      FROM users u LEFT JOIN cf_devices d ON d.user_id=u.id ORDER BY u.id DESC LIMIT 500`);
-    const events=await pool.query('SELECT a.*,u.username FROM access_audit a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.id DESC LIMIT 500');
-    const cs2=await pool.query(`SELECT u.id,u.username,u.email,u.hwid_hash,p.plan,p.expires_at,p.purchased_at,p.revoked_at,
-      (SELECT MAX(created_at) FROM access_audit a WHERE a.user_id=u.id AND a.product='cs2') AS last_login,
-      (SELECT ip FROM access_audit a WHERE a.user_id=u.id AND a.product='cs2' ORDER BY id DESC LIMIT 1) AS last_ip
-      FROM users u JOIN user_products p ON p.user_id=u.id AND p.product_code='cs2' ORDER BY u.id DESC LIMIT 500`);
-    res.json({users:rows,cs2:cs2.rows,events:events.rows,status:await status(),release:JSON.parse(await setting('cf_release','null')),loaderRelease:JSON.parse(await setting('cf_loader_release','null'))});
+      FROM users u LEFT JOIN cf_devices d ON d.user_id=u.id
+      WHERE d.user_id IS NOT NULL
+        OR EXISTS(SELECT 1 FROM cf_keys k WHERE k.buyer_id=u.id OR k.claimed_by=u.id)
+        OR EXISTS(SELECT 1 FROM checkout_payments p WHERE p.user_id=u.id AND p.product_code IN ('counterframe-android','counterframe-ios'))
+      ORDER BY u.id DESC LIMIT 500`);
+    const events=await pool.query("SELECT a.*,u.username FROM access_audit a LEFT JOIN users u ON u.id=a.user_id WHERE a.product='counterframe-android' ORDER BY a.id DESC LIMIT 500");
+    const resetRequests=await pool.query(`SELECT r.user_id,u.username,r.status,r.requested_at,r.reviewed_at,d.device_hash,d.ip AS current_ip
+      FROM cf_device_reset_requests r JOIN users u ON u.id=r.user_id LEFT JOIN cf_devices d ON d.user_id=r.user_id
+      ORDER BY (r.status='pending') DESC,r.requested_at DESC LIMIT 500`);
+    res.json({users:rows,events:events.rows,resetRequests:resetRequests.rows,status:await status(),release:JSON.parse(await setting('cf_release','null')),loaderRelease:JSON.parse(await setting('cf_loader_release','null'))});
   }));
   app.post('/api/admin/cf/status',requireAdmin,wrap(async(req,res)=>{
     const {availability,safety,detection}=req.body||{};
     if(!['online','offline','maintenance'].includes(availability)||!['unknown','safe','unsafe'].includes(safety)||!['unknown','undetected','detected'].includes(detection))throw fail('invalid_status');
     await setSetting('cf_android_status',availability);await setSetting('cf_safety',safety);await setSetting('cf_detection',detection);await setSetting('cf_status_updated',new Date().toISOString());res.json(await status());
   }));
-  app.post('/api/admin/cf/reset-device',requireAdmin,wrap(async(req,res)=>{
-    const id=Number(req.body?.userId);if(!Number.isSafeInteger(id)||id<1)throw fail('invalid_user');
-    await transaction(async db=>{await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[id]);await db.query('DELETE FROM cf_sessions WHERE user_id=$1',[id]);await db.query('DELETE FROM cf_devices WHERE user_id=$1',[id]);await audit(db,req,id,'admin_device_reset');});res.json({ok:true});
+  app.post('/api/admin/cf/device-reset',requireAdmin,wrap(async(req,res)=>{
+    const id=Number(req.body?.userId),decision=String(req.body?.decision||'');if(!Number.isSafeInteger(id)||id<1||!['approve','deny'].includes(decision))throw fail('invalid_request');
+    await transaction(async db=>{
+      await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[id]);
+      const request=await db.query('SELECT status FROM cf_device_reset_requests WHERE user_id=$1 FOR UPDATE',[id]);
+      if(request.rows[0]?.status!=='pending')throw fail('request_not_pending',409);
+      const status=decision==='approve'?'approved':'denied';
+      await db.query('UPDATE cf_device_reset_requests SET status=$2,reviewed_at=NOW() WHERE user_id=$1',[id,status]);
+      await audit(db,req,id,decision==='approve'?'admin_device_reset_approved':'admin_device_reset_denied');
+    });res.json({ok:true});
   }));
   app.post('/api/admin/cf/key',requireAdmin,wrap(async(req,res)=>{
     const lifetime=req.body?.lifetime===true,days=lifetime?0:Number(req.body?.days);if(!lifetime&&(!Number.isInteger(days)||days<1||days>3650))throw fail('invalid_duration');
