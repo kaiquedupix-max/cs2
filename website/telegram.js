@@ -36,7 +36,21 @@ export async function initTelegram(pool){await pool.query(`
  CREATE TABLE IF NOT EXISTS cf_bot_referral_rewards(order_payload TEXT PRIMARY KEY,referrer_telegram_id BIGINT NOT NULL,buyer_telegram_id BIGINT NOT NULL,reward_seconds BIGINT NOT NULL,key_id BIGINT REFERENCES cf_keys(id),created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 `);}
 export function registerTelegram(app,{pool,telegramApi}){
- const api=telegramApi|| (async(method,body)=>{const token=process.env.CF_TELEGRAM_TOKEN;if(!token)throw Error('bot_not_configured');const r=await fetch(`https://api.telegram.org/bot${token}/${method}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});const data=await r.json();if(!data.ok)throw Error('telegram_request_failed');return data.result;});
+ const api=telegramApi|| (async(method,body)=>{const token=process.env.CF_TELEGRAM_TOKEN;if(!token)throw Error('bot_not_configured');const multipart=body instanceof FormData;const r=await fetch(`https://api.telegram.org/bot${token}/${method}`,{method:'POST',headers:multipart?{}:{'Content-Type':'application/json'},body:multipart?body:JSON.stringify(body),signal:AbortSignal.timeout(method==='sendDocument'?120000:15000)});const data=await r.json();if(!data.ok)throw Error('telegram_request_failed');return data.result;});
+ const sendLoaderApk=async(chatId,caption)=>{
+   const base=String(process.env.PUBLIC_SITE_URL||'https://legitbaratinho.xyz').replace(/\/$/,'');
+   const response=await fetch(base+'/api/cf/loader-apk',{signal:AbortSignal.timeout(120000)});
+   const disposition=String(response.headers.get('content-disposition')||'');
+   const size=Number(response.headers.get('content-length')||0);
+   if(!response.ok||!disposition.toLowerCase().includes('.apk')||size>50000000)throw Error('loader_apk_unavailable');
+   const bytes=await response.arrayBuffer();
+   if(!bytes.byteLength||bytes.byteLength>50000000)throw Error('loader_apk_size_invalid');
+   const form=new FormData();
+   form.set('chat_id',String(chatId));
+   form.set('caption',caption);
+   form.set('document',new Blob([bytes],{type:'application/vnd.android.package-archive'}),'LC-Counter-Flame-Private.apk');
+   await api('sendDocument',form);
+ };
  const adminIds=new Set(String(process.env.CF_TELEGRAM_ADMIN_IDS||process.env.TELEGRAM_ADMIN_IDS||"").split(",").map(x=>x.trim()).filter(Boolean));
  const botUsername=String(process.env.CF_TELEGRAM_USERNAME||process.env.TELEGRAM_BOT_USERNAME||"LegitCheatsCFBot").replace(/^@/,"");
  const event=async(update,from,type,command="",details={})=>{
@@ -140,7 +154,7 @@ export function registerTelegram(app,{pool,telegramApi}){
          await db.query('COMMIT');
        }catch(e){await db.query('ROLLBACK');throw e;}finally{db.release();}
        await event(update,from,"sale_delivered","successful_payment",{payload:p.invoice_payload,stars:p.total_amount});
-       await send(`${t.paid}\n${raw}\n\n${t.activate}\n\n/resgatar USUARIO KEY`,[[{text:t.download,url:'https://legitbaratinho.xyz/api/cf/loader-apk'}]]);
+       await send(`${t.paid}\n${raw}\n\n${t.activate}\n\n/resgatar USUARIO KEY`);try{await sendLoaderApk(from.id,t.download);}catch(error){console.error('Falha ao anexar loader no Telegram:',error?.message||error);await send(t.download+': https://legitbaratinho.xyz/api/cf/loader-apk');}
        if(bonus){const refText=bonus.linked?t.affiliateCredited.replace("{duration}",formatDuration(bonus.seconds)):t.affiliateKey.replace("{duration}",formatDuration(bonus.seconds)).replace("{key}",bonus.raw);await api('sendMessage',{chat_id:bonus.referrer,text:refText});await event({...update,update_id:null},{id:bonus.referrer},"affiliate_reward","successful_payment",{reward_seconds:bonus.seconds});}
        return res.sendStatus(200);
      }
