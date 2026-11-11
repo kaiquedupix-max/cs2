@@ -57,6 +57,13 @@ try{
  assert.equal((await call('cf/me')).data.status.detection,'undetected');
  await db.query('UPDATE cf_keys SET revoked_at=NOW()');assert.equal((await call('cf/release')).status,403,'revocation must block launch/download');
  assert.equal((await call('admin/cf',null,{admin:true})).status,200);
+ assert.equal((await call('admin/cf/notifications',{title:'',body:'x'},{admin:true})).status,400);
+ const notice=await call('admin/cf/notifications',{title:'Aviso',body:'Nova versão disponível'},{admin:true});assert.equal(notice.status,200);assert.ok(notice.data.id);
+ assert.equal((await call('admin/cf/notifications',null,{admin:true})).data.notifications.length,1);
+ const inbox=await call('cf/notifications?after=0');assert.equal(inbox.status,200);assert.equal(inbox.data.notifications.length,1);assert.equal(inbox.data.notifications[0].title,'Aviso');
+ assert.equal((await call('cf/notifications?after='+notice.data.id)).data.notifications.length,0,'seen notifications must not repeat');
+ assert.equal((await call('cf/notifications?after=0',null,{device:other})).status,401,'other device must not read notifications');
+ assert.equal((await call('cf/notifications?after=0',null,{ip:'192.0.2.9'})).status,200,'IP change must not block background polling');
  assert.equal(discount(3500,20),2800);assert.throws(()=>discount(3500,100));
  await db.query("INSERT INTO sale_coupons(code,percent,product) VALUES('TEST10',10,'counterframe')");assert.equal((await couponDiscount(pool,'test10','counterframe')).percent,10);await assert.rejects(couponDiscount(pool,'test10','cs2'));
  const bot=async update=>{const r=await fetch(base+'/api/cf/telegram',{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Bot-Api-Secret-Token':process.env.CF_TELEGRAM_WEBHOOK_SECRET},body:JSON.stringify(update)});assert.equal(r.status,200);};

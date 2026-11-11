@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0610">
   <link rel="stylesheet" href="/styles.css?v=20260918-0610">
   <link rel="stylesheet" href="/purple-ui.css?v=20261109">
-<style>.admin-game-picker{display:flex;align-items:center;gap:12px;margin:18px 0;padding:16px 18px;border:1px solid #493052;border-radius:14px;background:#17101e}.admin-game-picker label{font-weight:700}.admin-game-picker select{min-width:220px;padding:10px 12px;border:1px solid #64407b;border-radius:9px;background:#24172d;color:#f5eafa}.admin-summary{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}.admin-summary .metric{padding:12px 16px;background:#21162a;border-radius:12px;min-width:130px}.admin-summary .metric b{display:block;font-size:24px}.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.admin-tabs button.active{background:#8b43bd}.cf-admin-tabs{position:sticky;top:8px;z-index:15;overflow:auto;flex-wrap:nowrap;background:rgba(15,10,20,.96);backdrop-filter:blur(10px);border:1px solid #493052;border-radius:14px;padding:8px}.cf-admin-tabs button{flex:0 0 auto}.cf-panel[hidden]{display:none!important}.cf-access-admin h3{margin-top:20px}.cf-admin-extra{margin-top:18px}.telegram-admin-section{scroll-margin-top:20px}#counterFrameAdminPanel[hidden],#cs2AdminPanel[hidden]{display:none!important}</style></head>
+<style>.admin-game-picker{display:flex;align-items:center;gap:12px;margin:18px 0;padding:16px 18px;border:1px solid #493052;border-radius:14px;background:#17101e}.admin-game-picker label{font-weight:700}.admin-game-picker select{min-width:220px;padding:10px 12px;border:1px solid #64407b;border-radius:9px;background:#24172d;color:#f5eafa}.admin-summary{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}.admin-summary .metric{padding:12px 16px;background:#21162a;border-radius:12px;min-width:130px}.admin-summary .metric b{display:block;font-size:24px}.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.admin-tabs button.active{background:#8b43bd}.cf-admin-tabs{position:sticky;top:8px;z-index:15;overflow:auto;flex-wrap:nowrap;background:rgba(15,10,20,.96);backdrop-filter:blur(10px);border:1px solid #493052;border-radius:14px;padding:8px}.cf-admin-tabs button{flex:0 0 auto}.cf-panel[hidden]{display:none!important}.cf-access-admin h3{margin-top:20px}.cf-admin-extra{margin-top:18px}.telegram-admin-section{scroll-margin-top:20px}.cs2-panel[hidden]{display:none!important}#counterFrameAdminPanel[hidden],#cs2AdminPanel[hidden]{display:none!important}</style></head>
 <body class="admin-body">
   <div class="glow glow-a"></div>
   <main class="admin-shell">
@@ -42,6 +42,13 @@
         </select>
       </div>
       <div id="cs2AdminPanel">
+      <nav class="admin-tabs cf-admin-tabs" role="tablist" aria-label="Seções do painel CS2">
+        <button class="button ghost small active" role="tab" data-cs2-tab="cs2StatusPanel" type="button">Status e loader</button>
+        <button class="button ghost small" role="tab" data-cs2-tab="cs2ClientsPanel" type="button">Clientes</button>
+        <button class="button ghost small" role="tab" data-cs2-tab="cs2SupportPanel" type="button">Suporte</button>
+        <button class="button ghost small" role="tab" data-cs2-tab="cs2ReleasesPanel" type="button">Versões</button>
+      </nav>
+      <div class="cs2-panel" id="cs2StatusPanel">
       <div class="admin-grid">
         <article class="admin-card">
           <div class="section-label">SERVIÇO</div>
@@ -91,9 +98,9 @@
           </div>
         </article>
       </div>
+      </div>
 
-
-
+      <div class="cs2-panel" id="cs2ClientsPanel" hidden>
       <article class="admin-card admin-clients-card">
         <div class="table-title">
           <div>
@@ -122,7 +129,9 @@
           </table>
         </div>
       </article>
+      </div>
 
+      <div class="cs2-panel" id="cs2SupportPanel" hidden>
       <article class="admin-card support-admin-card">
         <div class="table-title">
           <div>
@@ -173,7 +182,9 @@
           </section>
         </div>
       </article>
+      </div>
 
+      <div class="cs2-panel" id="cs2ReleasesPanel" hidden>
       <article class="admin-card">
         <div class="table-title">
           <div>
@@ -189,6 +200,7 @@
           </table>
         </div>
       </article>
+      </div>
       </div>
       <div id="counterFrameAdminPanel" hidden>
         <nav class="admin-tabs cf-admin-tabs" role="tablist" aria-label="Seções do painel Counter Flame">
@@ -289,9 +301,9 @@
       </div>
     </section>
   </main>
-  <script src="/admin.js?v=20261111-product-selector"></script>
+  <script src="/admin.js?v=20261111-cs2-tabs"></script>
   <script src="/cf-admin.js?v=20261111-tabs-device-approval"></script>
-  <script src="/cf-admin-extra.js?v=20261111-tabs-device-approval"></script>
+  <script src="/cf-admin-extra.js?v=20261111-notifications"></script>
   <script src="/telegram-admin.js?v=20261111-single-admin"></script>
 </body>
 </html>
