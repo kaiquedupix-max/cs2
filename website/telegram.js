@@ -83,7 +83,7 @@ export function registerTelegram(app,{pool,telegramApi}){
    }catch(e){await db.query("ROLLBACK");throw e;}finally{db.release();}
  };
 
- const plans=()=>{const rate=Number(process.env.CF_STAR_USD_RATE||0.013);if(!Number.isFinite(rate)||rate<=0)return [];return ['d1','d7','d15','d30','lifetime'].map(key=>checkoutPlan(key,'counterframe')).filter(Boolean).map(p=>({key:p.key,days:p.days||0,lifetime:Boolean(p.lifetime),name:p.name,usdPriceCents:p.usdPriceCents,stars:Math.ceil(p.usdPriceCents/100/rate)}));};
+ const plans=()=>{const starBrl=Number(process.env.CF_STAR_BRL_PER_UNIT||95/750),usdBrl=Number(process.env.CF_STAR_USD_BRL_RATE||process.env.CF_USD_BRL_RATE||5.55);if(!Number.isFinite(starBrl)||starBrl<=0||!Number.isFinite(usdBrl)||usdBrl<=0)return [];return ['d1','d7','d15','d30','lifetime'].map(key=>checkoutPlan(key,'counterframe')).filter(Boolean).map(p=>({key:p.key,days:p.days||0,lifetime:Boolean(p.lifetime),name:p.name,usdPriceCents:p.usdPriceCents,stars:Math.ceil((p.usdPriceCents/100*usdBrl)/starBrl)}));};
  app.post('/api/cf/telegram',async(req,res)=>{
    const botToken=process.env.CF_TELEGRAM_TOKEN||'';
    const secret=process.env.CF_TELEGRAM_WEBHOOK_SECRET||(botToken?crypto.createHash('sha256').update(botToken).digest('hex'):''),actual=String(req.headers['x-telegram-bot-api-secret-token']||'');
