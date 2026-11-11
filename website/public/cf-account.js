@@ -1,6 +1,6 @@
 (() => {
   const root=document.createElement('div');root.className='account-side-card';
-  const heading=document.createElement('h3');heading.textContent='Suas keys CounterFlame';root.append(heading);
+  const heading=document.createElement('h3');heading.textContent='Suas keys Counter Flame';root.append(heading);
   const list=document.createElement('div');root.append(list);
   const update=async()=>{try{const r=await fetch('/api/account/cf/keys',{cache:'no-store'});if(!r.ok){root.hidden=true;return;}const data=await r.json();root.hidden=false;list.replaceChildren();
     if(!data.keys.length){const p=document.createElement('p');p.textContent='Após a confirmação do pagamento, sua key aparece aqui.';list.append(p);}
@@ -9,3 +9,4 @@
   }catch{root.hidden=true;}};
   const target=document.querySelector('#dashboardView .account-grid');if(target){target.prepend(root);update();setInterval(update,30000);document.addEventListener('submit',()=>setTimeout(update,1500));}
 })();
+

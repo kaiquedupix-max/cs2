@@ -119,14 +119,15 @@
           </div>
 
           <div id="iosCheckoutNotice" class="cf-preorder-warning hidden">
-            <strong data-checkout-i18n="preorderTitle">IMPORTANTE: Pré-venda para iOS</strong>
-            <p data-checkout-i18n="preorderNotice">A versão iOS ainda não foi lançada. Esta compra é antecipada: você não recebe acesso imediato, e não existe data de lançamento confirmada.</p>
+            <strong data-checkout-i18n="preorderTitle">Counter Flame para iOS disponível</strong>
+            <p data-checkout-i18n="preorderNotice">Counter Flame também está disponível para iOS.</p>
             <label><input type="checkbox" id="confirmIosPreorder"><span data-checkout-i18n="confirmPreorder">Confirmo que entendo que estou realizando uma pré-compra, sem acesso imediato ao iOS.</span></label>
           </div>
           <div id="cfTelegramChoice" class="cf-telegram-choice hidden">
-            <a id="cfTelegramLink" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener" data-checkout-i18n="telegramSupport">Telegram Counter-Frame • Suporte ↗</a>
-            <p id="cfTelegramInfo">Telegram exclusivo para catálogo e suporte do Counter-Frame. Pagamentos somente pelo site.</p>
+            <a id="cfTelegramLink" href="https://t.me/LegitCheatsCFBot" target="_blank" rel="noopener" data-checkout-i18n="telegramSupport">Telegram Counter Flame • Suporte ↗</a>
+            <p id="cfTelegramInfo">Telegram exclusivo para catálogo e suporte do Counter Flame. Pagamentos somente pelo site.</p>
           </div>
+          <button id="stripeCheckoutButton" type="button" class="button button-primary hidden">Pagar com Stripe</button>
           <div id="paymentLoading" class="checkout-payment-loading">Carregando pagamento seguro...</div>
           <div id="paymentBrick_container" class="mp-brick"></div>
 
@@ -148,7 +149,7 @@
             <a class="button button-primary" href="/account">Ir para minha conta</a>
           </div>
 
-          <p class="secure-note">🔒 Dados do comprador: nome, CPF e e-mail. Se ainda não tiver conta, você cria usuário e senha nesta mesma página. Cartão e Pix são processados diretamente pelo Mercado Pago.</p>
+          <p id="checkoutSecureNote" class="secure-note">🔒 Dados do comprador: nome, CPF e e-mail. Se ainda não tiver conta, você cria usuário e senha nesta mesma página. Cartão e Pix são processados diretamente pelo Mercado Pago.</p>
         </section>
 
         <p id="checkoutMessage" class="form-message"></p>
@@ -166,7 +167,7 @@
         <div class="summary-row"><span>Plano</span><b id="summaryPlan">1 mês</b></div>
         <div class="summary-row"><span>Duração</span><b id="summaryDays">30 dias</b></div>
         <div class="summary-row total"><span>Total</span><b id="summaryPrice">—</b></div>
-        <div class="checkout-security"><strong>Compra segura</strong><span>Pagamento processado pelo Mercado Pago com checkout seguro e ativação automática.</span></div>
+        <div class="checkout-security"><strong>Compra segura</strong><span id="checkoutProviderNote">Pagamento processado pelo Mercado Pago com checkout seguro e ativação automática.</span></div>
       </aside>
     </div>
   </main>

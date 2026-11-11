@@ -242,7 +242,7 @@ export async function createPayment({
   const payload = {
     transaction_amount: Number((plan.priceCents / 100).toFixed(2)),
     description: "Legit Baratinho - " +
-      (normalizeProduct(product) === "counterframe" ? "Counter-Frame " + platform : "CS2") +
+      (normalizeProduct(product) === "counterframe" ? "Counter Flame " + platform : "CS2") +
       " - " + plan.name,
     payment_method_id: paymentMethodId,
     payer,
@@ -282,3 +282,4 @@ export async function getPayment(paymentId) {
   if (!id) throw Object.assign(new Error("Pagamento inválido."), { statusCode: 400 });
   return mpRequest("/v1/payments/" + id, { method: "GET" });
 }
+

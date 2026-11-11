@@ -165,7 +165,7 @@ async function loadCounterFrameAccess() {
       badge.textContent = "COMPRA iOS";
       badge.className = "access-badge inactive";
     } else {
-      summary.textContent = "Nenhuma compra de Counter-Frame nesta conta.";
+      summary.textContent = "Nenhuma compra de Counter Flame nesta conta.";
       badge.textContent = "SEM ACESSO";
       badge.className = "access-badge inactive";
     }

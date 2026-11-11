@@ -404,6 +404,7 @@ async function initDb() {
     );
 
     ALTER TABLE checkout_payments
+      ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'BRL',
       ADD COLUMN IF NOT EXISTS plan_key TEXT NULL,
       ADD COLUMN IF NOT EXISTS plan_name TEXT NULL,
       ADD COLUMN IF NOT EXISTS plan_days INTEGER NULL,
@@ -458,7 +459,7 @@ async function initDb() {
     SELECT item.key, item.value
     FROM (VALUES
       ('cf_android_status', 'online'),
-      ('cf_android_message', 'Counter-Frame para Android já está disponível.'),
+      ('cf_android_message', 'Counter Flame para Android já está disponível.'),
       ('cf_ios_status', 'presale'),
       ('cf_ios_message', 'Pré-venda disponível para iOS. O aplicativo ainda não foi lançado e a compra não oferece acesso imediato. Data de lançamento a confirmar.')
     ) AS item(key, value)
@@ -510,9 +511,9 @@ async function productStatuses() {
     product_status: "maintenance",
     status_message: "Status temporariamente indisponível.",
     cf_android_status: "online",
-    cf_android_message: "Counter-Frame para Android já está disponível.",
+    cf_android_message: "Counter Flame para Android já está disponível.",
     cf_ios_status: "online",
-    cf_ios_message: "Counter-Frame para iOS disponível.",
+    cf_ios_message: "Counter Flame para iOS disponível.",
   };
 
   let current = defaults;
@@ -531,8 +532,8 @@ async function productStatuses() {
   });
   return {
     cs2: read("CS2 — Windows", "product_status", "status_message"),
-    counterFrameAndroid: read("Counter-Frame — Android", "cf_android_status", "cf_android_message"),
-    counterFrameIos: read("Counter-Frame — iOS", "cf_ios_status", "cf_ios_message"),
+    counterFrameAndroid: read("Counter Flame — Android", "cf_android_status", "cf_android_message"),
+    counterFrameIos: read("Counter Flame — iOS", "cf_ios_status", "cf_ios_message"),
   };
 }
 
@@ -1764,7 +1765,7 @@ app.get("/api/account/counterframe", requireUser, async (req, res) => {
     );
     res.json({ access: access.rows, preorders: preorders.rows });
   } catch(error) {
-    console.error("Falha ao consultar Counter-Frame:",error?.message||error);
+    console.error("Falha ao consultar Counter Flame:",error?.message||error);
     res.status(500).json({error:"counterframe_account_failed"});
   }
 });

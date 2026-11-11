@@ -1,4 +1,4 @@
-// Counter-Frame only. CS2 deliberately excluded from this bot.
+// Counter Flame only. CS2 deliberately excluded from this bot.
 export const PLANS = Object.freeze([
   Object.freeze({ id: "d1", days: 1, brlCents: 490, usdCents: 150 }),
   Object.freeze({ id: "d7", days: 7, brlCents: 1290, usdCents: 400 }),
@@ -25,3 +25,4 @@ export function parseTelegramStart(payload) {
   const match = /^cf_(android|ios)_(d1|d7|d15|d30)$/.exec(text);
   return match ? { type: "catalog", platform: match[1], planId: match[2] } : null;
 }
+

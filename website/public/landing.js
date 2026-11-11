@@ -10,15 +10,15 @@
       androidAvailable:"Android disponível",iosPresale:"iOS disponível",cfSubtitle:"Android e iOS disponíveis.",
       service:"DISPONIBILIDADE",statusTitle:"Status",statusLead:"Situação informada no painel administrativo.",
       help:"DÚVIDAS RÁPIDAS",faqLead:"O essencial antes da compra.",faqQ1:"Como escolho meu plano?",faqA1:"Clique em Comprar no produto desejado. Os planos aparecem antes de ir para o pagamento.",
-      faqQ2:"Quais métodos de pagamento existem?",faqA2:"No site, pague por Pix ou cartão via Mercado Pago. No bot CounterFlame, compre com Telegram Stars.",
-      faqQ3:"Como funciona o iOS?",faqA3:"Counter-Frame está disponível para iOS.",
+      faqQ2:"Quais métodos de pagamento existem?",faqA2:"No Brasil, pague por Pix ou cartão via Mercado Pago. Fora do Brasil, pague com cartão via Stripe. No bot Counter Flame, compre com Telegram Stars.",
+      faqQ3:"Como funciona o iOS?",faqA3:"Counter Flame está disponível para iOS.",
       faqQ4:"Como consulto o status?",faqA4:"Abra Status para ver as informações publicadas pela administração.",
-      selectPlan:"ESCOLHA SEU PLANO",platform:"Plataforma",presaleTitle:"Pré-venda iOS",iosNotice:"Counter-Frame está disponível para iOS.",
-      functionsEyebrow:"RECURSOS DO MENU REAL",functionsHeadline:"Funções do Counter-Frame",functionsSubhead:"Conheça o ESP, os ajustes de mira e as opções de personalização do CounterFlame.",regionBR:"🇧🇷 Brasil • preços em reais",regionIntl:"🌍 Internacional • preços em dólares",pricingRegion:"Região detectada pelo IP",intlCardUnavailable:"O cartão internacional ainda precisa da configuração de câmbio. Preços em USD são referências; nenhuma cobrança será feita enquanto essa configuração estiver ausente.",intlCardNote:"Os preços internacionais estão em USD; o Mercado Pago liquida em reais (BRL), com o valor exato mostrado no checkout.",cfFeatureToggle:"Ver todas as funções do Counter-Frame",viewPhotos:"Ver fotos reais do menu",realScreenshots:"CAPTURAS REAIS",realScreenshotsNote:"Fotos reais do menu durante o jogo. Consulte o status da sua plataforma.",payCard:"Continuar com Pix ou cartão",openTelegram:"Comprar no Telegram • Stars",noteStars:"Também disponível no Telegram com Stars e cupons de desconto.",
+      selectPlan:"ESCOLHA SEU PLANO",platform:"Plataforma",presaleTitle:"iOS disponível",iosNotice:"Counter Flame está disponível para iOS.",
+      functionsEyebrow:"RECURSOS DO MENU REAL",functionsHeadline:"Funções do Counter Flame",functionsSubhead:"Conheça o ESP, os ajustes de mira e as opções de personalização do Counter Flame.",regionBR:"🇧🇷 Brasil • preços em reais",regionIntl:"🌍 Internacional • preços em dólares",pricingRegion:"Região detectada pelo IP",intlCardUnavailable:"O pagamento internacional com cartão será ativado quando as chaves do Stripe forem configuradas.",intlCardNote:"Clientes fora do Brasil pagam com cartão pelo Stripe.",cfFeatureToggle:"Ver todas as funções do Counter Flame",viewPhotos:"Ver fotos reais do menu",realScreenshots:"CAPTURAS REAIS",realScreenshotsNote:"Fotos reais do menu durante o jogo. Consulte o status da sua plataforma.",payCard:"Continuar com Pix ou cartão",openTelegram:"Comprar no Telegram • Stars",noteStars:"Também disponível no Telegram com Stars e cupons de desconto.",
       buyNote:"Selecione um plano para prosseguir.",checkoutUnavailable:"Pagamento online não configurado. Entre em contato com o suporte.",
-      days:"dias",day:"dia",lifetime:"Vitalício",status_loading:"Consultando",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MANUTENÇÃO",status_coming_soon:"EM BREVE",status_presale:"PRÉ-VENDA",
-      statusGeneric_online:"Produto disponível conforme o painel.",statusGeneric_offline:"Produto indisponível.",statusGeneric_maintenance:"Produto em manutenção.",statusGeneric_coming_soon:"Lançamento em preparação.",statusGeneric_presale:"Pré-venda disponível; versão ainda não lançada.",
-      iosRequired:"Counter-Frame está disponível para iOS."
+      days:"dias",day:"dia",lifetime:"Vitalício",status_loading:"Consultando",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MANUTENÇÃO",status_coming_soon:"EM BREVE",status_presale:"DISPONÍVEL",
+      statusGeneric_online:"Produto disponível conforme o painel.",statusGeneric_offline:"Produto indisponível.",statusGeneric_maintenance:"Produto em manutenção.",statusGeneric_coming_soon:"Lançamento em preparação.",statusGeneric_presale:"Counter Flame está disponível para iOS.",
+      iosRequired:"Counter Flame está disponível para iOS."
     },
     en: {
       skip:"Skip to content",language:"Language",navHome:"Home",navProducts:"Products",navStatus:"Status",account:"My account",
@@ -29,15 +29,15 @@
       androidAvailable:"Android available",iosPresale:"iOS available",cfSubtitle:"Android and iOS available.",
       service:"AVAILABILITY",statusTitle:"Status",statusLead:"Availability published by the admin team.",
       help:"QUICK ANSWERS",faqLead:"What you need to know before buying.",faqQ1:"How do I choose a plan?",faqA1:"Click Buy on the product you want. Plans will appear before checkout.",
-      faqQ2:"Which payment methods are available?",faqA2:"Pay by Pix or card on the website via Mercado Pago. Buy with Telegram Stars in the CounterFlame bot.",
-      faqQ3:"What about iOS?",faqA3:"Counter-Frame is available for iOS.",
+      faqQ2:"Which payment methods are available?",faqA2:"In Brazil, pay by Pix or card through Mercado Pago. Outside Brazil, pay by card through Stripe. The Counter Flame bot accepts Telegram Stars.",
+      faqQ3:"What about iOS?",faqA3:"Counter Flame is available for iOS.",
       faqQ4:"How do I check the status?",faqA4:"Open Status to see availability updates from the admin team.",
-      selectPlan:"CHOOSE YOUR PLAN",platform:"Platform",presaleTitle:"iOS pre-order",iosNotice:"Counter-Frame is available for iOS.",
-      functionsEyebrow:"REAL MENU FEATURES",functionsHeadline:"Counter-Frame features",functionsSubhead:"Explore CounterFlame ESP, aim controls and customization.",regionBR:"🇧🇷 Brazil • prices in BRL",regionIntl:"🌍 International • prices in USD",pricingRegion:"Region detected by IP",intlCardUnavailable:"International card checkout is pending exchange-rate configuration. USD prices are references; no payment will be taken until billing is ready.",intlCardNote:"International prices are listed in USD; Mercado Pago settles in Brazilian reais (BRL). The exact BRL charge is shown at checkout.",cfFeatureToggle:"View all Counter-Frame features",viewPhotos:"View real menu screenshots",realScreenshots:"REAL SCREENSHOTS",realScreenshotsNote:"Real menu screenshots taken during gameplay. Check your platform status.",payCard:"Continue with Pix or card",openTelegram:"Buy on Telegram • Stars",noteStars:"Also available on Telegram with Stars and discount coupons.",
+      selectPlan:"CHOOSE YOUR PLAN",platform:"Platform",presaleTitle:"iOS available",iosNotice:"Counter Flame is available for iOS.",
+      functionsEyebrow:"REAL MENU FEATURES",functionsHeadline:"Counter Flame features",functionsSubhead:"Explore Counter Flame ESP, aim controls and customization.",regionBR:"🇧🇷 Brazil • prices in BRL",regionIntl:"🌍 International • prices in USD",pricingRegion:"Region detected by IP",intlCardUnavailable:"International card checkout will be enabled after the Stripe keys are configured.",intlCardNote:"Customers outside Brazil pay by card through Stripe.",cfFeatureToggle:"View all Counter Flame features",viewPhotos:"View real menu screenshots",realScreenshots:"REAL SCREENSHOTS",realScreenshotsNote:"Real menu screenshots taken during gameplay. Check your platform status.",payCard:"Continue with Pix or card",openTelegram:"Buy on Telegram • Stars",noteStars:"Also available on Telegram with Stars and discount coupons.",
       buyNote:"Select a plan to continue.",checkoutUnavailable:"Online checkout is not configured. Contact support.",
-      days:"days",day:"day",lifetime:"Lifetime",status_loading:"Loading",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MAINTENANCE",status_coming_soon:"COMING SOON",status_presale:"PRE-ORDER",
-      statusGeneric_online:"Available as reported by the admin team.",statusGeneric_offline:"Currently unavailable.",statusGeneric_maintenance:"Temporarily under maintenance.",statusGeneric_coming_soon:"Launch in preparation.",statusGeneric_presale:"Pre-orders are open; the version has not been released.",
-      iosRequired:"Counter-Frame is available for iOS."
+      days:"days",day:"day",lifetime:"Lifetime",status_loading:"Loading",status_online:"ONLINE",status_offline:"OFFLINE",status_maintenance:"MAINTENANCE",status_coming_soon:"COMING SOON",status_presale:"AVAILABLE",
+      statusGeneric_online:"Available as reported by the admin team.",statusGeneric_offline:"Currently unavailable.",statusGeneric_maintenance:"Temporarily under maintenance.",statusGeneric_coming_soon:"Launch in preparation.",statusGeneric_presale:"Counter Flame is available for iOS.",
+      iosRequired:"Counter Flame is available for iOS."
     },
     es: {
       skip:"Saltar al contenido",language:"Idioma",navHome:"Inicio",navProducts:"Productos",navStatus:"Estado",account:"Mi cuenta",
@@ -48,15 +48,15 @@
       androidAvailable:"Android disponible",iosPresale:"iOS disponible",cfSubtitle:"Android e iOS disponibles.",
       service:"DISPONIBILIDAD",statusTitle:"Estado",statusLead:"Información publicada por administración.",
       help:"RESPUESTAS RÁPIDAS",faqLead:"Lo esencial antes de comprar.",faqQ1:"¿Cómo elijo un plan?",faqA1:"Pulsa Comprar en el producto. Los planes se muestran antes del pago.",
-      faqQ2:"¿Qué métodos de pago hay?",faqA2:"Paga con Pix o tarjeta en el sitio por Mercado Pago. Compra con Telegram Stars en el bot CounterFlame.",
-      faqQ3:"¿Cómo funciona iOS?",faqA3:"Counter-Frame está disponible para iOS.",
+      faqQ2:"¿Qué métodos de pago hay?",faqA2:"En Brasil, paga con Pix o tarjeta por Mercado Pago. Fuera de Brasil, paga con tarjeta por Stripe. El bot Counter Flame acepta Telegram Stars.",
+      faqQ3:"¿Cómo funciona iOS?",faqA3:"Counter Flame está disponible para iOS.",
       faqQ4:"¿Cómo consulto el estado?",faqA4:"Abre Estado para ver la información publicada por administración.",
-      selectPlan:"ELIGE TU PLAN",platform:"Plataforma",presaleTitle:"Preventa iOS",iosNotice:"Counter-Frame está disponible para iOS.",
-      functionsEyebrow:"FUNCIONES DEL MENÚ REAL",functionsHeadline:"Funciones de Counter-Frame",functionsSubhead:"Descubre el ESP, los ajustes de mira y la personalización de CounterFlame.",regionBR:"🇧🇷 Brasil • precios en reales",regionIntl:"🌍 Internacional • precios en USD",pricingRegion:"Región detectada por IP",intlCardUnavailable:"El pago internacional con tarjeta requiere configurar el tipo de cambio. Los precios en USD son referencias; no se cobrará hasta activarlo.",intlCardNote:"Los precios internacionales están en USD; Mercado Pago cobra en reales brasileños (BRL) y muestra el importe antes de pagar.",cfFeatureToggle:"Ver todas las funciones de Counter-Frame",viewPhotos:"Ver capturas reales del menú",realScreenshots:"CAPTURAS REALES",realScreenshotsNote:"Capturas reales del menú durante el juego. Consulta el estado de tu plataforma.",payCard:"Continuar con Pix o tarjeta",openTelegram:"Comprar en Telegram • Stars",noteStars:"También disponible en Telegram con Stars y cupones.",
+      selectPlan:"ELIGE TU PLAN",platform:"Plataforma",presaleTitle:"iOS disponible",iosNotice:"Counter Flame está disponible para iOS.",
+      functionsEyebrow:"FUNCIONES DEL MENÚ REAL",functionsHeadline:"Funciones de Counter Flame",functionsSubhead:"Descubre el ESP, los ajustes de mira y la personalización de Counter Flame.",regionBR:"🇧🇷 Brasil • precios en reales",regionIntl:"🌍 Internacional • precios en USD",pricingRegion:"Región detectada por IP",intlCardUnavailable:"El pago internacional con tarjeta se activará cuando se configuren las claves de Stripe.",intlCardNote:"Los clientes fuera de Brasil pagan con tarjeta por Stripe.",cfFeatureToggle:"Ver todas las funciones de Counter Flame",viewPhotos:"Ver capturas reales del menú",realScreenshots:"CAPTURAS REALES",realScreenshotsNote:"Capturas reales del menú durante el juego. Consulta el estado de tu plataforma.",payCard:"Continuar con Pix o tarjeta",openTelegram:"Comprar en Telegram • Stars",noteStars:"También disponible en Telegram con Stars y cupones.",
       buyNote:"Selecciona un plan para continuar.",checkoutUnavailable:"El pago online no está configurado. Contacta con soporte.",
-      days:"días",day:"día",lifetime:"De por vida",status_loading:"Cargando",status_online:"DISPONIBLE",status_offline:"SIN SERVICIO",status_maintenance:"MANTENIMIENTO",status_coming_soon:"PRÓXIMAMENTE",status_presale:"PREVENTA",
-      statusGeneric_online:"Disponible según administración.",statusGeneric_offline:"No disponible actualmente.",statusGeneric_maintenance:"En mantenimiento temporal.",statusGeneric_coming_soon:"Lanzamiento en preparación.",statusGeneric_presale:"Preventa abierta; versión aún no lanzada.",
-      iosRequired:"Counter-Frame está disponible para iOS."
+      days:"días",day:"día",lifetime:"De por vida",status_loading:"Cargando",status_online:"DISPONIBLE",status_offline:"SIN SERVICIO",status_maintenance:"MANTENIMIENTO",status_coming_soon:"PRÓXIMAMENTE",status_presale:"DISPONIBLE",
+      statusGeneric_online:"Disponible según administración.",statusGeneric_offline:"No disponible actualmente.",statusGeneric_maintenance:"En mantenimiento temporal.",statusGeneric_coming_soon:"Lanzamiento en preparación.",statusGeneric_presale:"Counter Flame está disponible para iOS.",
+      iosRequired:"Counter Flame está disponible para iOS."
     },
     ru: {
       skip:"Перейти к содержимому",language:"Язык",navHome:"Главная",navProducts:"Продукты",navStatus:"Статус",account:"Мой аккаунт",
@@ -67,17 +67,22 @@
       androidAvailable:"Android доступен",iosPresale:"iOS доступен",cfSubtitle:"Доступно для Android и iOS.",
       service:"ДОСТУПНОСТЬ",statusTitle:"Статус",statusLead:"Информация от администрации.",
       help:"КРАТКИЕ ОТВЕТЫ",faqLead:"Важная информация перед покупкой.",faqQ1:"Как выбрать тариф?",faqA1:"Нажмите «Купить» у нужного продукта. Тарифы появятся до оплаты.",
-      faqQ2:"Какие способы оплаты?",faqA2:"На сайте платите через Mercado Pago. В боте CounterFlame — через Telegram Stars.",
-      faqQ3:"Что с iOS?",faqA3:"Counter-Frame доступен для iOS.",
+      faqQ2:"Какие способы оплаты?",faqA2:"В Бразилии платите через Mercado Pago картой или Pix. За пределами Бразилии оплата картой через Stripe. Бот Counter Flame принимает Telegram Stars.",
+      faqQ3:"Что с iOS?",faqA3:"Counter Flame доступен для iOS.",
       faqQ4:"Где проверить статус?",faqA4:"Откройте раздел «Статус» для информации администрации.",
-      selectPlan:"ВЫБЕРИТЕ ТАРИФ",platform:"Платформа",presaleTitle:"Предзаказ iOS",iosNotice:"Counter-Frame доступен для iOS.",
-      functionsEyebrow:"ФУНКЦИИ РЕАЛЬНОГО МЕНЮ",functionsHeadline:"Функции Counter-Frame",functionsSubhead:"Узнайте о функциях ESP, настройках прицела и персонализации CounterFlame.",regionBR:"🇧🇷 Бразилия • цены в реалах",regionIntl:"🌍 Международные цены в USD",pricingRegion:"Регион определён по IP",intlCardUnavailable:"Оплата иностранной картой ещё требует настройки обменного курса. Цены USD справочные, списаний пока нет.",intlCardNote:"Международные цены указаны в USD, но Mercado Pago списывает BRL. Сумма в реалах будет показана до оплаты.",cfFeatureToggle:"Все функции Counter-Frame",viewPhotos:"Реальные скриншоты меню",realScreenshots:"РЕАЛЬНЫЕ СНИМКИ",realScreenshotsNote:"Реальные снимки меню во время игры. Проверяйте статус платформы.",payCard:"Перейти к оплате картой или Pix",openTelegram:"Купить в Telegram • Stars",noteStars:"Также доступно в Telegram за Stars с промокодами.",
+      selectPlan:"ВЫБЕРИТЕ ТАРИФ",platform:"Платформа",presaleTitle:"iOS доступен",iosNotice:"Counter Flame доступен для iOS.",
+      functionsEyebrow:"ФУНКЦИИ РЕАЛЬНОГО МЕНЮ",functionsHeadline:"Функции Counter Flame",functionsSubhead:"Узнайте о функциях ESP, настройках прицела и персонализации Counter Flame.",regionBR:"🇧🇷 Бразилия • цены в реалах",regionIntl:"🌍 Международные цены в USD",pricingRegion:"Регион определён по IP",intlCardUnavailable:"Оплата иностранными картами будет включена после настройки ключей Stripe.",intlCardNote:"Покупатели за пределами Бразилии платят картой через Stripe.",cfFeatureToggle:"Все функции Counter Flame",viewPhotos:"Реальные скриншоты меню",realScreenshots:"РЕАЛЬНЫЕ СНИМКИ",realScreenshotsNote:"Реальные снимки меню во время игры. Проверяйте статус платформы.",payCard:"Перейти к оплате картой или Pix",openTelegram:"Купить в Telegram • Stars",noteStars:"Также доступно в Telegram за Stars с промокодами.",
       buyNote:"Выберите тариф для продолжения.",checkoutUnavailable:"Онлайн-оплата не настроена. Обратитесь в поддержку.",
-      days:"дней",day:"день",lifetime:"Навсегда",status_loading:"Загрузка",status_online:"ДОСТУПНО",status_offline:"НЕДОСТУПНО",status_maintenance:"НА ОБСЛУЖИВАНИИ",status_coming_soon:"СКОРО",status_presale:"ПРЕДЗАКАЗ",
-      statusGeneric_online:"Доступно по данным администрации.",statusGeneric_offline:"Сейчас недоступно.",statusGeneric_maintenance:"Временно на обслуживании.",statusGeneric_coming_soon:"Подготовка к запуску.",statusGeneric_presale:"Предзаказ открыт; приложение ещё не выпущено.",
-      iosRequired:"Counter-Frame доступен для iOS."
+      days:"дней",day:"день",lifetime:"Навсегда",status_loading:"Загрузка",status_online:"ДОСТУПНО",status_offline:"НЕДОСТУПНО",status_maintenance:"НА ОБСЛУЖИВАНИИ",status_coming_soon:"СКОРО",status_presale:"ДОСТУПНО",
+      statusGeneric_online:"Доступно по данным администрации.",statusGeneric_offline:"Сейчас недоступно.",statusGeneric_maintenance:"Временно на обслуживании.",statusGeneric_coming_soon:"Подготовка к запуску.",statusGeneric_presale:"Counter Flame доступен для iOS.",
+      iosRequired:"Counter Flame доступен для iOS."
     }
   };
+
+  Object.assign(translations.pt,{intlCardUnavailable:'O pagamento internacional por cartão será ativado quando as chaves do Stripe forem configuradas.',intlCardNote:'Clientes fora do Brasil pagam com cartão pelo Stripe.',payStripe:'Pagar com Stripe',faqA2:'No Brasil, pague por Pix ou cartão via Mercado Pago. Fora do Brasil, pague com cartão via Stripe. No bot Counter Flame, compre com Telegram Stars.'});
+  Object.assign(translations.en,{intlCardUnavailable:'International card checkout will be enabled after the Stripe keys are configured.',intlCardNote:'Customers outside Brazil pay by card through Stripe.',payStripe:'Pay with Stripe',faqA2:'In Brazil, pay by Pix or card through Mercado Pago. Outside Brazil, pay by card through Stripe. The Counter Flame bot accepts Telegram Stars.'});
+  Object.assign(translations.es,{intlCardUnavailable:'El pago internacional con tarjeta se activará cuando se configuren las claves de Stripe.',intlCardNote:'Los clientes fuera de Brasil pagan con tarjeta por Stripe.',payStripe:'Pagar con Stripe',faqA2:'En Brasil, paga con Pix o tarjeta por Mercado Pago. Fuera de Brasil, paga con tarjeta por Stripe. El bot Counter Flame acepta Telegram Stars.'});
+  Object.assign(translations.ru,{intlCardUnavailable:'Оплата иностранными картами будет включена после настройки ключей Stripe.',intlCardNote:'Покупатели за пределами Бразилии платят картой через Stripe.',payStripe:'Оплатить через Stripe',faqA2:'В Бразилии платите через Mercado Pago картой или Pix. За пределами Бразилии оплата картой через Stripe. Бот Counter Flame принимает Telegram Stars.'});
 
 
   // Only options actually visible in the user's ESP/Aimbot screenshots.
@@ -133,7 +138,7 @@
   };
   const statuses = ["cs2","counterFrameAndroid","counterFrameIos"];
   const stateLabels = new Set(["online","offline","maintenance","coming_soon","presale"]);
-  const statusNames = {"cs2":"CS2 • Windows","counterFrameAndroid":"Counter-Frame • Android","counterFrameIos":"Counter-Frame • iOS"};
+  const statusNames = {"cs2":"CS2 • Windows","counterFrameAndroid":"Counter Flame • Android","counterFrameIos":"Counter Flame • iOS"};
   const langSelect = document.getElementById("site-language");
   const dlg = document.getElementById("purchase-dialog");
   const galleryDlg = document.getElementById("gallery-dialog");
@@ -220,9 +225,10 @@
     telegramBtn.hidden = selectedProduct !== "counterframe";
     cardBtn.disabled = !checkoutAvailable;
     const international = selectedProduct === "counterframe" && market === "INTL";
+    cardBtn.textContent=international?tr('payStripe'):tr('payCard');
     const note = !checkoutAvailable
       ? (international ? tr("intlCardUnavailable") : tr("checkoutUnavailable"))
-      : international ? tr("intlCardNote") + " " + tr("noteStars")
+      : international ? tr("intlCardNote")
       : selectedProduct==="counterframe" ? tr("noteStars") : tr("buyNote");
     checkoutNote.textContent = ios ? tr("iosRequired")+" "+note : note;
     if (selectedProduct==="counterframe") {
@@ -232,7 +238,7 @@
   async function openPurchase(product) {
     selectedProduct = product;
     selectedPlan = "d30";
-    productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : "Counter-Frame";
+    productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : "Counter Flame";
     if (product==="counterframe") platformSelect.value="android";
     checkoutAvailable = false;
     regionResolved = product !== "counterframe";
@@ -304,3 +310,4 @@
   refreshStatuses();
   setInterval(refreshStatuses,30000);
 })();
+

@@ -1,10 +1,10 @@
-# Counter-Frame Telegram bot (somente Counter-Frame)
+# Counter Flame Telegram bot (somente Counter Flame)
 
 Serviço independente para executar no **Coolify**. O site CS2 não é modificado.
 
 ## Incluído
 
-- Menu com botões para Android, iOS (pré-venda), planos, pedidos, **Fotos reais**, **Funções**, cupons, idioma, região, suporte e afiliados.
+- Menu com botões para Android, iOS, planos, pedidos, **Fotos reais**, **Funções**, cupons, idioma, região, suporte e afiliados.
 - Galeria com as capturas reais de gameplay, ESP e Aimbot, além de dois mockups promocionais. Os arquivos ficam em `website/public/media` e precisam estar publicados no serviço do site para que o Telegram possa carregar as fotos.
 - Idiomas PT, EN, ES, RU (idioma da conta Telegram e ajuste manual).
 - Preços BR: **R$ 4,90 / R$ 12,90 / R$ 21,90 / R$ 35,00**.
@@ -26,3 +26,4 @@ Serviço independente para executar no **Coolify**. O site CS2 não é modificad
 4. Inicie o serviço e teste /start, /shop, /language, /region, /coupon, /referral e /paysupport.
 
 Não execute duas instâncias com long polling para o mesmo token ao mesmo tempo.
+

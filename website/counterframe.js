@@ -33,18 +33,20 @@ export async function initCounterframe(pool) {
     CREATE TABLE IF NOT EXISTS cf_bot_users(telegram_id BIGINT PRIMARY KEY,language TEXT NOT NULL);
     ALTER TABLE access_audit ADD COLUMN IF NOT EXISTS device_model TEXT,ADD COLUMN IF NOT EXISTS loader_version TEXT,ADD COLUMN IF NOT EXISTS timezone TEXT;
     ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS lifetime BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS duration_seconds BIGINT;
   `);
-  await pool.query(`WITH applied AS (INSERT INTO app_settings(key,value) VALUES('cf_ios_available_20261110','1') ON CONFLICT(key) DO NOTHING RETURNING key)
-    INSERT INTO app_settings(key,value) SELECT k,v FROM (VALUES('cf_ios_status','online'),('cf_ios_message','Counter-Frame para iOS disponível.')) x(k,v)
+  await pool.query(`WITH applied AS (INSERT INTO app_settings(key,value) VALUES('cf_ios_available_20261111','1') ON CONFLICT(key) DO NOTHING RETURNING key)
+    INSERT INTO app_settings(key,value) SELECT k,v FROM (VALUES('cf_ios_status','online'),('cf_ios_message','Counter Flame para iOS disponível.')) x(k,v)
     WHERE EXISTS(SELECT 1 FROM applied) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()`);
 }
 
 // Called inside the checkout transaction after the provider confirms payment.
 export async function issuePurchaseKey(client,paymentId,payment) {
   const raw='CF-'+crypto.randomBytes(18).toString('hex').toUpperCase();
-  await client.query(`INSERT INTO cf_keys(payment_id,buyer_id,key_hash,key_cipher,days,plan,lifetime)
-    VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(payment_id) DO NOTHING`,
-    [paymentId,payment.user_id,hash(raw),encrypt(raw),payment.plan_lifetime?0:Math.max(1,Number(payment.plan_days||30)),payment.plan_name||'CounterFlame',Boolean(payment.plan_lifetime)]);
+  const days=payment.plan_lifetime?0:Math.max(1,Number(payment.plan_days||30));
+  await client.query(`INSERT INTO cf_keys(payment_id,buyer_id,key_hash,key_cipher,days,plan,lifetime,duration_seconds)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(payment_id) DO NOTHING`,
+    [paymentId,payment.user_id,hash(raw),encrypt(raw),days,payment.plan_name||'Counter Flame',Boolean(payment.plan_lifetime),days*86400]);
 }
 
 export function registerCounterframe(app,deps) {
@@ -69,15 +71,16 @@ export function registerCounterframe(app,deps) {
     req.cf=s;await pool.query('UPDATE cf_sessions SET last_seen=NOW() WHERE token_hash=$1',[s.token_hash]);next();
   });
   const snapshot = async s => {
-    const {rows}=await pool.query('SELECT plan,activated_at,expires_at,lifetime FROM cf_keys WHERE claimed_by=$1 AND revoked_at IS NULL AND expires_at>NOW() ORDER BY expires_at DESC',[s.user_id]);
-    return {username:s.username,licenses:rows,expiresAt:rows[0]?.expires_at||null,serverTime:Date.now()};
+    const {rows}=await pool.query('SELECT plan,days,duration_seconds,activated_at,expires_at,lifetime,revoked_at FROM cf_keys WHERE claimed_by=$1 ORDER BY activated_at DESC NULLS LAST,id DESC LIMIT 100',[s.user_id]);
+    const active=rows.filter(row=>!row.revoked_at&&row.expires_at&&new Date(row.expires_at)>new Date());
+    return {username:s.username,licenses:active,history:rows,expiresAt:active.sort((a,b)=>new Date(b.expires_at)-new Date(a.expires_at))[0]?.expires_at||null,serverTime:Date.now()};
   };
   const activateKey = async(db,keyValue,userId) => {
     const {rows}=await db.query('SELECT * FROM cf_keys WHERE key_hash=$1 FOR UPDATE',[hash(String(keyValue||'').trim().toUpperCase())]);const key=rows[0];
     if(!key||key.revoked_at)throw fail('invalid_key');
     if(key.buyer_id&&String(key.buyer_id)!==String(userId))throw fail('key_owner',403);
     if(key.claimed_by){if(String(key.claimed_by)!==String(userId))throw fail('key_used',409);return;}
-    await db.query(`UPDATE cf_keys SET claimed_by=$2,activated_at=NOW(),expires_at=CASE WHEN $4::boolean OR EXISTS(SELECT 1 FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL AND lifetime=TRUE) THEN TIMESTAMPTZ '9999-12-31 23:59:59+00' ELSE GREATEST(NOW(),COALESCE((SELECT MAX(expires_at) FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL),NOW()))+($3 * INTERVAL '1 day') END WHERE id=$1`,[key.id,userId,key.days,key.lifetime]);
+    await db.query(`UPDATE cf_keys SET claimed_by=$2,activated_at=NOW(),expires_at=CASE WHEN $4::boolean OR EXISTS(SELECT 1 FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL AND lifetime=TRUE) THEN TIMESTAMPTZ '9999-12-31 23:59:59+00' ELSE GREATEST(NOW(),COALESCE((SELECT MAX(expires_at) FROM cf_keys WHERE claimed_by=$2 AND revoked_at IS NULL),NOW()))+(COALESCE($5::bigint,$3::bigint*86400) * INTERVAL '1 second') END WHERE id=$1`,[key.id,userId,key.days,key.lifetime,key.duration_seconds]);
   };
   const bindSession=async(db,req,u,token)=>{
     const id=device(req);await db.query('SELECT id FROM users WHERE id=$1 FOR UPDATE',[u.id]);
@@ -160,8 +163,8 @@ export function registerCounterframe(app,deps) {
       await setSetting(loader?'cf_loader_release':'cf_release',JSON.stringify({...meta,sha256:meta.sha256.toLowerCase(),certificateSha256:meta.certificateSha256.toLowerCase(),url}));res.json({ok:true,url});
     }finally{if(!retain)await fs.promises.unlink(tmp).catch(()=>{});}
   }));
-  app.get('/api/cf/loader-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'LC-CounterFlame-Private.apk');}));
-  app.get('/api/cf/game-apk',auth,wrap(async(req,res)=>{if(!(await snapshot(req.cf)).expiresAt)throw fail('license_required',403);if((await status()).availability!=='online')throw fail('maintenance',503);const r=JSON.parse(await setting('cf_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'CounterFlame.apk');}));
+  app.get('/api/cf/loader-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'LC-Counter Flame-Private.apk');}));
+  app.get('/api/cf/game-apk',auth,wrap(async(req,res)=>{if(!(await snapshot(req.cf)).expiresAt)throw fail('license_required',403);if((await status()).availability!=='online')throw fail('maintenance',503);const r=JSON.parse(await setting('cf_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'Counter Flame.apk');}));
   app.post('/api/admin/cf/loader-release',requireAdmin,wrap(async(req,res)=>{
     const r=req.body||{},url=new URL(r.url);
     if(url.protocol!=='https:'||r.packageName!=='com.cf.overlay'||!Number.isSafeInteger(r.versionCode)||r.versionCode<1||!HEX.test(r.sha256)||!HEX.test(r.certificateSha256)||!Number.isSafeInteger(r.size)||r.size<1)throw fail('invalid_release');
@@ -208,3 +211,4 @@ export function registerCounterframe(app,deps) {
     await setSetting('cf_release',JSON.stringify({url:url.href,packageName:r.packageName,versionCode:r.versionCode,sha256:r.sha256.toLowerCase(),certificateSha256:r.certificateSha256.toLowerCase(),size:r.size,label:String(r.label||'').slice(0,80)}));res.json({ok:true});
   }));
 }
+

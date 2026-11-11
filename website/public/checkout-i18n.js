@@ -14,12 +14,12 @@
       approved:"Pagamento aprovado",approvedNote:"Compra confirmada. Consulte seu acesso na área do cliente.",goAccount:"Ir para minha conta",
       security:"Pagamento processado pelo Mercado Pago. A ativação depende da aprovação.",
       summary:"RESUMO DO PEDIDO",planLabel:"Plano",duration:"Duração",total:"Total",buySecure:"Compra segura",
-      buySecureDetail:"Pagamento processado pelo Mercado Pago.",preorderTitle:"IMPORTANTE: Pré-venda para iOS",
-      preorderNotice:"A versão iOS ainda não foi lançada. Esta é uma compra antecipada, sem acesso imediato. Ainda não existe data confirmada para o lançamento.",
-      confirmPreorder:"Estou ciente de que esta é uma pré-compra sem acesso imediato e sem data de lançamento confirmada.",
-      telegramInfo:"Telegram exclusivo do Counter-Frame para catálogo e suporte. Pagamentos somente pelo site.",telegramSupport:"Telegram do Counter-Frame • Suporte ↗",day:"dia",days:"dias",lifetime:"Vitalício",
-      preorderApproved:"Pré-venda confirmada",preorderApprovedNote:"Seu pedido foi registrado. O acesso será liberado somente após o lançamento da versão iOS.",preorderMessage:"Pré-compra confirmada. Aguardando lançamento iOS.",
-      approvedMessage:"Pagamento confirmado.",iosConfirmError:"Confirme que entende as condições da pré-venda iOS antes de pagar."
+      buySecureDetail:"Pagamento processado pelo Mercado Pago.",preorderTitle:"Counter Flame para iOS disponível",
+      preorderNotice:"Counter Flame está disponível para iOS.",
+      confirmPreorder:"Counter Flame está disponível para iOS.",
+      telegramInfo:"Telegram exclusivo do Counter Flame para catálogo e suporte. Pagamentos somente pelo site.",telegramSupport:"Telegram do Counter Flame • Suporte ↗",day:"dia",days:"dias",lifetime:"Vitalício",
+      preorderApproved:"Pedido confirmado",preorderApprovedNote:"Seu pedido foi confirmado.",preorderMessage:"Pedido confirmado.",
+      approvedMessage:"Pagamento confirmado.",iosConfirmError:"Counter Flame está disponível para iOS."
     },
     en:{
       account:"My account",secure:"SECURE CHECKOUT",finalize:"Complete your purchase.",intro:"Select a plan, enter your details and pay with Mercado Pago. Your purchase will be linked to your account.",
@@ -31,12 +31,12 @@
       approved:"Payment approved",approvedNote:"Purchase confirmed. Check your access in My account.",goAccount:"Go to my account",
       security:"Mercado Pago processes payments in BRL. Activation follows payment approval.",
       summary:"ORDER SUMMARY",planLabel:"Plan",duration:"Duration",total:"Total",buySecure:"Secure purchase",
-      buySecureDetail:"Payment handled by Mercado Pago.",preorderTitle:"IMPORTANT: iOS pre-order",
-      preorderNotice:"The iOS version has not yet been released. This is a pre-order, with no immediate access and no confirmed release date.",
-      confirmPreorder:"I understand this is an iOS pre-order with no immediate access and no confirmed release date.",
-      telegramInfo:"Counter-Frame Telegram is for information and support. Payments are made on the website only.",telegramSupport:"Counter-Frame Telegram • Support ↗",day:"day",days:"days",lifetime:"Lifetime",
-      preorderApproved:"Pre-order confirmed",preorderApprovedNote:"Your order was recorded. Access will be granted only when the iOS version launches.",preorderMessage:"Pre-order confirmed. Awaiting iOS release.",
-      approvedMessage:"Payment confirmed.",iosConfirmError:"Please confirm that you understand the iOS pre-order conditions before paying."
+      buySecureDetail:"Payment handled by Mercado Pago.",preorderTitle:"Counter Flame for iOS available",
+      preorderNotice:"Counter Flame is available for iOS.",
+      confirmPreorder:"Counter Flame is available for iOS.",
+      telegramInfo:"Counter Flame Telegram is for information and support. Payments are made on the website only.",telegramSupport:"Counter Flame Telegram • Support ↗",day:"day",days:"days",lifetime:"Lifetime",
+      preorderApproved:"Order confirmed",preorderApprovedNote:"Your order was confirmed.",preorderMessage:"Order confirmed.",
+      approvedMessage:"Payment confirmed.",iosConfirmError:"Please confirm that you understand the Counter Flame for iOS conditions before paying."
     },
     es:{
       account:"Mi cuenta",secure:"PAGO SEGURO",finalize:"Finaliza tu compra.",intro:"Elige un plan, introduce tus datos y paga con Mercado Pago. Tu compra se vinculará a tu cuenta.",
@@ -48,12 +48,12 @@
       approved:"Pago aprobado",approvedNote:"Compra confirmada. Consulta tu acceso en Mi cuenta.",goAccount:"Ir a mi cuenta",
       security:"Mercado Pago procesa pagos en BRL. La activación depende de la aprobación.",
       summary:"RESUMEN DEL PEDIDO",planLabel:"Plan",duration:"Duración",total:"Total",buySecure:"Compra segura",
-      buySecureDetail:"Pago procesado por Mercado Pago.",preorderTitle:"IMPORTANTE: Preventa iOS",
-      preorderNotice:"La versión de iOS aún no se lanzó. Compras por adelantado, sin acceso inmediato ni fecha confirmada.",
-      confirmPreorder:"Entiendo que compro en preventa iOS, sin acceso inmediato ni fecha confirmada de lanzamiento.",
-      telegramInfo:"Telegram solo para catálogo y soporte de Counter-Frame. Pagos únicamente en el sitio.",telegramSupport:"Telegram Counter-Frame • Soporte ↗",day:"día",days:"días",lifetime:"De por vida",
-      preorderApproved:"Preventa confirmada",preorderApprovedNote:"Tu pedido está registrado. El acceso llegará después del lanzamiento de iOS.",preorderMessage:"Preventa confirmada. Pendiente de lanzamiento iOS.",
-      approvedMessage:"Pago confirmado.",iosConfirmError:"Confirma que entiendes las condiciones de preventa de iOS antes de pagar."
+      buySecureDetail:"Pago procesado por Mercado Pago.",preorderTitle:"Counter Flame para iOS disponible",
+      preorderNotice:"Counter Flame está disponible para iOS.",
+      confirmPreorder:"Counter Flame está disponible para iOS.",
+      telegramInfo:"Telegram solo para catálogo y soporte de Counter Flame. Pagos únicamente en el sitio.",telegramSupport:"Telegram Counter Flame • Soporte ↗",day:"día",days:"días",lifetime:"De por vida",
+      preorderApproved:"Pedido confirmado",preorderApprovedNote:"Tu pedido fue confirmado.",preorderMessage:"Pedido confirmado.",
+      approvedMessage:"Pago confirmado.",iosConfirmError:"Counter Flame está disponible para iOS."
     },
     ru:{
       account:"Мой аккаунт",secure:"БЕЗОПАСНАЯ ОПЛАТА",finalize:"Оформите покупку.",intro:"Выберите тариф, укажите данные и оплатите через Mercado Pago. Покупка будет привязана к аккаунту.",
@@ -65,12 +65,12 @@
       approved:"Оплата подтверждена",approvedNote:"Покупка оформлена. Проверьте доступ в аккаунте.",goAccount:"Мой аккаунт",
       security:"Mercado Pago принимает оплату в BRL. Активация после подтверждения оплаты.",
       summary:"ВАШ ЗАКАЗ",planLabel:"Тариф",duration:"Длительность",total:"Итого",buySecure:"Безопасная покупка",
-      buySecureDetail:"Обработка платежа через Mercado Pago.",preorderTitle:"ВАЖНО: Предзаказ iOS",
-      preorderNotice:"Версия для iOS ещё не вышла. Это предзаказ без мгновенного доступа и без подтверждённой даты выпуска.",
-      confirmPreorder:"Я понимаю, что это предзаказ iOS без мгновенного доступа и даты выпуска.",
-      telegramInfo:"Telegram для каталога и поддержки Counter-Frame. Оплата только на сайте.",telegramSupport:"Telegram Counter-Frame • Поддержка ↗",day:"день",days:"дней",lifetime:"Навсегда",
-      preorderApproved:"Предзаказ подтверждён",preorderApprovedNote:"Заказ зарегистрирован. Доступ откроется после выхода версии iOS.",preorderMessage:"Предзаказ зарегистрирован. Ожидается выход iOS.",
-      approvedMessage:"Платёж подтверждён.",iosConfirmError:"Подтвердите условия предзаказа iOS перед оплатой."
+      buySecureDetail:"Обработка платежа через Mercado Pago.",preorderTitle:"Counter Flame для iOS доступен",
+      preorderNotice:"Counter Flame доступен для iOS.",
+      confirmPreorder:"Counter Flame доступен для iOS.",
+      telegramInfo:"Telegram для каталога и поддержки Counter Flame. Оплата только на сайте.",telegramSupport:"Telegram Counter Flame • Поддержка ↗",day:"день",days:"дней",lifetime:"Навсегда",
+      preorderApproved:"Заказ подтверждён",preorderApprovedNote:"Заказ подтверждён.",preorderMessage:"Заказ подтверждён.",
+      approvedMessage:"Платёж подтверждён.",iosConfirmError:"Counter Flame доступен для iOS."
     }
   };
   const t=(key)=>dict[lang][key] ?? dict.pt[key] ?? key;
@@ -108,3 +108,4 @@
   ["planLabel","duration","total"].forEach((k,i)=>{if(summaryLabels[i])summaryLabels[i].textContent=t(k);});
   window.lbCheckoutLocale=lang;
 })();
+

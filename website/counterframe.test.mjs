@@ -21,6 +21,7 @@ const app=express();app.use(express.json());app.set('trust proxy',1);let userId=
 const setting=async(k,f)=>(await db.query('SELECT value FROM app_settings WHERE key=$1',[k])).rows[0]?.value??f;
 const setSetting=async(k,v)=>db.query('INSERT INTO app_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value',[k,v]);
 registerCounterframe(app,{pool,setting,setSetting,requireUser:(req,res,next)=>{req.userId=userId;next();},requireAdmin:(req,res,next)=>{if(req.headers.authorization!=='Admin')return res.sendStatus(401);next();},verifyPassword:(p,h)=>p===h,passwordHash:p=>p,validUsername:s=>/^[a-z0-9]{3,28}$/i.test(s),validEmail:s=>/^.+@.+\..+$/.test(s)});
+process.env.CF_TELEGRAM_ADMIN_IDS='123';
 const telegramCalls=[];registerTelegram(app,{pool,telegramApi:async(method,body)=>{telegramCalls.push({method,body});return {message_id:1};}});process.env.CF_TELEGRAM_WEBHOOK_SECRET=crypto.randomBytes(24).toString('hex');
 const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const base=`http://127.0.0.1:${server.address().port}`;
 const device='a'.repeat(64),other='b'.repeat(64);let token='';
@@ -59,11 +60,30 @@ try{
  assert.equal(discount(3500,20),2800);assert.throws(()=>discount(3500,100));
  await db.query("INSERT INTO sale_coupons(code,percent,product) VALUES('TEST10',10,'counterframe')");assert.equal((await couponDiscount(pool,'test10','counterframe')).percent,10);await assert.rejects(couponDiscount(pool,'test10','cs2'));
  const bot=async update=>{const r=await fetch(base+'/api/cf/telegram',{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Bot-Api-Secret-Token':process.env.CF_TELEGRAM_WEBHOOK_SECRET},body:JSON.stringify(update)});assert.equal(r.status,200);};
- const from={id:123,language_code:'ru'};await bot({message:{from,text:'/start'}});assert.equal(telegramCalls.at(-1).body.caption||telegramCalls.at(-1).body.text,messages.ru.welcome.replace('Legit .xyz • CF Private','LC - CounterFlame Private'));
+ const from={id:123,language_code:'ru'};await bot({message:{from,text:'/start'}});assert.equal(telegramCalls.at(-1).body.caption||telegramCalls.at(-1).body.text,messages.ru.welcome);
  await bot({message:{from,text:'/coupon TEST10'}});await bot({callback_query:{id:'q',from,data:'agree'}});await bot({callback_query:{id:'q2',from,data:'plan:7'}});const invoice=telegramCalls.find(c=>c.method==='sendInvoice').body;assert.equal(invoice.currency,'XTR');assert.equal(invoice.prices[0].amount,278);
  const successful_payment={invoice_payload:invoice.payload,currency:'XTR',total_amount:278,telegram_payment_charge_id:'charge123'};await bot({message:{from,successful_payment}});await bot({message:{from,successful_payment}});
  assert.equal((await db.query('SELECT COUNT(*)::int AS n FROM cf_keys WHERE telegram_id=123')).rows[0].n,1,'duplicate Telegram delivery must issue one key');
  await bot({message:{from,refunded_payment:{telegram_payment_charge_id:'charge123'}}});assert.ok((await db.query('SELECT revoked_at FROM cf_keys WHERE telegram_id=123')).rows[0].revoked_at);
+ const friendFrom={id:456,username:'friend_tg',language_code:'en'};
+ await bot({message:{from:friendFrom,text:'/start ref_123'}});
+ await bot({callback_query:{id:'buy456',from:friendFrom,data:'buy'}});
+ await bot({callback_query:{id:'agree456',from:friendFrom,data:'agree'}});
+ await bot({callback_query:{id:'plan456',from:friendFrom,data:'plan:7'}});
+ const friendInvoice=telegramCalls.filter(c=>c.method==='sendInvoice').at(-1).body;
+ const friendPayment={invoice_payload:friendInvoice.payload,currency:'XTR',total_amount:friendInvoice.prices[0].amount,telegram_payment_charge_id:'charge456'};
+ await bot({message:{from:friendFrom,successful_payment:friendPayment}});
+ const bonus=(await db.query("SELECT id,duration_seconds,claimed_by FROM cf_keys WHERE plan='Affiliate 10%' AND telegram_id=123")).rows[0];
+ assert.equal(Number(bonus.duration_seconds),60480,'7-day purchase must reward exactly 10%');
+ const affiliateMessage=telegramCalls.filter(c=>c.method==='sendMessage'&&String(c.body.chat_id)==='123').at(-1).body.text;
+ const bonusKey=affiliateMessage.match(/CF-[A-F0-9]{36}/)?.[0];assert.ok(bonusKey,'unlinked affiliate receives a redeemable key');
+ await bot({message:{from,text:`/resgatar tester ${bonusKey}`}});
+ assert.equal((await db.query('SELECT claimed_by FROM cf_keys WHERE id=$1',[bonus.id])).rows[0].claimed_by,userId);
+ await bot({message:{from,text:'/admin'}});assert.match(telegramCalls.at(-1).body.text,/пользователей 2/);
+ await bot({callback_query:{id:'salesadmin',from,data:'admin:sales'}});assert.match(telegramCalls.at(-1).body.text,/Последние продажи/);
+ const purchasedKey=(await db.query('SELECT key_id FROM cf_bot_orders WHERE telegram_id=456')).rows[0].key_id;
+ await bot({message:{from,text:`/adminreset ${purchasedKey}`}});
+ assert.equal((await db.query('SELECT claimed_by FROM cf_keys WHERE id=$1',[purchasedKey])).rows[0].claimed_by,null,'admin reset clears the previous activation');
  const lifeKey=(await call('admin/cf/key',{lifetime:true},{admin:true})).data.key;
  const life=await call('cf/register',{username:'lifetimeuser',password:'password123',key:lifeKey});assert.equal(life.status,200);assert.equal(new Date(life.data.expiresAt).getUTCFullYear(),9999);assert.equal(life.data.licenses[0].lifetime,true);
  const friend=(await db.query("INSERT INTO users(username,password_hash) VALUES('friend','password') RETURNING id")).rows[0].id;
@@ -74,3 +94,4 @@ try{
  await reverseReferral(pool,2);assert.ok((await db.query('SELECT revoked_at FROM cf_keys WHERE referral_payment_id=2')).rows[0].revoked_at);
  console.log('PASS: registration with key, lifetime, device/IP/session protection, payment idempotency, Stars/coupons/refunds, referrals, admin status and release validation.');
 }finally{server.close();await db.close();}
+

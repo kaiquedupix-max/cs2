@@ -13,6 +13,7 @@ const brickContainer = document.getElementById("paymentBrick_container");
 const paymentLoading = document.getElementById("paymentLoading");
 const pixResult = document.getElementById("pixResult");
 const paymentApproved = document.getElementById("paymentApproved");
+const stripeCheckoutButton=document.getElementById('stripeCheckoutButton');
 
 const accountGuestBox = document.getElementById("checkoutAccountGuest");
 const accountLoggedBox = document.getElementById("checkoutAccountLogged");
@@ -86,7 +87,7 @@ function buyerPayload() {
 function validateBuyerFields() {
   const required = [
     document.getElementById("buyerName"),
-    ...(isCounterFrame ? [] : [document.getElementById("buyerCpf")]),
+    ...((isCounterFrame||checkoutMarket==='INTL') ? [] : [document.getElementById("buyerCpf")]),
     document.getElementById("buyerEmail"),
   ];
 
@@ -339,6 +340,7 @@ async function showApproved(preOrder = isIosPreorder) {
 
   pixResult.classList.add("hidden");
   brickContainer.classList.add("hidden");
+  stripeCheckoutButton.classList.add('hidden');
   paymentLoading.classList.add("hidden");
   paymentApproved.classList.remove("hidden");
 
@@ -372,7 +374,7 @@ function startPaymentPolling(paymentId) {
         return;
       }
 
-      if (["declined", "canceled", "refund", "chargeback"].includes(status)) {
+      if (["declined", "canceled", "expired", "refund", "chargeback"].includes(status)) {
         stopPaymentPolling();
         setMessage("Pagamento não aprovado ou cancelado.", "error");
       }
@@ -392,6 +394,8 @@ async function handlePaymentResult(result) {
     await showApproved(Boolean(result.preOrder));
     return;
   }
+
+  if(result.checkoutUrl){location.assign(result.checkoutUrl);return;}
 
   if (result.pix?.copyPaste) {
     await destroyPaymentBrick();
@@ -435,6 +439,13 @@ async function handlePaymentResult(result) {
 async function mountPaymentBrick() {
   stopPaymentPolling();
   await destroyPaymentBrick();
+
+  if(checkoutConfig?.provider==='stripe'){
+    paymentLoading.classList.add('hidden');brickContainer.classList.add('hidden');stripeCheckoutButton.classList.remove('hidden');
+    stripeCheckoutButton.textContent=({pt:'Pagar com Stripe',en:'Pay with Stripe',es:'Pagar con Stripe',ru:'Оплатить через Stripe'})[checkoutLang]||'Pay with Stripe';
+    return;
+  }
+  stripeCheckoutButton.classList.add('hidden');brickContainer.classList.remove('hidden');
 
   const plan = selectedPlan();
 
@@ -552,6 +563,17 @@ async function mountPaymentBrick() {
   }
 }
 
+stripeCheckoutButton.addEventListener('click',async()=>{
+  stripeCheckoutButton.disabled=true;paymentLoading.classList.remove('hidden');paymentLoading.textContent=({pt:'Preparando checkout do Stripe…',en:'Preparing Stripe Checkout…',es:'Preparando el pago de Stripe…',ru:'Подготовка оплаты Stripe…'})[checkoutLang]||'Preparing Stripe Checkout…';
+  try{
+    if(!validateBuyerFields())throw new Error(({pt:'Informe nome e e-mail válidos.',en:'Enter a valid name and email.',es:'Introduce un nombre y correo válidos.',ru:'Укажите корректное имя и email.'})[checkoutLang]);
+    await ensureCheckoutAccount();
+    if(!document.getElementById('acceptPurchaseTerms')?.checked)throw Error(({pt:'Leia e aceite os termos antes de pagar.',en:'Read and accept the terms before paying.',es:'Lee y acepta los términos antes de pagar.',ru:'Перед оплатой прочитайте и примите условия.'})[checkoutLang]||'Read and accept the terms before paying.');
+    const result=await api('/api/checkout/payment',{method:'POST',body:JSON.stringify({...buyerPayload(),planKey:selectedPlanKey,couponCode:appliedCouponCode,referralCode:checkoutParams.get('ref')||localStorage.getItem('lb_referral')||'',termsAccepted:true,termsVersion:'2026-11-10.1',idempotencyKey:paymentIntent,formData:{}})});
+    if(!result.checkoutUrl)throw Error('Stripe checkout URL is missing.');location.assign(result.checkoutUrl);
+  }catch(error){setMessage(error.message||'Could not start Stripe Checkout.','error');stripeCheckoutButton.disabled=false;paymentLoading.classList.add('hidden');}
+});
+
 document.getElementById("buyerCpf").addEventListener("input", (event) => {
   let value = onlyDigits(event.target.value).slice(0, 11);
 
@@ -597,9 +619,9 @@ document.getElementById("copyPixBtn").addEventListener("click", async () => {
 
 async function boot() {
   try {
-    document.title = (isCounterFrame ? "Counter-Frame" : "CS2") + " | Legit Baratinho";
+    document.title = (isCounterFrame ? "Counter Flame" : "CS2") + " | Legit Baratinho";
     document.getElementById("checkoutProductName").textContent =
-      isCounterFrame ? "Counter-Frame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : "Counter-Strike 2";
+      isCounterFrame ? "Counter Flame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : "Counter-Strike 2";
     document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : "CS";
     document.getElementById("iosCheckoutNotice")?.classList.toggle("hidden", !isIosPreorder);
     document.getElementById("cfTelegramChoice")?.classList.toggle("hidden", !isCounterFrame);
@@ -617,10 +639,14 @@ async function boot() {
     const checkoutQuery = new URLSearchParams({product: checkoutProduct});
     checkoutConfig = await api("/api/checkout/config?" + checkoutQuery);
     basePlanPrices=checkoutConfig.plans.map(p=>({...p}));
-    checkoutMarket = isCounterFrame && checkoutConfig.market !== "BR" ? "INTL" : "BR";
-    if(isCounterFrame && checkoutMarket==="INTL"){
+    checkoutMarket = checkoutConfig.market === "BR" ? "BR" : "INTL";
+    document.getElementById('buyerCpf').required=!isCounterFrame&&checkoutMarket==='BR';
+    if(checkoutMarket==='INTL'&&!isCounterFrame)document.getElementById('buyerCpfLabel').firstChild.textContent=({pt:'CPF (opcional para clientes internacionais)',en:'CPF (optional for international buyers)',es:'CPF (opcional para clientes extranjeros)',ru:'CPF (необязательно для иностранцев)'})[checkoutLang];
+    if(checkoutMarket==='INTL'){
       const intro=document.getElementById("checkoutIntro");
-      if(intro)intro.textContent="International prices are listed in USD, but Mercado Pago charges in BRL (R$). The payable BRL amount is displayed below before confirmation.";
+      if(intro)intro.textContent=checkoutConfig.provider==='stripe'?({pt:'Clientes fora do Brasil pagam com cartão pelo Stripe.',en:'Customers outside Brazil pay by card through Stripe.',es:'Los clientes fuera de Brasil pagan con tarjeta por Stripe.',ru:'Покупатели за пределами Бразилии оплачивают картой через Stripe.'})[checkoutLang]:"Clientes fora do Brasil pagam com cartão pelo Stripe.";
+      document.getElementById('checkoutSecureNote').textContent=({pt:'🔒 Pagamento internacional com cartão processado pelo Stripe.',en:'🔒 International card payment processed by Stripe.',es:'🔒 Pago internacional con tarjeta procesado por Stripe.',ru:'🔒 Международный платёж картой обрабатывается Stripe.'})[checkoutLang];
+      document.getElementById('checkoutProviderNote').textContent=({pt:'Checkout de cartão do Stripe e confirmação automática após o webhook.',en:'Stripe card checkout with automatic confirmation after its webhook.',es:'Pago con tarjeta de Stripe y confirmación automática mediante webhook.',ru:'Оплата картой Stripe с автоматическим подтверждением через webhook.'})[checkoutLang];
     }
     renderPlans();
 
@@ -636,16 +662,19 @@ async function boot() {
     suggestUsernameFromEmail();
 
     if (!checkoutConfig.configured) {
-      setMessage(
-        checkoutMarket === "INTL"
-          ? "International card payments require USD-to-BRL exchange-rate configuration before checkout can be enabled."
-          : "Configure MP_PUBLIC_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e PUBLIC_URL para habilitar pagamentos.",
-        "error"
-      );
+      if(checkoutConfig.provider==='stripe'){
+        brickContainer.classList.add('hidden');paymentLoading.classList.add('hidden');stripeCheckoutButton.classList.remove('hidden');stripeCheckoutButton.disabled=true;
+        stripeCheckoutButton.textContent=({pt:'Stripe • configuração pendente',en:'Stripe • setup pending',es:'Stripe • configuración pendiente',ru:'Stripe • настройка ожидается'})[checkoutLang];
+      }
+      setMessage(checkoutMarket==='INTL'?({pt:'Stripe pendente. Configure a chave secreta e o segredo do webhook no serviço de hospedagem.',en:'Stripe is pending. Add its secret key and webhook signing secret to the hosting service.',es:'Stripe está pendiente. Configura la clave secreta y el secreto de firma del webhook en el alojamiento.',ru:'Stripe ожидает настройки. Добавьте секретный ключ и секрет вебхука в параметры хостинга.'})[checkoutLang]:'Configure MP_PUBLIC_KEY, MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET e PUBLIC_URL para habilitar pagamentos.','error');
       return;
     }
 
+    if(new URLSearchParams(location.search).get('stripe')==='cancelled')setMessage(({pt:'Pagamento cancelado. Você pode tentar novamente.',en:'Payment cancelled. You can try again.',es:'Pago cancelado. Puedes intentarlo otra vez.',ru:'Оплата отменена. Можно попробовать снова.'})[checkoutLang]);
+    const returnedPayment=new URLSearchParams(location.search).get('payment_id'),stripeReturned=new URLSearchParams(location.search).get('stripe')==='success';
+    if(returnedPayment&&stripeReturned)setMessage(({pt:'Aguardando confirmação segura do pagamento…',en:'Waiting for secure payment confirmation…',es:'Esperando la confirmación segura del pago…',ru:'Ожидаем безопасное подтверждение платежа…'})[checkoutLang]);
     await mountPaymentBrick();
+    if(returnedPayment&&stripeReturned){stripeCheckoutButton.classList.add('hidden');startPaymentPolling(returnedPayment);}
   } catch (error) {
     setMessage(error.message, "error");
   }

@@ -7,9 +7,9 @@ export async function initReferrals(pool){await pool.query(`
  `);}
 export async function resolveReferrer(pool,code,buyerId){if(!code)return null;const {rows}=await pool.query('SELECT user_id FROM referral_codes WHERE code=$1',[String(code).slice(0,40)]);const id=rows[0]?.user_id;return id&&String(id)!==String(buyerId)?id:null;}
 export async function recomputeCounterframe(db,userId){
- const {rows}=await db.query('SELECT k.id,k.days,k.lifetime,k.activated_at,r.seconds FROM cf_keys k LEFT JOIN referral_rewards r ON r.payment_id=k.referral_payment_id WHERE k.claimed_by=$1 AND k.revoked_at IS NULL ORDER BY k.activated_at,k.id',[userId]);
+ const {rows}=await db.query('SELECT k.id,k.days,k.duration_seconds,k.lifetime,k.activated_at,r.seconds FROM cf_keys k LEFT JOIN referral_rewards r ON r.payment_id=k.referral_payment_id WHERE k.claimed_by=$1 AND k.revoked_at IS NULL ORDER BY k.activated_at,k.id',[userId]);
  let cursor=0;const forever=Date.parse('9999-12-31T23:59:59Z');
- for(const key of rows){cursor=key.lifetime?forever:Math.min(forever,Math.max(cursor,new Date(key.activated_at).getTime())+Number(key.seconds??Number(key.days)*86400)*1000);await db.query('UPDATE cf_keys SET expires_at=$2 WHERE id=$1',[key.id,new Date(cursor).toISOString()]);}
+ for(const key of rows){cursor=key.lifetime?forever:Math.min(forever,Math.max(cursor,new Date(key.activated_at).getTime())+Number(key.seconds??key.duration_seconds??Number(key.days)*86400)*1000);await db.query('UPDATE cf_keys SET expires_at=$2 WHERE id=$1',[key.id,new Date(cursor).toISOString()]);}
 }
 export async function grantReferral(db,paymentId,payment){
  if(!payment.referrer_id||String(payment.referrer_id)===String(payment.user_id)||payment.plan_lifetime||!payment.plan_days)return;
@@ -31,3 +31,4 @@ export async function reverseReferral(db,paymentId){
 export function registerReferrals(app,{pool,requireUser}){
  app.get('/api/account/referrals',requireUser,async(req,res)=>{try{await pool.query('INSERT INTO referral_codes(user_id,code) VALUES($1,$2) ON CONFLICT(user_id) DO NOTHING',[req.userId,crypto.randomBytes(10).toString('hex')]);const c=await pool.query('SELECT code FROM referral_codes WHERE user_id=$1',[req.userId]);const rewards=await pool.query('SELECT product,seconds,created_at,revoked_at FROM referral_rewards WHERE referrer_id=$1 ORDER BY created_at DESC LIMIT 100',[req.userId]);res.json({url:(process.env.PUBLIC_URL||'https://legitbaratinho.xyz')+'/?ref='+c.rows[0].code,rewards:rewards.rows});}catch{res.status(500).json({error:'referrals_unavailable'});}});
 }
+
