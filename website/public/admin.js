@@ -50,6 +50,10 @@ function selectAdminGame(product, updateHash = false) {
   if (adminGameSelect) adminGameSelect.value = counterFrame ? "counterframe" : "cs2";
   if (updateHash) history.replaceState(null, "", location.pathname + location.search + (counterFrame ? "#counterframe" : "#cs2"));
 }
+document.querySelectorAll("[data-cs2-tab]").forEach((button) => button.addEventListener("click", () => {
+  document.querySelectorAll("[data-cs2-tab]").forEach((tab) => tab.classList.toggle("active", tab === button));
+  document.querySelectorAll(".cs2-panel").forEach((panel) => { panel.hidden = panel.id !== button.dataset.cs2Tab; });
+}));
 adminGameSelect?.addEventListener("change", () => selectAdminGame(adminGameSelect.value, true));
 window.addEventListener("hashchange", () => selectAdminGame(location.hash.includes("counterframe") ? "counterframe" : "cs2"));
 selectAdminGame(location.hash.includes("counterframe") ? "counterframe" : "cs2");
