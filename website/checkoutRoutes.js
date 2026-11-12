@@ -1,3 +1,4 @@
+import {settleBotOrder} from './botPayments.js';
 import {
   checkoutConfig,
   checkoutPlan,
@@ -604,6 +605,7 @@ export function registerCheckoutRoutes(app, deps) {
       if(['checkout.session.completed','checkout.session.async_payment_succeeded'].includes(event?.type)){
         const session=event.data?.object;
         if(session?.mode!=='payment'||session.payment_status!=='paid')return res.sendStatus(200);
+        if(String(session.client_reference_id||'').startsWith('tg:')){await settleBotOrder(pool,{payload:String(session.client_reference_id).slice(3),providerRef:String(session.payment_intent||session.id),amountCents:Number(session.amount_total),currency:session.currency});return res.sendStatus(200);}
         const localId=Number(session.metadata?.payment_id||session.client_reference_id);
         if(!Number.isSafeInteger(localId)||localId<1)return res.sendStatus(400);
         const found=await pool.query("SELECT id,provider_order_id,expected_amount,currency,status FROM checkout_payments WHERE id=$1 AND provider='stripe'",[localId]),p=found.rows[0];
@@ -638,6 +640,13 @@ export function registerCheckoutRoutes(app, deps) {
 
     try {
       const rawPayment = await getPayment(dataId);
+      const botRef = String(rawPayment?.external_reference || "");
+      if (botRef.startsWith("tg:")) {
+        if (rawPayment.status === "approved") {
+          await settleBotOrder(pool, { payload: botRef.slice(3), providerRef: String(rawPayment.id), amountCents: Math.round(Number(rawPayment.transaction_amount) * 100), currency: rawPayment.currency_id || "BRL" });
+        }
+        return res.sendStatus(200);
+      }
       const metadata = rawPayment?.metadata || {};
       let localId = Number(metadata.local_payment_id || 0);
 

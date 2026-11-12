@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import {BOT_PLANS,botPlan,botAmount,botText,planLabel,brl,botPaymentMethods,setBotApi,startPixPayment,startMercadoPagoCard,startStripeCard,confirmBotOrder,validCpf} from './botPayments.js';
+async function botLink(api){let bot=String(process.env.CF_TELEGRAM_BOT_USERNAME||'').replace(/^@/,'');if(!bot){try{bot=(await api('getMe',{})).username||'';}catch{}}return bot?'https://t.me/'+bot:String(process.env.PUBLIC_SITE_URL||'https://legitbaratinho.xyz');}
 import {language} from './counterframe.js';
 import {checkoutPlan} from './mercadoPago.js';
 import {couponDiscount,reserveCoupon} from './coupons.js';
@@ -30,6 +32,8 @@ export async function initTelegram(pool){await pool.query(`
  ALTER TABLE cf_bot_users ADD COLUMN IF NOT EXISTS username TEXT,ADD COLUMN IF NOT EXISTS first_name TEXT,ADD COLUMN IF NOT EXISTS last_name TEXT,ADD COLUMN IF NOT EXISTS first_started_at TIMESTAMPTZ,ADD COLUMN IF NOT EXISTS last_started_at TIMESTAMPTZ,ADD COLUMN IF NOT EXISTS start_count INTEGER NOT NULL DEFAULT 0,ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ,ADD COLUMN IF NOT EXISTS referrer_telegram_id BIGINT,ADD COLUMN IF NOT EXISTS linked_user_id BIGINT REFERENCES users(id),ADD COLUMN IF NOT EXISTS coupon_code TEXT,ADD COLUMN IF NOT EXISTS terms_version TEXT,ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMPTZ;
  CREATE TABLE IF NOT EXISTS cf_bot_orders(payload TEXT PRIMARY KEY,telegram_id BIGINT NOT NULL,days INTEGER NOT NULL,stars INTEGER NOT NULL,charge_id TEXT UNIQUE,key_id BIGINT REFERENCES cf_keys(id),coupon_code TEXT,referrer_telegram_id BIGINT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),delivered_at TIMESTAMPTZ,refunded_at TIMESTAMPTZ);
  ALTER TABLE cf_bot_orders ADD COLUMN IF NOT EXISTS coupon_code TEXT,ADD COLUMN IF NOT EXISTS referrer_telegram_id BIGINT,ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ,ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ;
+ ALTER TABLE cf_bot_orders ADD COLUMN IF NOT EXISTS provider TEXT NOT NULL DEFAULT 'telegram_stars',ADD COLUMN IF NOT EXISTS amount_cents INTEGER,ADD COLUMN IF NOT EXISTS currency TEXT,ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',ADD COLUMN IF NOT EXISTS provider_ref TEXT,ADD COLUMN IF NOT EXISTS pix_copy_paste TEXT,ADD COLUMN IF NOT EXISTS pix_expires_at TIMESTAMPTZ,ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ,ADD COLUMN IF NOT EXISTS lifetime BOOLEAN NOT NULL DEFAULT FALSE,ADD COLUMN IF NOT EXISTS plan_key TEXT;
+ ALTER TABLE cf_bot_users ADD COLUMN IF NOT EXISTS pending_action TEXT;
  CREATE TABLE IF NOT EXISTS cf_bot_updates(id BIGINT PRIMARY KEY,processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
  CREATE TABLE IF NOT EXISTS cf_bot_events(id BIGSERIAL PRIMARY KEY,update_id BIGINT UNIQUE,telegram_id BIGINT,username TEXT,event TEXT NOT NULL,command TEXT,details JSONB NOT NULL DEFAULT '{}'::jsonb,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
  CREATE INDEX IF NOT EXISTS cf_bot_events_recent ON cf_bot_events(created_at DESC);
@@ -37,6 +41,7 @@ export async function initTelegram(pool){await pool.query(`
 `);}
 export function registerTelegram(app,{pool,telegramApi}){
  const api=telegramApi|| (async(method,body)=>{const token=process.env.CF_TELEGRAM_TOKEN;if(!token)throw Error('bot_not_configured');const r=await fetch(`https://api.telegram.org/bot${token}/${method}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});const data=await r.json();if(!data.ok)throw Error('telegram_request_failed');return data.result;});
+ setBotApi(api);
  const adminIds=new Set(String(process.env.CF_TELEGRAM_ADMIN_IDS||process.env.TELEGRAM_ADMIN_IDS||"").split(",").map(x=>x.trim()).filter(Boolean));
  const botUsername=String(process.env.CF_TELEGRAM_USERNAME||process.env.TELEGRAM_BOT_USERNAME||"LegitCheatsCFBot").replace(/^@/,"");
  const event=async(update,from,type,command="",details={})=>{
@@ -146,7 +151,7 @@ export function registerTelegram(app,{pool,telegramApi}){
      }
      if(q)await api('answerCallbackQuery',{callback_query_id:q.id});
      let action=String(q?.data||m?.text||'').trim();
-     const command=action.split(/\s+/)[0].toLowerCase().split("@")[0];
+     const pendingRowBot=await pool.query('SELECT pending_action FROM cf_bot_users WHERE telegram_id=$1',[from.id]);const pendingPixCpf=!q&&String(pendingRowBot.rows[0]?.pending_action||'').startsWith('pix_cpf:');const command=(pendingPixCpf?'pix_cpf_input':action).split(/\s+/)[0].toLowerCase().split("@")[0];
      if(action==='agree'){await pool.query('INSERT INTO cf_bot_users(telegram_id,language,terms_version,terms_accepted_at) VALUES($1,$2,$3,NOW()) ON CONFLICT(telegram_id) DO UPDATE SET terms_version=EXCLUDED.terms_version,terms_accepted_at=NOW()',[from.id,lang,TERMS_VERSION]);accepted=true;action='buy';}
      if(command==='/start'){
        await event(update,from,"start","/start",{referred_by:row.rows[0]?.referrer_telegram_id||null});
@@ -182,9 +187,22 @@ export function registerTelegram(app,{pool,telegramApi}){
        try{const username=await redeemKey(from.id,parts[1],parts[2]);const keyRow=await pool.query("SELECT duration_seconds,days FROM cf_keys WHERE key_hash=$1",[crypto.createHash("sha256").update(parts[2].trim().toUpperCase()).digest("hex")]);const seconds=Number(keyRow.rows[0]?.duration_seconds||Number(keyRow.rows[0]?.days||0)*86400);await send(t.redeemSuccess.replace("{duration}",formatDuration(seconds)).replace("{username}",username));await event(update,from,"key_redeemed","/redeem",{username});}catch(error){console.error('Falha ao resgatar key:',error?.message||error);await send(t.redeemFail);}return res.sendStatus(200);
      }
      if(action==='/buy'||action==='/shop')action='buy';
-     if(action==='/terms'||action==='terms'||((action==='buy'||action.startsWith('plan:'))&&!accepted)){await send(t.policy,[[{text:t.terms,url:'https://legitbaratinho.xyz/terms.html?lang='+lang}],[{text:t.agree,callback_data:'agree'}]]);return res.sendStatus(200);}
+     if(action==='/terms'||action==='terms'||((action==='buy'||action.startsWith('plan:')||action.startsWith('bplan:')||action.startsWith('pix:')||action.startsWith('mpcard:')||action.startsWith('stripecard:')||action.startsWith('check:'))&&!accepted)){await send(t.policy,[[{text:t.terms,url:'https://legitbaratinho.xyz/terms.html?lang='+lang}],[{text:t.agree,callback_data:'agree'}]]);return res.sendStatus(200);}
      if(action==='features'||action==='/features'){await send(t.featureText);return res.sendStatus(200);}
      if(action==='/paysupport'||action==='/support'){await send(t.support);return res.sendStatus(200);}
+     if(pendingPixCpf){
+       const bt=botText(lang),key=String(pendingRowBot.rows[0].pending_action).slice(8),plan=botPlan(key),cpf=String(action).replace(/\D/g,'');
+       if(!plan){await pool.query('UPDATE cf_bot_users SET pending_action=NULL WHERE telegram_id=$1',[from.id]);await send(bt.error);return res.sendStatus(200);}
+       if(!validCpf(cpf)){await send(bt.cpfInvalid);return res.sendStatus(200);}
+       await pool.query('UPDATE cf_bot_users SET pending_action=NULL WHERE telegram_id=$1',[from.id]);
+       let coupon;try{coupon=await couponDiscount(pool,row.rows[0]?.coupon_code,'counterframe');}catch{await send(t.couponInvalid);return res.sendStatus(200);}
+       try{
+         const out=await startPixPayment(pool,{telegramId:from.id,plan,couponPercent:coupon.percent,couponCode:coupon.code,referrer:row.rows[0]?.referrer_telegram_id||null,cpf,lang});
+         const expires=out.expires?` ${bt.pixExpires} ${new Date(out.expires).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}`:'';
+         await send(`${bt.pixReady}${expires}\n\n${out.qr}`,[[{text:bt.check,callback_data:'check:'+out.payload}]]);
+       }catch(error){console.error('Falha no PIX do bot:',error?.message||error);await send(bt.error);}
+       return res.sendStatus(200);
+     }
      if(action.startsWith('lang:')){const l=language(action.slice(5));await pool.query('INSERT INTO cf_bot_users(telegram_id,language) VALUES($1,$2) ON CONFLICT(telegram_id) DO UPDATE SET language=EXCLUDED.language',[from.id,l]);await send(messages[l].welcome);}
      else if(action==='language'||action==='/language'){await send(t.choose,[[{text:'Português',callback_data:'lang:pt'},{text:'English',callback_data:'lang:en'}],[{text:'Español',callback_data:'lang:es'},{text:'Русский',callback_data:'lang:ru'}]]);}
      else if(action==='keys'){const r=await pool.query('SELECT key_cipher FROM cf_keys WHERE telegram_id=$1 AND revoked_at IS NULL ORDER BY id DESC LIMIT 20',[from.id]);await send(r.rows.length?r.rows.map(k=>decodeKey(k.key_cipher)).join('\n'):t.empty);}
@@ -195,7 +213,39 @@ export function registerTelegram(app,{pool,telegramApi}){
      else if(action.startsWith('/coupon ')){try{const c=await couponDiscount(pool,action.slice(8).trim(),'counterframe');await pool.query('INSERT INTO cf_bot_users(telegram_id,language,coupon_code) VALUES($1,$2,$3) ON CONFLICT(telegram_id) DO UPDATE SET coupon_code=EXCLUDED.coupon_code',[from.id,lang,c.code]);await send(t.couponApplied+' '+c.percent+'%');}catch{await send(t.couponInvalid);}}
      else if(action==='coupon'||action==='/coupon')await send(t.couponPrompt);
      else if(action.startsWith('plan:')){const plan=plans().find(p=>String(p.days)===action.slice(5));if(!plan){await send(t.off);return res.sendStatus(200);}let coupon;try{coupon=await couponDiscount(pool,row.rows[0]?.coupon_code,'counterframe');}catch{await send(t.couponInvalid);return res.sendStatus(200);}const stars=Math.max(1,Math.ceil(plan.stars*(100-coupon.percent)/100)),payload=crypto.randomBytes(24).toString('hex');if(coupon.code)await reserveCoupon(pool,coupon.code,'counterframe','telegram:'+payload);await pool.query('INSERT INTO cf_bot_orders(payload,telegram_id,days,stars,coupon_code,referrer_telegram_id) VALUES($1,$2,$3,$4,$5,$6)',[payload,from.id,plan.days,stars,coupon.code,row.rows[0]?.referrer_telegram_id||null]);await api('sendInvoice',{chat_id:from.id,title:t.invoice,description:`${plan.days} ${t.days}`,payload,currency:'XTR',prices:[{label:t.invoice,amount:stars}]});}
-     else if(action==='buy'){const p=plans();await send(p.length?t.buy:t.off,p.map(p=>[{text:`${p.days} ${t.days} · ${p.stars} ⭐`,callback_data:`plan:${p.days}`} ]));}
+     else if(action.startsWith('bplan:')){
+       const plan=botPlan(action.slice(6)),bt=botText(lang);if(!plan){await send(bt.off);return res.sendStatus(200);}
+       const methods=botPaymentMethods(),starsPlan=plan.lifetime?null:plans().find(p=>Number(p.days)===plan.days),price=brl(botAmount(plan,0)),buttons=[];
+       if(starsPlan)buttons.push([{text:starsPlan.stars+' ⭐ Stars',callback_data:'plan:'+plan.days}]);
+       if(methods.pix)buttons.push([{text:'PIX · '+price,callback_data:'pix:'+plan.key}]);
+       if(methods.mpCard)buttons.push([{text:bt.cardLabelMp+' · '+price,callback_data:'mpcard:'+plan.key}]);
+       if(methods.stripeCard)buttons.push([{text:bt.cardLabelStripe+' · '+price,callback_data:'stripecard:'+plan.key}]);
+       if(!buttons.length){await send(bt.off);return res.sendStatus(200);}
+       await send(planLabel(plan,lang)+'\n'+bt.payMethod,buttons);
+     }
+     else if(action.startsWith('pix:')){
+       const plan=botPlan(action.slice(4));if(!plan||!botPaymentMethods().pix){await send(botText(lang).off);return res.sendStatus(200);}
+       await pool.query('UPDATE cf_bot_users SET pending_action=$2 WHERE telegram_id=$1',[from.id,'pix_cpf:'+plan.key]);
+       await send(botText(lang).pixCpf);
+     }
+     else if(action.startsWith('mpcard:')){
+       const plan=botPlan(action.slice(7)),bt=botText(lang);if(!plan||!botPaymentMethods().mpCard){await send(bt.off);return res.sendStatus(200);}
+       let coupon;try{coupon=await couponDiscount(pool,row.rows[0]?.coupon_code,'counterframe');}catch{await send(t.couponInvalid);return res.sendStatus(200);}
+       try{const out=await startMercadoPagoCard(pool,{telegramId:from.id,plan,couponPercent:coupon.percent,couponCode:coupon.code,referrer:row.rows[0]?.referrer_telegram_id||null,lang,backUrl:await botLink(api)});await send(bt.cardReady,[[{text:bt.payCard,url:out.url}],[{text:bt.check,callback_data:'check:'+out.payload}]]);}
+       catch(error){console.error('Falha no cartão Mercado Pago do bot:',error?.message||error);await send(bt.error);}
+     }
+     else if(action.startsWith('stripecard:')){
+       const plan=botPlan(action.slice(11)),bt=botText(lang);if(!plan||!botPaymentMethods().stripeCard){await send(bt.off);return res.sendStatus(200);}
+       let coupon;try{coupon=await couponDiscount(pool,row.rows[0]?.coupon_code,'counterframe');}catch{await send(t.couponInvalid);return res.sendStatus(200);}
+       try{const out=await startStripeCard(pool,{telegramId:from.id,plan,couponPercent:coupon.percent,couponCode:coupon.code,referrer:row.rows[0]?.referrer_telegram_id||null,lang,successUrl:await botLink(api)});await send(bt.cardReady,[[{text:bt.payCard,url:out.url}],[{text:bt.check,callback_data:'check:'+out.payload}]]);}
+       catch(error){console.error('Falha no cartão Stripe do bot:',error?.message||error);await send(bt.error);}
+     }
+     else if(action.startsWith('check:')){
+       const bt=botText(lang),r=await pool.query("SELECT * FROM cf_bot_orders WHERE payload=$1 AND telegram_id=$2 AND provider<>'telegram_stars'",[action.slice(6),from.id]),o=r.rows[0];
+       if(!o)await send(bt.error);else if(o.status==='paid')await send(bt.alreadyPaid);
+       else{try{if(!await confirmBotOrder(pool,o,api))await send(bt.pending);}catch(error){console.error('Falha ao verificar pagamento do bot:',error?.message||error);await send(bt.pending);}}
+     }
+     else if(action==='buy'){await send(t.buy,BOT_PLANS.map(p=>[{text:planLabel(p,lang)+' · '+brl(botAmount(p,0)),callback_data:'bplan:'+p.key}]));}
      else {const buttons=[[{text:t.buy,callback_data:'buy'},{text:t.keys,callback_data:'keys'}],[{text:t.affiliate,callback_data:'affiliate'},{text:t.redeem,callback_data:'redeem'}],[{text:t.features,callback_data:'features'},{text:t.lang,callback_data:'language'}],[{text:t.coupon,callback_data:'coupon'},{text:t.terms,callback_data:'terms'}]];await send(t.welcome,buttons);}
      res.sendStatus(200);
    }catch(error){console.error('Falha no webhook Telegram:',error?.stack||error?.message||error);res.sendStatus(500);}
