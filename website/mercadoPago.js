@@ -284,3 +284,56 @@ export async function getPayment(paymentId) {
   return mpRequest("/v1/payments/" + id, { method: "GET" });
 }
 
+
+// Bot payments (Telegram). Pix charges need a CPF; card goes through a Checkout Pro preference.
+export function mercadoPagoBotReady() {
+  return checkoutConfig("counterframe", "BR").configured;
+}
+
+export async function createBotPixPayment({ amountCents, description, telegramId, cpf, externalReference, idempotencyKey }) {
+  const config = checkoutConfig("counterframe", "BR");
+  if (!config.configured) throw Object.assign(new Error("Mercado Pago ainda não configurado."), { statusCode: 503 });
+  if (!validCpf(cpf)) throw Object.assign(new Error("CPF inválido."), { statusCode: 400 });
+  return mpRequest("/v1/payments", {
+    method: "POST",
+    headers: { "X-Idempotency-Key": idempotencyKey },
+    body: JSON.stringify({
+      transaction_amount: Number((amountCents / 100).toFixed(2)),
+      description,
+      payment_method_id: "pix",
+      payer: {
+        // Telegram buyers have no e-mail on the site; MP only needs an address for the payer record.
+        email: "telegram+" + String(telegramId) + "@legitbaratinho.xyz",
+        identification: { type: "CPF", number: digitsOnly(cpf) },
+      },
+      external_reference: externalReference,
+      metadata: { bot_payment: externalReference },
+      notification_url: config.publicUrl + "/api/webhooks/mercadopago",
+      binary_mode: false,
+    }),
+  });
+}
+
+export async function createBotCardPreference({ amountCents, title, externalReference, backUrl, idempotencyKey }) {
+  const config = checkoutConfig("counterframe", "BR");
+  if (!config.configured) throw Object.assign(new Error("Mercado Pago ainda não configurado."), { statusCode: 503 });
+  const preference = await mpRequest("/checkout/preferences", {
+    method: "POST",
+    headers: { "X-Idempotency-Key": idempotencyKey },
+    body: JSON.stringify({
+      items: [{ title, quantity: 1, unit_price: Number((amountCents / 100).toFixed(2)), currency_id: "BRL" }],
+      external_reference: externalReference,
+      notification_url: config.publicUrl + "/api/webhooks/mercadopago",
+      back_urls: { success: backUrl, pending: backUrl, failure: backUrl },
+      payment_methods: { excluded_payment_types: [{ id: "ticket" }] },
+      statement_descriptor: "COUNTER FLAME",
+    }),
+  });
+  return preference;
+}
+
+export async function searchBotPaymentsByReference(externalReference) {
+  const data = await mpRequest("/v1/payments/search?sort=date_created&criteria=desc&external_reference=" +
+    encodeURIComponent(externalReference), { method: "GET" });
+  return Array.isArray(data?.results) ? data.results : [];
+}
