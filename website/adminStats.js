@@ -1,13 +1,13 @@
 // Admin finance overview and per-client detail. Read-only: nothing here grants, revokes or charges anything.
 const PRODUCT_LABELS = {
   cs2: "Counter-Strike 2",
-  combatarms: "Combat Arms External Brasil 7",
+  combatarms: "Combat Arms Brasil Server",
   "counterframe-android": "Counter Flame (Android)",
   "counterframe-ios": "Counter Flame (iOS)",
 };
 const GROUP_LABELS = {
   cs2: "Counter-Strike 2",
-  combatarms: "Combat Arms External Brasil 7",
+  combatarms: "Combat Arms Brasil Server",
   counterframe: "Counter Flame",
 };
 const GATEWAY_LABELS = { mercadopago: "Mercado Pago (site)", stripe: "Stripe (site)", telegram: "Telegram (bot)" };

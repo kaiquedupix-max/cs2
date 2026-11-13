@@ -1,32 +1,31 @@
-// Signed release manifest + pre-publish file inspection. Pure functions (no DB, no HTTP).
+// Release attestation + pre-publish file inspection. Pure functions (no DB, no HTTP).
+//
+// Trust model: the product's CI signs an attestation (a JSON string) with a private key that only exists in that
+// repository's protected secrets. The server never holds a private key: it only checks the signature with the PUBLIC key
+// before accepting an upload, stores payload + signature next to the file, and serves them back. The loader verifies the
+// same signature with the public key embedded in the loader, so neither a compromised server nor a swapped file can make a
+// loader run something CI did not build.
+//
 // Signature: ECDSA P-256 / SHA-256, DER-encoded, base64 (verifiable with .NET ECDsa.VerifyData, Rfc3279DerSequence).
 // The signed bytes are the exact `payload` string; clients verify the string first and parse it afterwards.
 import crypto from "node:crypto";
 
-export const MANIFEST_SCHEMA = 1;
+export const ATTESTATION_SCHEMA = 2;
+const VERSION_RE = /^\d{1,4}\.\d{1,4}(\.\d{1,4})?$/;
 
-export function buildManifest({ product, def, release, issuedAt = new Date() }) {
-  return {
-    schema: MANIFEST_SCHEMA,
-    product,
-    channel: def.channel,
-    version: release.version,
-    issuedAt: issuedAt.toISOString(),
-    launch: { type: def.launch.type, fileName: def.launch.fileName ?? null, requiresAdmin: def.launch.requiresAdmin },
-    dependencies: def.dependencies,
-    files: [{ name: release.file_name, size: Number(release.file_size), sha256: String(release.sha256).toLowerCase() }],
-  };
+export const isVersion = (v) => VERSION_RE.test(String(v || ""));
+
+// Compares dotted versions numerically (1.10 > 1.9). Missing parts count as 0.
+export function compareVersions(a, b) {
+  const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d < 0 ? -1 : 1;
+  }
+  return 0;
 }
 
-export function signManifest(manifest, privateKeyPem) {
-  const payload = JSON.stringify(manifest);
-  const key = crypto.createPrivateKey(privateKeyPem);
-  if (key.asymmetricKeyType !== "ec" || key.asymmetricKeyDetails?.namedCurve !== "prime256v1") throw new Error("signing_key_must_be_p256");
-  const signature = crypto.sign("sha256", Buffer.from(payload, "utf8"), key).toString("base64");
-  return { payload, signature };
-}
-
-export function verifyManifest(payload, signature, publicKeyPem) {
+export function verifySignature(payload, signature, publicKeyPem) {
   try {
     return crypto.verify("sha256", Buffer.from(payload, "utf8"), crypto.createPublicKey(publicKeyPem), Buffer.from(signature, "base64"));
   } catch {
@@ -34,8 +33,21 @@ export function verifyManifest(payload, signature, publicKeyPem) {
   }
 }
 
-export function publicKeyOf(privateKeyPem) {
-  return crypto.createPublicKey(crypto.createPrivateKey(privateKeyPem)).export({ type: "spki", format: "pem" }).toString();
+// Checks an upload's attestation against the key, the target product and the uploaded bytes.
+// Returns { ok: true, attestation } or { ok: false, error } with a stable error code.
+export function verifyAttestation({ payload, signature, publicKeyPem, product, fileName, size, sha256 }) {
+  if (!publicKeyPem) return { ok: false, error: "release_trust_not_configured" };
+  if (!payload || !signature) return { ok: false, error: "signature_required" };
+  if (!verifySignature(payload, signature, publicKeyPem)) return { ok: false, error: "bad_signature" };
+  let a;
+  try { a = JSON.parse(payload); } catch { return { ok: false, error: "bad_attestation" }; }
+  if (a?.schema !== ATTESTATION_SCHEMA) return { ok: false, error: "bad_attestation" };
+  if (a.product !== product) return { ok: false, error: "attestation_wrong_product" };
+  if (!isVersion(a.version)) return { ok: false, error: "bad_version" };
+  if (a.fileName !== fileName || Number(a.size) !== size || String(a.sha256).toLowerCase() !== sha256) return { ok: false, error: "attestation_file_mismatch" };
+  if (!a.launch || !["external-exe", "in-process"].includes(a.launch.type)) return { ok: false, error: "bad_attestation" };
+  if (a.compat?.minLoader !== undefined && !isVersion(a.compat.minLoader)) return { ok: false, error: "bad_attestation" };
+  return { ok: true, attestation: a };
 }
 
 // Dry-run check shown to the admin before anything is written.

@@ -239,7 +239,7 @@
   async function openPurchase(product) {
     selectedProduct = product;
     selectedPlan = "d30";
-    productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : product==="combatarms" ? "Combat Arms External Brasil 7" : "Counter Flame";
+    productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : product==="combatarms" ? "Combat Arms Brasil Server" : "Counter Flame";
     if (product==="counterframe") platformSelect.value="android";
     checkoutAvailable = false;
     regionResolved = product !== "counterframe";

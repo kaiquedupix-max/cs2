@@ -20,18 +20,21 @@ export const BUILTIN_PRODUCTS = {
     allowedExtensions: [".exe", ".zip"],
     // Launched inside the loader today. Switching to the standalone payload = set type "external-exe" (one line + deploy);
     // the payload is already served from the cs2-payload channel (releaseChannel), never from the loader's own cs2 channel.
-    launch: { type: "in-process", fileName: "LegitBaratinhoCS2.exe", requiresAdmin: false },
+    // preferPayload: while cs2-payload has an active signed release the catalog reports "external-exe" and the loader runs the
+    // standalone product; with none (or after it is disabled) the loader falls back to the embedded CS2. No deploy needed to switch.
+    launch: { type: "in-process", fileName: "LegitBaratinhoCS2.exe", requiresAdmin: false, preferPayload: true },
     releaseChannel: "cs2-payload",
     dependencies: [],
   },
   combatarms: {
-    name: "Combat Arms External Brasil 7",
+    name: "Combat Arms Brasil Server",
     glyph: "CA",
     notice: "Para o overlay funcionar, use o jogo em modo janela na resolução do monitor e pressione F7 dentro da partida (tela cheia sem bordas). O jogo e o external precisam rodar como administrador.",
     kind: "product",
     platform: "windows",
     channel: "stable",
     sellable: true,
+    requireSignature: true,
     allowedExtensions: [".exe"],
     launch: { type: "external-exe", fileName: "cbr.exe", requiresAdmin: true },
     dependencies: [],
@@ -45,6 +48,7 @@ export const BUILTIN_PRODUCTS = {
     platform: "windows",
     channel: "stable",
     sellable: false,
+    requireSignature: true,
     allowedExtensions: [".exe"],
     launch: { type: "external-exe", fileName: "LegitBaratinhoCS2.exe", requiresAdmin: false },
     dependencies: [],
@@ -86,6 +90,10 @@ export function normalizeProductDef(code, def, existing = {}) {
     accessProduct = String(def.accessProduct || "");
     if (!existing[accessProduct] || existing[accessProduct].kind !== "product") fail("accessProduct");
   }
+  // Signed releases (CI attestation) are mandatory for every external payload unless explicitly disabled.
+  const requireSignature = def.requireSignature !== undefined ? Boolean(def.requireSignature) : kind === "product" && launchType === "external-exe";
+  const preferPayload = Boolean(def.launch?.preferPayload);
+  if (preferPayload && !releaseChannel) fail("preferPayload_needs_releaseChannel");
   const dependencies = [...new Set((def.dependencies || []).map(String))];
   for (const dep of dependencies) if (dep === code || !existing[dep]) fail("dependency:" + dep);
   const glyph = String(def.glyph || name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2)).toUpperCase().slice(0, 3);
@@ -95,7 +103,8 @@ export function normalizeProductDef(code, def, existing = {}) {
     channel: String(def.channel || "stable").slice(0, 16),
     sellable: kind === "product" && def.sellable !== false,
     allowedExtensions,
-    launch: { type: launchType, fileName: fileName || undefined, requiresAdmin: Boolean(def.launch?.requiresAdmin) },
+    requireSignature,
+    launch: { type: launchType, fileName: fileName || undefined, requiresAdmin: Boolean(def.launch?.requiresAdmin), ...(preferPayload ? { preferPayload } : {}) },
     ...(releaseChannel ? { releaseChannel } : {}),
     dependencies,
     ...(accessProduct ? { accessProduct } : {}),

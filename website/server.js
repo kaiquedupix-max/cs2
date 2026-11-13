@@ -14,7 +14,8 @@ import { registerAdminStats } from "./adminStats.js";
 import { initReferrals, registerReferrals } from './referrals.js';
 import {initTerms} from './terms.js';
 import { createRegistry } from "./productRegistry.js";
-import { buildManifest, signManifest, inspectUpload, publicKeyOf } from "./releaseManifest.js";
+import { verifyAttestation, inspectUpload, isVersion } from "./releaseManifest.js";
+import { releasePublicKey } from "./releaseTrust.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -52,8 +53,7 @@ function productOf(req) {
   return registry.has(raw) ? raw : PRODUCT_CODE;
 }
 const strictProductOf = (req) => registry.resolveStrict(req.headers?.["x-product"] || req.query?.product);
-// ECDSA P-256 private key (PEM) used to sign release manifests. Never committed; "\n" escapes are accepted for env vars.
-const signingKeyPem = () => (process.env.RELEASE_SIGNING_KEY || "").replace(/\\n/g, "\n").trim();
+// Release signatures are made by each product's CI; the server only holds the PUBLIC key (releaseTrust.js).
 app.disable("x-powered-by");
 app.use(express.json({
   limit: "512kb",
@@ -500,6 +500,9 @@ async function initRegistry() {
       definition JSONB NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    ALTER TABLE loader_releases ADD COLUMN IF NOT EXISTS attestation TEXT NULL;
+    ALTER TABLE loader_releases ADD COLUMN IF NOT EXISTS signature TEXT NULL;
+    ALTER TABLE loader_releases ADD COLUMN IF NOT EXISTS disabled_at TIMESTAMPTZ NULL;
     CREATE TABLE IF NOT EXISTS release_events (
       id BIGSERIAL PRIMARY KEY,
       product_code TEXT NOT NULL,
@@ -607,13 +610,17 @@ async function activeProductAccess(userId, product = PRODUCT_CODE) {
   return Boolean(result.rows[0]);
 }
 
+const RELEASE_COLUMNS = "id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at, attestation, signature, disabled_at";
+
+// The active release of a channel. A disabled release is never served; if nothing is active the newest enabled one is
+// promoted (legacy behaviour for channels that never had an explicit activation).
 async function activeLoaderReleaseMeta(product = PRODUCT_CODE) {
   if (!pool) return null;
 
   const active = await pool.query(
-    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
+    `SELECT ${RELEASE_COLUMNS}
      FROM loader_releases
-     WHERE is_active = TRUE AND product_code = $1
+     WHERE is_active = TRUE AND disabled_at IS NULL AND product_code = $1
      ORDER BY uploaded_at DESC
      LIMIT 1`,
     [product]
@@ -624,9 +631,9 @@ async function activeLoaderReleaseMeta(product = PRODUCT_CODE) {
   }
 
   const latest = await pool.query(
-    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
+    `SELECT ${RELEASE_COLUMNS}
      FROM loader_releases
-     WHERE product_code = $1
+     WHERE product_code = $1 AND disabled_at IS NULL
      ORDER BY uploaded_at DESC
      LIMIT 1`,
     [product]
@@ -645,6 +652,19 @@ async function activeLoaderReleaseMeta(product = PRODUCT_CODE) {
   );
 
   return release;
+}
+
+// Signed release metadata for clients: only releases that carry a CI attestation qualify.
+function releaseView(release) {
+  if (!release) return null;
+  let compat = {};
+  try { compat = release.attestation ? (JSON.parse(release.attestation).compat || {}) : {}; } catch { /* stored attestation is verified on upload */ }
+  return {
+    version: release.version, size: Number(release.file_size), sha256: release.sha256,
+    notes: release.notes, uploadedAt: release.uploaded_at,
+    signed: Boolean(release.attestation && release.signature),
+    minLoader: compat.minLoader || null, gameBuild: compat.gameBuild || null,
+  };
 }
 
 async function nextLoaderVersion(product = PRODUCT_CODE) {
@@ -1518,6 +1538,8 @@ app.get("/api/client/download-loader", requireClient, async (req, res) => {
 
 // One call for the loader's product list: every product this account owns, its license state and latest release.
 // Expired or revoked products are listed (so the UI can say why) but never launchable and never expose a release.
+// The launch type is effective: a product with launch.preferPayload runs as its standalone payload only while an active,
+// signed payload release exists; otherwise it keeps its default (embedded) launch.
 app.get("/api/client/catalog", requireClient, async (req, res) => {
   const owned = await pool.query(
     `SELECT product_code, plan, purchased_at, expires_at, revoked_at
@@ -1535,7 +1557,11 @@ app.get("/api/client/catalog", requireClient, async (req, res) => {
     const lifetime = plan.toLowerCase() === "lifetime";
     const exp = r.expires_at ? new Date(r.expires_at).getTime() : 0;
     const active = !r.revoked_at && (lifetime || exp > now);
-    const release = active ? await activeLoaderReleaseMeta(registry.releaseChannelOf(r.product_code)) : null;
+    const release = active ? releaseView(await activeLoaderReleaseMeta(registry.releaseChannelOf(r.product_code))) : null;
+    const channelDef = registry.get(registry.releaseChannelOf(r.product_code));
+    const signedOk = !channelDef?.requireSignature || Boolean(release?.signed);
+    const usablePayload = Boolean(release && signedOk);
+    const launchType = def.launch.preferPayload ? (usablePayload ? "external-exe" : def.launch.type) : def.launch.type;
     products.push({
       code: r.product_code,
       name: def.name,
@@ -1543,7 +1569,7 @@ app.get("/api/client/catalog", requireClient, async (req, res) => {
       notice: def.notice,
       platform: def.platform,
       channel: def.channel,
-      launch: { type: def.launch.type, requiresAdmin: def.launch.requiresAdmin },
+      launch: { type: launchType, requiresAdmin: def.launch.requiresAdmin },
       license: {
         status: r.revoked_at ? "revoked" : active ? "active" : "expired",
         plan: plan || null,
@@ -1551,35 +1577,26 @@ app.get("/api/client/catalog", requireClient, async (req, res) => {
         daysRemaining: active && !lifetime ? Math.max(1, Math.ceil((exp - now) / 86400000)) : 0,
         lifetime,
       },
-      release: release ? {
-        version: release.version, size: Number(release.file_size), sha256: release.sha256,
-        notes: release.notes, uploadedAt: release.uploaded_at,
-      } : null,
-      canLaunch: active && (def.launch.type === "in-process" || Boolean(release)),
+      release: release && signedOk ? release : null,
+      canLaunch: active && (launchType === "in-process" || usablePayload),
     });
   }
   res.json({ products, status: await productStatus() });
 });
 
-// Signed manifest for one product. Never served unsigned: without a signing key the endpoint answers 503.
+// Signed release for one product: the CI attestation (exact signed string), its signature and unsigned display metadata.
+// A release without an attestation is never served here, whatever the channel.
 app.get("/api/client/manifest", requireClient, async (req, res) => {
   const product = strictProductOf(req);
   if (!product) return res.status(400).json({ error: "unknown_product" });
   if (!await activeProductAccess(req.userId, product)) {
     return res.status(403).json({ error: "access_required", message: "Acesso ativo necessário." });
   }
-  const key = signingKeyPem();
-  if (!key) return res.status(503).json({ error: "signing_not_configured" });
   const release = await activeLoaderReleaseMeta(registry.releaseChannelOf(product));
   if (!release) return res.status(404).json({ error: "release_unavailable", message: "Nenhuma versão publicada." });
-  try {
-    const signed = signManifest(buildManifest({ product, def: registry.get(product), release }), key);
-    res.setHeader("Cache-Control", "private, no-store");
-    res.json(signed);
-  } catch (error) {
-    console.error("manifest:", error.message);
-    res.status(503).json({ error: "signing_failed" });
-  }
+  if (!release.attestation || !release.signature) return res.status(404).json({ error: "release_unsigned", message: "Versão sem assinatura." });
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json({ payload: release.attestation, signature: release.signature, release: releaseView(release) });
 });
 
 // Product payload download for the unified loader. Separate from download-loader on purpose: that route (with the cs2
@@ -1648,7 +1665,7 @@ app.get("/api/admin/releases", requireAdmin, async (req, res) => {
   if (!pool) return res.status(503).json({ error: "database_not_configured" });
 
   const result = await pool.query(
-    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at, is_active
+    `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at, is_active, attestation, disabled_at
      FROM loader_releases
      WHERE product_code = $1
      ORDER BY uploaded_at DESC
@@ -1667,6 +1684,8 @@ app.get("/api/admin/releases", requireAdmin, async (req, res) => {
       notes: row.notes,
       uploadedAt: row.uploaded_at,
       isActive: Boolean(row.is_active),
+      signed: Boolean(row.attestation),
+      disabledAt: row.disabled_at || null,
     })),
   });
 });
@@ -1686,23 +1705,54 @@ app.post(
       });
     }
 
-    // Publishing never falls back to a default channel: the product must be named and known.
-    const product = strictProductOf(req);
+    // A product that is named must be known (a typo never lands in another channel). Only a request that names nothing at
+    // all keeps the historical meaning "the loader's own cs2 channel" (the existing loader publish workflow); it must not
+    // carry a signature, because signed releases always state their product.
+    const named = String(req.headers["x-product"] || req.query.product || "").trim();
+    const attestationB64 = String(req.headers["x-release-attestation"] || "");
+    const signature = String(req.headers["x-release-signature"] || "");
+    if (!named && (attestationB64 || signature)) {
+      return res.status(400).json({ error: "product_required", message: "Releases assinados precisam informar o produto." });
+    }
+    const product = named ? strictProductOf(req) : PRODUCT_CODE;
     if (!product) {
       return res.status(400).json({ error: "product_required", message: "Informe um produto válido para publicar." });
     }
+    const def = registry.get(product);
     const fileName = sanitizeFileName(req.query.fileName);
-    const report = inspectUpload(file, fileName, registry.get(product));
+    const report = inspectUpload(file, fileName, def);
     if (!report.ok) {
       return res.status(422).json({ error: "validation_failed", errors: report.errors, message: "O arquivo não passou na verificação." });
     }
     const digest = report.sha256;
+
+    // Signed channels need a valid CI attestation for exactly these bytes and this product.
+    let attestation = null, attestationText = null;
+    if (def.requireSignature || attestationB64 || signature) {
+      const payload = attestationB64 ? Buffer.from(attestationB64, "base64").toString("utf8") : "";
+      const check = verifyAttestation({
+        payload, signature, publicKeyPem: releasePublicKey(), product: registry.accessProductOf(product),
+        fileName, size: file.length, sha256: digest,
+      });
+      if (!check.ok) {
+        const status = check.error === "release_trust_not_configured" ? 503 : 422;
+        return res.status(status).json({ error: check.error, message: "Assinatura do release recusada." });
+      }
+      attestation = check.attestation;
+      attestationText = payload;
+    }
+
     // The same bytes already published in another product's channel are almost certainly a wrong-channel upload.
     const other = await pool.query("SELECT product_code FROM loader_releases WHERE sha256 = $1 AND product_code <> $2 LIMIT 1", [digest, product]);
     if (other.rows[0]) {
       return res.status(409).json({ error: "wrong_channel", message: "Este arquivo já foi publicado no canal " + other.rows[0].product_code + "." });
     }
-    const version = await nextLoaderVersion(product);
+    // Signed releases carry their own version (set by the product's repository); others keep the server counter.
+    const version = attestation ? attestation.version : await nextLoaderVersion(product);
+    if (attestation) {
+      const dup = await pool.query("SELECT 1 FROM loader_releases WHERE product_code = $1 AND version = $2 LIMIT 1", [product, version]);
+      if (dup.rows[0]) return res.status(409).json({ error: "version_exists", message: "A versão " + version + " já existe neste canal." });
+    }
     const notes = String(req.query.notes || "").trim().slice(0, 500);
     const mimeType = String(req.query.mimeType || "application/octet-stream").slice(0, 120);
 
@@ -1714,16 +1764,16 @@ app.post(
 
       const result = await client.query(
         `INSERT INTO loader_releases(
-          version, file_name, mime_type, file_size, sha256, notes, file_data, is_active, product_code
+          version, file_name, mime_type, file_size, sha256, notes, file_data, is_active, product_code, attestation, signature
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, $8, $9, $10)
         RETURNING id, version, file_name, file_size, sha256, notes, uploaded_at, is_active`,
-        [version, fileName, mimeType, file.length, digest, notes, file, product]
+        [version, fileName, mimeType, file.length, digest, notes, file, product, attestationText, attestation ? signature : null]
       );
 
       await client.query("COMMIT");
-      await releaseEvent(product, result.rows[0].id, "publish", "v" + version + " " + digest);
-      res.status(201).json({ ok: true, release: result.rows[0] });
+      await releaseEvent(product, result.rows[0].id, "publish", "v" + version + " " + digest + (attestation ? " signed" : named ? "" : " legacy-default-channel"));
+      res.status(201).json({ ok: true, signed: Boolean(attestation), release: result.rows[0] });
     } catch (error) {
       await client.query("ROLLBACK");
       console.error(error);
@@ -1771,10 +1821,14 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
   res.status(201).json({ ok: true, product: { code, ...def } });
 });
 
-app.get("/api/admin/signing-key", requireAdmin, (_req, res) => {
-  const key = signingKeyPem();
-  if (!key) return res.status(503).json({ error: "signing_not_configured" });
-  res.json({ publicKeyPem: publicKeyOf(key) });
+// Public key the server verifies uploads with (the same key is embedded in the loader). Nothing secret here.
+app.get("/api/admin/release-trust", requireAdmin, (_req, res) => {
+  const key = releasePublicKey();
+  if (!key) return res.status(503).json({ error: "release_trust_not_configured" });
+  res.json({
+    publicKeyPem: key,
+    fingerprint: crypto.createHash("sha256").update(crypto.createPublicKey(key).export({ type: "spki", format: "der" })).digest("hex"),
+  });
 });
 
 app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
@@ -1787,13 +1841,17 @@ app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
     await client.query("BEGIN");
 
     const exists = await client.query(
-      "SELECT product_code FROM loader_releases WHERE id = $1 LIMIT 1",
+      "SELECT product_code, disabled_at FROM loader_releases WHERE id = $1 LIMIT 1",
       [releaseId]
     );
 
     if (!exists.rows[0]) {
       await client.query("ROLLBACK");
       return res.status(404).json({ error: "release_not_found" });
+    }
+    if (exists.rows[0].disabled_at) {
+      await client.query("ROLLBACK");
+      return res.status(409).json({ error: "release_disabled", message: "Reative a versão antes de ativá-la." });
     }
 
     await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE AND product_code = $1", [exists.rows[0].product_code]);
@@ -1808,6 +1866,49 @@ app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
   } finally {
     client.release();
   }
+});
+
+// Pulls a problematic release: it can no longer be activated or served. If it was the active one, the newest enabled
+// release of the channel takes over in the same transaction (or the channel is left without a release).
+app.post("/api/admin/releases/:id/disable", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  const releaseId = Number(req.params.id);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const row = await client.query("SELECT product_code, is_active FROM loader_releases WHERE id = $1 FOR UPDATE", [releaseId]);
+    if (!row.rows[0]) { await client.query("ROLLBACK"); return res.status(404).json({ error: "release_not_found" }); }
+    const { product_code: product, is_active: wasActive } = row.rows[0];
+    await client.query("UPDATE loader_releases SET disabled_at = NOW(), is_active = FALSE WHERE id = $1", [releaseId]);
+    let fallback = null;
+    if (wasActive) {
+      const next = await client.query(
+        "SELECT id, version FROM loader_releases WHERE product_code = $1 AND disabled_at IS NULL AND id <> $2 ORDER BY uploaded_at DESC LIMIT 1",
+        [product, releaseId]
+      );
+      if (next.rows[0]) {
+        await client.query("UPDATE loader_releases SET is_active = TRUE WHERE id = $1", [next.rows[0].id]);
+        fallback = { id: Number(next.rows[0].id), version: next.rows[0].version };
+      }
+    }
+    await client.query("COMMIT");
+    await releaseEvent(product, releaseId, "disable", fallback ? "fallback v" + fallback.version : wasActive ? "no fallback" : "inactive");
+    res.json({ ok: true, fallback });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/api/admin/releases/:id/enable", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  const releaseId = Number(req.params.id);
+  const result = await pool.query("UPDATE loader_releases SET disabled_at = NULL WHERE id = $1 RETURNING product_code", [releaseId]);
+  if (!result.rows[0]) return res.status(404).json({ error: "release_not_found" });
+  await releaseEvent(result.rows[0].product_code, releaseId, "enable", "");
+  res.json({ ok: true });
 });
 
 app.delete("/api/admin/releases/:id", requireAdmin, async (req, res) => {

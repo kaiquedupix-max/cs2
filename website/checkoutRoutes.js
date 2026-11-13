@@ -467,7 +467,7 @@ export function registerCheckoutRoutes(app, deps) {
         stripeParams.set('mode','payment');stripeParams.set('payment_method_types[0]','card');
         stripeParams.set('line_items[0][price_data][currency]',currency.toLowerCase());
         stripeParams.set('line_items[0][price_data][unit_amount]',String(plan.priceCents));
-        stripeParams.set('line_items[0][price_data][product_data][name]',`${product==='counterframe'?'Counter Flame '+platform.toUpperCase():product==='combatarms'?'Combat Arms External Brasil 7':'CS2'} • ${plan.name}`);
+        stripeParams.set('line_items[0][price_data][product_data][name]',`${product==='counterframe'?'Counter Flame '+platform.toUpperCase():product==='combatarms'?'Combat Arms Brasil Server':'CS2'} • ${plan.name}`);
         stripeParams.set('line_items[0][quantity]','1');stripeParams.set('customer_email',buyer.email);
         stripeParams.set('client_reference_id',String(localId));stripeParams.set('metadata[payment_id]',String(localId));stripeParams.set('metadata[user_id]',String(req.userId));
         stripeParams.set('success_url',`${publicUrl}/checkout?product=${product}&plan=${plan.key}${product==='counterframe'?'&platform='+platform:''}&payment_id=${localId}&stripe=success&session_id={CHECKOUT_SESSION_ID}`);
