@@ -86,12 +86,14 @@ try {
 
   // --- releases are separated per product ---
   const up = (product, name, bytes) => call("POST", `/api/admin/releases/upload?${product ? "product=" + product + "&" : ""}fileName=${name}`, { raw: bytes, cookie: admin });
-  const csBytes = Buffer.from("CS2-LOADER-BYTES");
-  const caBytes = Buffer.from("CABR-PAYLOAD-BYTES-v1");
-  const u1 = await up("", "cs2.zip", csBytes);
+  // Publishing validates the file type (PE "MZ" for .exe, "PK" for .zip), so fixtures carry real magic bytes.
+  const pe = (tag) => Buffer.concat([Buffer.from("MZ"), Buffer.alloc(0x40), Buffer.from(tag)]);
+  const csBytes = Buffer.concat([Buffer.from("PK"), Buffer.alloc(8), Buffer.from("CS2-LOADER-BYTES")]);
+  const caBytes = pe("CABR-PAYLOAD-BYTES-v1");
+  const u1 = await up("cs2", "cs2.zip", csBytes);
   const u2 = await up("combatarms", "cbr.exe", caBytes);
-  const u3 = await up("combatarms-loader", "CaBrLoader.exe", Buffer.from("LOADER-1.0"));
-  const u4 = await up("combatarms-loader", "CaBrLoader.exe", Buffer.from("LOADER-1.1"));
+  const u3 = await up("combatarms-loader", "CaBrLoader.exe", pe("LOADER-1.0"));
+  const u4 = await up("combatarms-loader", "CaBrLoader.exe", pe("LOADER-1.1"));
   check([u1, u2, u3, u4].every((u) => u.status === 201), "upload releases for cs2, combatarms, combatarms-loader x2", [u1, u2, u3, u4].map((u) => u.status).join());
   const lat = async (p) => (await call("GET", "/api/loader/latest", { headers: p ? { "x-product": p } : {} })).data?.version;
   check((await lat("")) === "1.0" && (await lat("combatarms")) === "1.0" && (await lat("combatarms-loader")) === "1.1",
@@ -145,7 +147,7 @@ try {
   const dl = await call("GET", "/api/client/download-loader", { headers: authA });
   check(dl.status === 200 && dl.buf.equals(caBytes) && dl.headers.get("x-content-sha256") === sha(caBytes), "download returns combatarms payload bytes + SHA header");
   const dlLoader = await call("GET", "/api/client/download-loader", { headers: { ...authA, "x-product": "combatarms-loader" } });
-  check(dlLoader.status === 200 && dlLoader.buf.toString() === "LOADER-1.1", "loader channel serves the active loader build");
+  check(dlLoader.status === 200 && dlLoader.buf.equals(pe("LOADER-1.1")), "loader channel serves the active loader build");
   const dlNoDev = await call("GET", "/api/client/download-loader", { headers: { authorization: "Bearer " + tokenA, "x-product": "combatarms" } });
   check(dlNoDev.status === 401, "download without device header -> 401");
 

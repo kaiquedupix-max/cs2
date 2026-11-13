@@ -13,6 +13,8 @@ import { PRODUCT_CATALOG } from "./catalog.js";
 import { registerAdminStats } from "./adminStats.js";
 import { initReferrals, registerReferrals } from './referrals.js';
 import {initTerms} from './terms.js';
+import { createRegistry } from "./productRegistry.js";
+import { buildManifest, signManifest, inspectUpload, publicKeyOf } from "./releaseManifest.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,21 +39,21 @@ const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
 const USER_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CLIENT_SESSION_MS = 12 * 60 * 60 * 1000;
 const PRODUCT_CODE = "cs2";
-// Sellable loader products. Requests without a product keep the CS2 behaviour.
-const PRODUCTS = {
-  cs2: { name: "Counter-Strike 2" },
-  combatarms: { name: "Combat Arms External Brasil 7" },
-  // Release channel for the CaBr loader executable itself; licensed through combatarms.
-  "combatarms-loader": { name: "CaBr Loader", accessProduct: "combatarms" },
-};
-const SELLABLE_PRODUCTS = ["cs2", "combatarms"];
-const accessProductOf = (product) => PRODUCTS[product]?.accessProduct || product;
+// Products live in productRegistry.js (built-ins) plus catalog_products (added from the admin panel).
+// Legacy lookup: requests without a product, or with an unknown one, keep the CS2 behaviour. Admin publish routes
+// use registry.resolveStrict instead so a typo can never write into the CS2 channel.
+const registry = createRegistry();
+const PRODUCTS = registry.products;
+const accessProductOf = registry.accessProductOf;
 function productOf(req) {
   const raw = String(
     req.headers?.["x-product"] || req.body?.product || req.query?.product || PRODUCT_CODE
   ).trim().toLowerCase();
-  return Object.hasOwn(PRODUCTS, raw) ? raw : PRODUCT_CODE;
+  return registry.has(raw) ? raw : PRODUCT_CODE;
 }
+const strictProductOf = (req) => registry.resolveStrict(req.headers?.["x-product"] || req.query?.product);
+// ECDSA P-256 private key (PEM) used to sign release manifests. Never committed; "\n" escapes are accepted for env vars.
+const signingKeyPem = () => (process.env.RELEASE_SIGNING_KEY || "").replace(/\\n/g, "\n").trim();
 app.disable("x-powered-by");
 app.use(express.json({
   limit: "512kb",
@@ -490,6 +492,36 @@ async function initDb() {
   `);
 }
 
+// Additive only: new tables, no change to existing data. Products added from the admin panel are reloaded at boot.
+async function initRegistry() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS catalog_products (
+      code TEXT PRIMARY KEY,
+      definition JSONB NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS release_events (
+      id BIGSERIAL PRIMARY KEY,
+      product_code TEXT NOT NULL,
+      release_id BIGINT NULL,
+      event TEXT NOT NULL,
+      detail TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  const rows = await pool.query("SELECT code, definition FROM catalog_products ORDER BY created_at ASC");
+  for (const row of rows.rows) {
+    try { if (!registry.has(row.code)) registry.register(row.code, row.definition); }
+    catch (error) { console.error("catalog_products ignorado:", row.code, error.message); }
+  }
+}
+
+async function releaseEvent(product, releaseId, event, detail = "") {
+  try {
+    await pool.query("INSERT INTO release_events(product_code, release_id, event, detail) VALUES($1,$2,$3,$4)", [product, releaseId, event, String(detail).slice(0, 500)]);
+  } catch (error) { console.error("release_events:", error.message); }
+}
+
 async function setting(key, fallback) {
   if (!pool) return fallback;
   const result = await pool.query(
@@ -687,7 +719,7 @@ async function accountSnapshot(userId, product = PRODUCT_CODE) {
      FROM user_products
      WHERE user_id = $1 AND product_code = ANY($2)
      ORDER BY purchased_at ASC`,
-    [userId, SELLABLE_PRODUCTS]
+    [userId, registry.sellable()]
   );
   const ownedNow = Date.now();
   const products = ownedResult.rows.map((r) => {
@@ -1480,7 +1512,72 @@ app.get("/api/client/download-loader", requireClient, async (req, res) => {
   res.setHeader("Cache-Control", "private, no-store");
   res.setHeader("X-Loader-Version", release.version);
   res.setHeader("X-Content-SHA256", release.sha256);
+  res.setHeader("X-Product", productOf(req));
   res.send(release.file_data);
+});
+
+// One call for the loader's product list: every product this account owns, its license state and latest release.
+// Expired or revoked products are listed (so the UI can say why) but never launchable and never expose a release.
+app.get("/api/client/catalog", requireClient, async (req, res) => {
+  const owned = await pool.query(
+    `SELECT product_code, plan, purchased_at, expires_at, revoked_at
+     FROM user_products
+     WHERE user_id = $1 AND product_code = ANY($2)
+     ORDER BY purchased_at ASC`,
+    [req.userId, registry.sellable()]
+  );
+  const now = Date.now();
+  const products = [];
+  for (const r of owned.rows) {
+    const def = registry.get(r.product_code);
+    if (!def) continue;
+    const plan = String(r.plan || "");
+    const lifetime = plan.toLowerCase() === "lifetime";
+    const exp = r.expires_at ? new Date(r.expires_at).getTime() : 0;
+    const active = !r.revoked_at && (lifetime || exp > now);
+    const release = active ? await activeLoaderReleaseMeta(r.product_code) : null;
+    products.push({
+      code: r.product_code,
+      name: def.name,
+      platform: def.platform,
+      channel: def.channel,
+      launch: { type: def.launch.type, requiresAdmin: def.launch.requiresAdmin },
+      license: {
+        status: r.revoked_at ? "revoked" : active ? "active" : "expired",
+        plan: plan || null,
+        expiresAt: lifetime ? null : (r.expires_at || null),
+        daysRemaining: active && !lifetime ? Math.max(1, Math.ceil((exp - now) / 86400000)) : 0,
+        lifetime,
+      },
+      release: release ? {
+        version: release.version, size: Number(release.file_size), sha256: release.sha256,
+        notes: release.notes, uploadedAt: release.uploaded_at,
+      } : null,
+      canLaunch: active && (def.launch.type === "in-process" || Boolean(release)),
+    });
+  }
+  res.json({ products, status: await productStatus() });
+});
+
+// Signed manifest for one product. Never served unsigned: without a signing key the endpoint answers 503.
+app.get("/api/client/manifest", requireClient, async (req, res) => {
+  const product = strictProductOf(req);
+  if (!product) return res.status(400).json({ error: "unknown_product" });
+  if (!await activeProductAccess(req.userId, product)) {
+    return res.status(403).json({ error: "access_required", message: "Acesso ativo necessário." });
+  }
+  const key = signingKeyPem();
+  if (!key) return res.status(503).json({ error: "signing_not_configured" });
+  const release = await activeLoaderReleaseMeta(product);
+  if (!release) return res.status(404).json({ error: "release_unavailable", message: "Nenhuma versão publicada." });
+  try {
+    const signed = signManifest(buildManifest({ product, def: registry.get(product), release }), key);
+    res.setHeader("Cache-Control", "private, no-store");
+    res.json(signed);
+  } catch (error) {
+    console.error("manifest:", error.message);
+    res.status(503).json({ error: "signing_failed" });
+  }
 });
 
 app.post("/api/admin/login", (req, res) => {
@@ -1562,13 +1659,26 @@ app.post(
       });
     }
 
-    const product = productOf(req);
+    // Publishing never falls back to a default channel: the product must be named and known.
+    const product = strictProductOf(req);
+    if (!product) {
+      return res.status(400).json({ error: "product_required", message: "Informe um produto válido para publicar." });
+    }
+    const fileName = sanitizeFileName(req.query.fileName);
+    const report = inspectUpload(file, fileName, registry.get(product));
+    if (!report.ok) {
+      return res.status(422).json({ error: "validation_failed", errors: report.errors, message: "O arquivo não passou na verificação." });
+    }
+    const digest = report.sha256;
+    // The same bytes already published in another product's channel are almost certainly a wrong-channel upload.
+    const other = await pool.query("SELECT product_code FROM loader_releases WHERE sha256 = $1 AND product_code <> $2 LIMIT 1", [digest, product]);
+    if (other.rows[0]) {
+      return res.status(409).json({ error: "wrong_channel", message: "Este arquivo já foi publicado no canal " + other.rows[0].product_code + "." });
+    }
     const version = await nextLoaderVersion(product);
     const notes = String(req.query.notes || "").trim().slice(0, 500);
-    const fileName = sanitizeFileName(req.query.fileName);
     const mimeType = String(req.query.mimeType || "application/octet-stream").slice(0, 120);
 
-    const digest = sha256(file);
     const client = await pool.connect();
 
     try {
@@ -1585,6 +1695,7 @@ app.post(
       );
 
       await client.query("COMMIT");
+      await releaseEvent(product, result.rows[0].id, "publish", "v" + version + " " + digest);
       res.status(201).json({ ok: true, release: result.rows[0] });
     } catch (error) {
       await client.query("ROLLBACK");
@@ -1598,6 +1709,46 @@ app.post(
     }
   }
 );
+
+// Dry run: reports size, SHA-256, format and duplicates without writing anything.
+app.post("/api/admin/releases/validate", requireAdmin, express.raw({ type: "*/*", limit: "250mb" }), async (req, res) => {
+  const product = strictProductOf(req);
+  if (!product) return res.status(400).json({ error: "product_required" });
+  const report = inspectUpload(req.body, sanitizeFileName(req.query.fileName), registry.get(product));
+  const dup = pool ? await pool.query("SELECT product_code, version FROM loader_releases WHERE sha256 = $1", [report.sha256]) : { rows: [] };
+  res.json({ product, ...report, alreadyPublished: dup.rows.map((r) => ({ product: r.product_code, version: r.version })) });
+});
+
+app.get("/api/admin/products", requireAdmin, (_req, res) => {
+  res.json({ products: Object.entries(registry.products).map(([code, def]) => ({ code, ...def })) });
+});
+
+// Registers a new product (or loader channel) without redeploying. Existing products cannot be overwritten.
+app.post("/api/admin/products", requireAdmin, async (req, res) => {
+  if (!pool) return res.status(503).json({ error: "database_not_configured" });
+  const code = String(req.body?.code || "").trim().toLowerCase();
+  let def;
+  try {
+    def = registry.register(code, req.body?.definition);
+  } catch (error) {
+    if (String(error.message).startsWith("invalid_product:")) return res.status(400).json({ error: error.message });
+    throw error;
+  }
+  try {
+    await pool.query("INSERT INTO catalog_products(code, definition) VALUES($1, $2)", [code, JSON.stringify(def)]);
+  } catch (error) {
+    delete registry.products[code];
+    throw error;
+  }
+  await releaseEvent(code, null, "product_register", def.name);
+  res.status(201).json({ ok: true, product: { code, ...def } });
+});
+
+app.get("/api/admin/signing-key", requireAdmin, (_req, res) => {
+  const key = signingKeyPem();
+  if (!key) return res.status(503).json({ error: "signing_not_configured" });
+  res.json({ publicKeyPem: publicKeyOf(key) });
+});
 
 app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
   if (!pool) return res.status(503).json({ error: "database_not_configured" });
@@ -1621,6 +1772,7 @@ app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
     await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE AND product_code = $1", [exists.rows[0].product_code]);
     await client.query("UPDATE loader_releases SET is_active = TRUE WHERE id = $1", [releaseId]);
     await client.query("COMMIT");
+    await releaseEvent(exists.rows[0].product_code, releaseId, "activate", "rollback/activate");
 
     res.json({ ok: true });
   } catch (error) {
@@ -1890,6 +2042,7 @@ initDb()
   .then(() => pool && initCoupons(pool))
   .then(() => pool && initReferrals(pool))
   .then(() => pool && initTerms(pool))
+  .then(() => pool && initRegistry())
   .then(() => {
     app.listen(port, "0.0.0.0", () => {
       console.log(`legitbaratinho.xyz web ouvindo na porta ${port}`);

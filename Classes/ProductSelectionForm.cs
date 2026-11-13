@@ -1054,17 +1054,38 @@ namespace Mac1ota_Menu.Classes
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
-                (bool success, string message) =
-                    await CombatArmsLauncher.StartAsync();
+                string idleText =
+                    _start.Text;
 
-                MessageBox.Show(
-                    this,
-                    message,
-                    "legitbaratinho.xyz — Combat Arms Brasil 7",
-                    MessageBoxButtons.OK,
-                    success
-                        ? MessageBoxIcon.Information
-                        : MessageBoxIcon.Warning);
+                (bool success, string message) =
+                    await CombatArmsLauncher.StartAsync(
+                        (stage, done, total) =>
+                            _start.Text =
+                                stage switch
+                                {
+                                    SessionStage.Manifest => "VERIFICANDO VERSÃO...",
+                                    SessionStage.Download => total > 0
+                                        ? "BAIXANDO " + (done * 100 / total) + "%"
+                                        : "BAIXANDO...",
+                                    SessionStage.Verify => "VERIFICANDO ARQUIVO...",
+                                    SessionStage.Launch => "INICIANDO...",
+                                    SessionStage.Running => "EM EXECUÇÃO",
+                                    _ => "LIMPANDO ARQUIVOS..."
+                                });
+
+                _start.Text =
+                    idleText;
+
+                // The product ran until the user closed it; only failures need a dialog.
+                if (!success)
+                {
+                    MessageBox.Show(
+                        this,
+                        message,
+                        "legitbaratinho.xyz — Combat Arms Brasil 7",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
             }
             finally
             {
