@@ -104,12 +104,12 @@ export async function initCoupons(pool) {
     INSERT INTO sale_coupon_uses(redemption_key, code)
       SELECT 'checkout:' || id::text, coupon_code
         FROM checkout_payments
-       WHERE coupon_code IS NOT NULL AND status = 'paid'
+       WHERE status = 'paid' AND coupon_code IN (SELECT code FROM sale_coupons)
       ON CONFLICT(redemption_key) DO NOTHING;
     INSERT INTO sale_coupon_uses(redemption_key, code)
       SELECT 'telegram:' || payload, coupon_code
         FROM cf_bot_orders
-       WHERE coupon_code IS NOT NULL AND charge_id IS NOT NULL
+       WHERE charge_id IS NOT NULL AND coupon_code IN (SELECT code FROM sale_coupons)
       ON CONFLICT(redemption_key) DO NOTHING;
     UPDATE sale_coupons c
        SET used_count = GREATEST(c.used_count, (

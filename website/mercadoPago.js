@@ -302,7 +302,7 @@ export async function createBotPixPayment({ amountCents, description, telegramId
       payment_method_id: "pix",
       payer: {
         // Telegram buyers have no e-mail on the site; MP only needs an address for the payer record.
-        email: "telegram+" + String(telegramId) + "@legitbaratinho.xyz",
+        email: "telegram" + String(telegramId).replace(/\D/g, "") + "@legitbaratinho.xyz",
         identification: { type: "CPF", number: digitsOnly(cpf) },
       },
       external_reference: externalReference,
