@@ -18,9 +18,39 @@ namespace Mac1ota_Menu.Classes
     // Product-specific facts (file name, admin requirement) come from the manifest, never from this class.
     internal static class ProductSession
     {
+        // Launch rules from the signed manifest. A session hand-off (token via environment) needs a direct start of the
+        // process; an elevated start goes through ShellExecute "runas", which cannot carry a private environment, so the
+        // two are refused together instead of dropping the session silently.
+        internal static ProcessStartInfo? BuildStartInfo(
+            ReleaseManifest manifest, string target, string workingDirectory,
+            IReadOnlyDictionary<string, string>? environment, out string error)
+        {
+            error = "";
+            bool handOff = environment is { Count: > 0 };
+            if (manifest.Launch.RequiresAdmin && handOff) { error = "session_handoff_unavailable_for_admin"; return null; }
+
+            var info = new ProcessStartInfo { FileName = target, WorkingDirectory = workingDirectory };
+            if (manifest.Launch.RequiresAdmin)
+            {
+                info.UseShellExecute = true;
+                info.Verb = "runas";
+            }
+            else if (handOff)
+            {
+                info.UseShellExecute = false;
+                foreach ((string key, string value) in environment!) info.Environment[key] = value;
+            }
+            else
+            {
+                info.UseShellExecute = true;
+            }
+            return info;
+        }
+
         public static async Task<SessionResult> RunAsync(
             IReleaseSource source, string product, string publicKeySpkiBase64, string baseDirectory,
-            Action<SessionStage, long, long>? progress = null, CancellationToken ct = default)
+            Action<SessionStage, long, long>? progress = null, CancellationToken ct = default,
+            Func<ReleaseManifest, IReadOnlyDictionary<string, string>?>? sessionEnvironment = null)
         {
             ReleaseWorkspace.SweepOrphans(baseDirectory, product);
             using ReleaseWorkspace workspace = ReleaseWorkspace.Create(baseDirectory, product);
@@ -60,8 +90,8 @@ namespace Mac1ota_Menu.Classes
                 File.Move(partial, target);
 
                 progress?.Invoke(SessionStage.Launch, 0, 0);
-                var info = new ProcessStartInfo { FileName = target, WorkingDirectory = workspace.Directory, UseShellExecute = true };
-                if (manifest.Launch.RequiresAdmin) info.Verb = "runas";
+                ProcessStartInfo? info = BuildStartInfo(manifest, target, workspace.Directory, sessionEnvironment?.Invoke(manifest), out string startError);
+                if (info == null) return new SessionResult(false, startError, "Não foi possível iniciar o produto: " + startError + ".");
                 Process? process;
                 try { process = Process.Start(info); }
                 catch (System.ComponentModel.Win32Exception) { return new SessionResult(false, "launch_denied", "Permissão negada para iniciar o produto."); }

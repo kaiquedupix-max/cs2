@@ -1535,7 +1535,7 @@ app.get("/api/client/catalog", requireClient, async (req, res) => {
     const lifetime = plan.toLowerCase() === "lifetime";
     const exp = r.expires_at ? new Date(r.expires_at).getTime() : 0;
     const active = !r.revoked_at && (lifetime || exp > now);
-    const release = active ? await activeLoaderReleaseMeta(r.product_code) : null;
+    const release = active ? await activeLoaderReleaseMeta(registry.releaseChannelOf(r.product_code)) : null;
     products.push({
       code: r.product_code,
       name: def.name,
@@ -1570,7 +1570,7 @@ app.get("/api/client/manifest", requireClient, async (req, res) => {
   }
   const key = signingKeyPem();
   if (!key) return res.status(503).json({ error: "signing_not_configured" });
-  const release = await activeLoaderReleaseMeta(product);
+  const release = await activeLoaderReleaseMeta(registry.releaseChannelOf(product));
   if (!release) return res.status(404).json({ error: "release_unavailable", message: "Nenhuma versão publicada." });
   try {
     const signed = signManifest(buildManifest({ product, def: registry.get(product), release }), key);
@@ -1580,6 +1580,31 @@ app.get("/api/client/manifest", requireClient, async (req, res) => {
     console.error("manifest:", error.message);
     res.status(503).json({ error: "signing_failed" });
   }
+});
+
+// Product payload download for the unified loader. Separate from download-loader on purpose: that route (with the cs2
+// channel) is what deployed loaders use to update themselves. The file is the active release of the product's release channel.
+app.get("/api/client/payload", requireClient, async (req, res) => {
+  const product = strictProductOf(req);
+  if (!product) return res.status(400).json({ error: "unknown_product" });
+  if (!await activeProductAccess(req.userId, product)) return res.status(403).send("Acesso ativo necessário.");
+  const channel = registry.releaseChannelOf(product);
+  const result = await pool.query(
+    `SELECT version, file_name, mime_type, file_size, sha256, file_data
+     FROM loader_releases WHERE is_active = TRUE AND product_code = $1
+     ORDER BY uploaded_at DESC LIMIT 1`,
+    [channel]
+  );
+  const release = result.rows[0];
+  if (!release) return res.status(404).send("Nenhuma versão publicada.");
+  res.setHeader("Content-Type", "application/octet-stream");
+  res.setHeader("Content-Length", String(release.file_size));
+  res.setHeader("Content-Disposition", `attachment; filename="${sanitizeFileName(release.file_name)}"`);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.setHeader("X-Product", product);
+  res.setHeader("X-Loader-Version", release.version);
+  res.setHeader("X-Content-SHA256", release.sha256);
+  res.send(release.file_data);
 });
 
 app.post("/api/admin/login", (req, res) => {

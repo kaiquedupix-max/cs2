@@ -18,7 +18,10 @@ export const BUILTIN_PRODUCTS = {
     channel: "stable",
     sellable: true,
     allowedExtensions: [".exe", ".zip"],
-    launch: { type: "in-process", requiresAdmin: false },
+    // Launched inside the loader today. Switching to the standalone payload = set type "external-exe" (one line + deploy);
+    // the payload is already served from the cs2-payload channel (releaseChannel), never from the loader's own cs2 channel.
+    launch: { type: "in-process", fileName: "LegitBaratinhoCS2.exe", requiresAdmin: false },
+    releaseChannel: "cs2-payload",
     dependencies: [],
   },
   combatarms: {
@@ -31,6 +34,19 @@ export const BUILTIN_PRODUCTS = {
     sellable: true,
     allowedExtensions: [".exe"],
     launch: { type: "external-exe", fileName: "cbr.exe", requiresAdmin: true },
+    dependencies: [],
+  },
+  // Release channel for the standalone CS2 product executable; licensed through cs2. The cs2 channel itself still
+  // carries the loader executable that deployed loaders download for self-update, so a payload must never go there.
+  "cs2-payload": {
+    name: "CS2 Payload",
+    kind: "loader",
+    accessProduct: "cs2",
+    platform: "windows",
+    channel: "stable",
+    sellable: false,
+    allowedExtensions: [".exe"],
+    launch: { type: "external-exe", fileName: "LegitBaratinhoCS2.exe", requiresAdmin: false },
     dependencies: [],
   },
   "combatarms-loader": {
@@ -56,7 +72,13 @@ export function normalizeProductDef(code, def, existing = {}) {
   const kind = def.kind === "loader" ? "loader" : "product";
   const launchType = def.launch?.type === "in-process" ? "in-process" : "external-exe";
   const fileName = String(def.launch?.fileName || "");
-  if (launchType === "external-exe" && !/^[A-Za-z0-9._-]{1,80}\.exe$/i.test(fileName)) fail("launch.fileName");
+  if ((launchType === "external-exe" || fileName) && !/^[A-Za-z0-9._-]{1,80}\.exe$/i.test(fileName)) fail("launch.fileName");
+  const releaseChannel = def.releaseChannel ? String(def.releaseChannel) : "";
+  if (releaseChannel && (releaseChannel === code || !existing[releaseChannel] || existing[releaseChannel].kind !== "loader" ||
+      existing[releaseChannel].accessProduct !== code)) {
+    // Builtin products may reference a channel declared after them; createRegistry re-checks once everything is loaded.
+    if (!def.__deferChannelCheck) fail("releaseChannel");
+  }
   const allowedExtensions = (def.allowedExtensions || [".exe"]).map((e) => String(e).toLowerCase());
   if (!allowedExtensions.length || !allowedExtensions.every((e) => EXT_RE.test(e))) fail("allowedExtensions");
   let accessProduct;
@@ -73,7 +95,8 @@ export function normalizeProductDef(code, def, existing = {}) {
     channel: String(def.channel || "stable").slice(0, 16),
     sellable: kind === "product" && def.sellable !== false,
     allowedExtensions,
-    launch: { type: launchType, fileName: launchType === "external-exe" ? fileName : undefined, requiresAdmin: Boolean(def.launch?.requiresAdmin) },
+    launch: { type: launchType, fileName: fileName || undefined, requiresAdmin: Boolean(def.launch?.requiresAdmin) },
+    ...(releaseChannel ? { releaseChannel } : {}),
     dependencies,
     ...(accessProduct ? { accessProduct } : {}),
   };
@@ -88,6 +111,8 @@ export function createRegistry(builtin = BUILTIN_PRODUCTS) {
     get: (code) => (Object.hasOwn(products, code) ? products[code] : null),
     sellable: () => Object.keys(products).filter((c) => products[c].sellable),
     accessProductOf: (code) => products[code]?.accessProduct || code,
+    // Channel whose releases are served when this product is launched (default: the product's own channel).
+    releaseChannelOf: (code) => products[code]?.releaseChannel || code,
     // Strict: unknown or missing -> null. Used by every admin/publish route so a typo never lands in another channel.
     resolveStrict(raw) {
       const code = String(raw ?? "").trim().toLowerCase();
@@ -99,6 +124,12 @@ export function createRegistry(builtin = BUILTIN_PRODUCTS) {
       return products[code];
     },
   };
-  for (const [code, def] of Object.entries(builtin)) products[code] = normalizeProductDef(code, def, products);
+  for (const [code, def] of Object.entries(builtin)) products[code] = normalizeProductDef(code, { ...def, __deferChannelCheck: true }, products);
+  for (const [code, def] of Object.entries(products)) {
+    const ch = def.releaseChannel;
+    if (ch && (ch === code || !products[ch] || products[ch].kind !== "loader" || products[ch].accessProduct !== code)) {
+      throw new Error("invalid_product:releaseChannel:" + code);
+    }
+  }
   return api;
 }

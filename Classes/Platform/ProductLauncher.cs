@@ -7,13 +7,28 @@ namespace Mac1ota_Menu.Classes
         private static readonly string BaseDirectory =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LegitBaratinho");
 
+        // Hand-off for products that run as the user (CS2 payload): token, device and product travel in environment
+        // variables, never on the command line. Elevated products get none (see ProductSession.BuildStartInfo).
+        private static IReadOnlyDictionary<string, string>? SessionEnvironment(ReleaseManifest manifest)
+        {
+            if (manifest.Launch.RequiresAdmin || string.IsNullOrWhiteSpace(ClientPortalApi.Token)) return null;
+            return new Dictionary<string, string>
+            {
+                ["LB_SESSION_TOKEN"] = ClientPortalApi.Token!,
+                ["LB_DEVICE_ID"] = DeviceIdentity.CurrentId,
+                ["LB_PRODUCT"] = manifest.Product,
+                ["LB_PORTAL_URL"] = ClientPortalApi.PortalBaseUrl
+            };
+        }
+
         public static async Task<(bool Success, string Message)> StartAsync(
             string product, string displayName, Action<SessionStage, long, long>? progress = null)
         {
             try
             {
                 SessionResult result = await ProductSession.RunAsync(
-                    new PortalReleaseSource(), product, ReleaseTrust.PublicKeySpkiBase64, BaseDirectory, progress);
+                    new PortalReleaseSource(), product, ReleaseTrust.PublicKeySpkiBase64, BaseDirectory, progress,
+                    sessionEnvironment: SessionEnvironment);
 
                 if (result.Success) return (true, displayName + " encerrado (v" + result.Version + ").");
                 return (false, result.ErrorCode == "key_missing"

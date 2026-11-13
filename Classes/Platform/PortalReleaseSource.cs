@@ -25,7 +25,7 @@ namespace Mac1ota_Menu.Classes
 
         public async Task<Stream> OpenDownloadAsync(string product, CancellationToken ct)
         {
-            HttpRequestMessage request = ClientPortalApi.CreateProductRequest(HttpMethod.Get, "api/client/download-loader", product);
+            HttpRequestMessage request = ClientPortalApi.CreateProductRequest(HttpMethod.Get, "api/client/payload", product);
             HttpResponseMessage response = await ClientPortalApi.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             if (!response.IsSuccessStatusCode)
             {

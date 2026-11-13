@@ -112,6 +112,17 @@ using (ReleaseWorkspace live = ReleaseWorkspace.Create(baseDir, "cs2"))
     Check(ReleaseWorkspace.SweepOrphans(baseDir, "cs2") >= 1 && !Directory.Exists(busyDir), "deferred cleanup succeeds once the file is released");
 }
 
+// ---- launch rules (unit-level: BuildStartInfo only; no process is started here) ----
+ReleaseManifest Mf(bool admin) => new() { Schema = 1, Product = "cs2", Version = "1.0", Launch = new ManifestLaunch { Type = "external-exe", RequiresAdmin = admin } };
+var env = new Dictionary<string, string> { ["LB_SESSION_TOKEN"] = "t" };
+var direct = ProductSession.BuildStartInfo(Mf(false), "x.exe", baseDir, env, out string se1);
+Check(direct != null && !direct.UseShellExecute && direct.Environment["LB_SESSION_TOKEN"] == "t" && string.IsNullOrEmpty(direct.Arguments), "session hand-off: direct start, token in environment, never on the command line", se1);
+var elevated = ProductSession.BuildStartInfo(Mf(true), "x.exe", baseDir, null, out _);
+Check(elevated != null && elevated.UseShellExecute && elevated.Verb == "runas", "admin product without hand-off: ShellExecute runas");
+Check(ProductSession.BuildStartInfo(Mf(true), "x.exe", baseDir, env, out string se2) == null && se2 == "session_handoff_unavailable_for_admin", "admin product + hand-off refused instead of dropping the session", se2);
+var plain = ProductSession.BuildStartInfo(Mf(false), "x.exe", baseDir, null, out _);
+Check(plain != null && plain.UseShellExecute && string.IsNullOrEmpty(plain.Verb), "no hand-off, no admin: plain start");
+
 try { Directory.Delete(baseDir, true); } catch { }
 Console.WriteLine(failures == 0 ? "PLATFORM LOADER CHECKS: ALL PASSED" : $"PLATFORM LOADER CHECKS: {failures} FAILED");
 return failures == 0 ? 0 : 1;

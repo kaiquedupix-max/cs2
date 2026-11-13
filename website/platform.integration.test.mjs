@@ -96,19 +96,33 @@ try {
   check(!verifyManifest(mf.data.payload.replace("combatarms", "cs2"), mf.data.signature, pubPem), "tampered manifest fails verification");
   check((await call("GET", "/api/client/manifest", { headers: { ...auth("combatarms"), "x-product": "nope" } })).status === 400, "manifest for unknown product -> 400");
 
-  // --- independent updates ---
+  // --- independent updates: the cs2 channel is the loader's self-update; the CS2 payload has its own channel ---
+  const pay = (tag) => pe("CS2PAY-" + tag);
+  check((await up("cs2-payload", "LegitBaratinhoCS2.exe", pay("1"))).status === 201, "publish CS2 payload 1.0 (channel cs2-payload)");
+  const loaderBefore = (await call("GET", "/api/loader/latest")).data;
   const csBefore = JSON.parse((await call("GET", "/api/client/manifest", { headers: auth("cs2") })).data.payload);
-  check((await up("cs2", "cs2.zip", Buffer.concat([Buffer.from("PK"), Buffer.alloc(8), Buffer.from("CS2-2")]))).status === 201, "publish cs2 1.1");
+  check(csBefore.product === "cs2" && csBefore.version === "1.0" && csBefore.files[0].sha256 === sha(pay("1")) && csBefore.files[0].name === "LegitBaratinhoCS2.exe",
+    "cs2 manifest is built from the payload channel, not from the loader file", JSON.stringify(csBefore.files));
+  check(loaderBefore?.sha256 === sha(cs1), "deployed loaders still see the loader file on /api/loader/latest (self-update untouched)");
+  check((await up("cs2-payload", "LegitBaratinhoCS2.exe", pay("2"))).status === 201, "publish CS2 payload 1.1");
   const csAfter = JSON.parse((await call("GET", "/api/client/manifest", { headers: auth("cs2") })).data.payload);
   const caAfter = JSON.parse((await call("GET", "/api/client/manifest", { headers: auth("combatarms") })).data.payload);
-  check(csBefore.version === "1.0" && csAfter.version === "1.1" && caAfter.version === "1.0" && caAfter.files[0].sha256 === sha(ca1), "cs2 update leaves combatarms untouched");
-  const rel = (await call("GET", "/api/admin/releases?product=cs2", { cookie: admin })).data.releases;
+  const loaderAfter = (await call("GET", "/api/loader/latest")).data;
+  check(csAfter.version === "1.1" && caAfter.version === "1.0" && caAfter.files[0].sha256 === sha(ca1), "cs2 payload update leaves combatarms untouched");
+  check(loaderAfter.version === loaderBefore.version && loaderAfter.sha256 === loaderBefore.sha256, "cs2 payload update leaves the loader channel untouched");
+  const dlPayload = await call("GET", "/api/client/payload", { headers: auth("cs2") });
+  check(dlPayload.status === 200 && dlPayload.buf.equals(pay("2")) && dlPayload.headers.get("x-content-sha256") === sha(pay("2")), "/api/client/payload serves the active payload of the release channel");
+  const dlLoaderFile = await call("GET", "/api/client/download-loader", { headers: auth("cs2") });
+  check(dlLoaderFile.status === 200 && dlLoaderFile.buf.equals(cs1), "download-loader (self-update path) still serves the loader file");
+  check((await call("GET", "/api/client/payload", { headers: { ...auth("cs2"), "x-product": "nope" } })).status === 400, "payload for unknown product -> 400");
+  const rel = (await call("GET", "/api/admin/releases?product=cs2-payload", { cookie: admin })).data.releases;
   const old = rel.find((r) => r.version === "1.0");
-  check((await call("POST", `/api/admin/releases/${old.id}/activate`, { cookie: admin })).status === 200, "rollback cs2 to 1.0");
+  check((await call("POST", `/api/admin/releases/${old.id}/activate`, { cookie: admin })).status === 200, "rollback CS2 payload to 1.0");
   check(JSON.parse((await call("GET", "/api/client/manifest", { headers: auth("cs2") })).data.payload).version === "1.0", "manifest follows the rollback");
+  check((await call("GET", "/api/client/catalog", { headers: auth("cs2") })).data.products.find((p) => p.code === "cs2").release.version === "1.0", "catalog shows the payload version for cs2");
   const sql = new pg.Client({ connectionString: DB_URL }); await sql.connect();
   const ev = (await sql.query("SELECT event, product_code FROM release_events ORDER BY id")).rows.map((r) => r.event + ":" + r.product_code);
-  check(ev.includes("publish:cs2") && ev.includes("activate:cs2"), "publish and rollback are audited", ev.join());
+  check(ev.includes("publish:cs2-payload") && ev.includes("activate:cs2-payload"), "publish and rollback are audited", ev.join());
 
   // --- new product without touching the core ---
   const def = { name: "Jogo Teste", launch: { type: "external-exe", fileName: "teste.exe", requiresAdmin: false }, allowedExtensions: [".exe"], dependencies: ["cs2"] };
@@ -130,7 +144,7 @@ try {
   const ex = cat3.data.products.find((p) => p.code === "combatarms");
   check(ex.license.status === "expired" && ex.canLaunch === false && ex.release === null, "expired license: listed, not launchable, no release exposed", JSON.stringify(ex));
   check((await call("GET", "/api/client/manifest", { headers: auth("combatarms") })).status === 403, "expired license: manifest refused");
-  check((await call("GET", "/api/client/download-loader", { headers: auth("combatarms") })).status === 403, "expired license: download refused");
+  check((await call("GET", "/api/client/download-loader", { headers: auth("combatarms") })).status === 403 && (await call("GET", "/api/client/payload", { headers: auth("combatarms") })).status === 403, "expired license: downloads refused");
   await sql.end();
 
   // --- persistence + missing key ---
