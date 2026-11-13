@@ -872,7 +872,7 @@ namespace Mac1ota_Menu.Classes
             return code switch
             {
                 CombatArmsCode =>
-                    "CA Brasil Server (CaBr)",
+                    "Combat Arms Brasil 7",
 
                 _ =>
                     "Counter-Strike 2"
@@ -987,7 +987,7 @@ namespace Mac1ota_Menu.Classes
             {
                 _productName.Text =
                     combatArms
-                        ? "External — CA Brasil Server"
+                        ? "External — Brasil 7"
                         : "Counter-Strike 2";
 
                 _productName.Font =
@@ -1000,13 +1000,13 @@ namespace Mac1ota_Menu.Classes
             {
                 _category.Text =
                     combatArms
-                        ? "COMBAT ARMS • EXTERNAL • CABR"
+                        ? "COMBAT ARMS • EXTERNAL • BRASIL 7"
                         : "CS2 • WINDOWS";
             }
 
             _start.Text =
                 combatArms
-                    ? "INICIAR CA BRASIL SERVER     →"
+                    ? "INICIAR COMBAT ARMS BRASIL 7     →"
                     : "INICIAR COUNTER-STRIKE 2     →";
         }
 
@@ -1039,7 +1039,7 @@ namespace Mac1ota_Menu.Classes
                              p.HasAccess))
                 {
                     MessageBox.Show(
-                        "Sua conta não possui acesso ativo ao CA Brasil Server.",
+                        "Sua conta não possui acesso ativo ao Combat Arms Brasil 7.",
                         "legitbaratinho.xyz",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
@@ -1049,8 +1049,8 @@ namespace Mac1ota_Menu.Classes
 
                 MessageBox.Show(
                     this,
-                    "Para o overlay funcionar no CA Brasil Server, use o jogo em modo janela na resolução do monitor e pressione F7 dentro da partida (tela cheia sem bordas). O jogo e o external precisam rodar como administrador.",
-                    "Modo de exibição do CA Brasil Server",
+                    "Para o overlay funcionar no Combat Arms Brasil 7, use o jogo em modo janela na resolução do monitor e pressione F7 dentro da partida (tela cheia sem bordas). O jogo e o external precisam rodar como administrador.",
+                    "Modo de exibição do Combat Arms Brasil 7",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
@@ -1060,7 +1060,7 @@ namespace Mac1ota_Menu.Classes
                 MessageBox.Show(
                     this,
                     message,
-                    "legitbaratinho.xyz — CA Brasil Server",
+                    "legitbaratinho.xyz — Combat Arms Brasil 7",
                     MessageBoxButtons.OK,
                     success
                         ? MessageBoxIcon.Information
