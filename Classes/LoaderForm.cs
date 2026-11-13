@@ -2458,6 +2458,13 @@ namespace Mac1ota_Menu.Classes
         protected override void OnPaint(
             PaintEventArgs e)
         {
+            // A zero-height canvas (minimized/not laid out yet) makes LinearGradientBrush throw below.
+            if (Width <= 0 ||
+                Height <= 0)
+            {
+                return;
+            }
+
             e.Graphics.SmoothingMode =
                 SmoothingMode.AntiAlias;
 
