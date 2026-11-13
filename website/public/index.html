@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0b0714">
-  <meta name="description" content="Legit Baratinho. CS2 e Counter Flame, com planos digitais e pagamentos seguros.">
+  <meta name="description" content="Legit Baratinho. Escolha o produto, veja funções e tutorial e compre com Mercado Pago.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Legit Baratinho | Loja digital">
   <meta property="og:description" content="Escolha seu produto, veja o status e compre em poucos passos.">
@@ -12,7 +12,7 @@
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg">
   <link rel="stylesheet" href="/styles.css?v=20260923-support">
   <link rel="stylesheet" href="/landing.css?v=20261110-geo-showcase">
-  <link rel="stylesheet" href="/cabr.css?v=20261113">
+  <link rel="stylesheet" href="/home.css?v=20261113">
 </head>
 <body>
   <a class="skip" href="#inicio" data-i18n="skip">Pular para o conteúdo</a>
@@ -22,8 +22,7 @@
         <span class="brand-mark">LB</span><span class="brand-words">LEGIT <b>BARATINHO</b></span>
       </a>
       <nav class="nav-links" aria-label="Main navigation">
-        <a class="nav-link" href="#inicio" data-i18n="navHome">Início</a>
-        <a class="nav-link" href="#produtos" data-i18n="navProducts">Produtos</a>
+        <a class="nav-link" href="#inicio" data-i18n="navProducts">Produtos</a>
         <a class="nav-link" href="#status" data-i18n="navStatus">Status</a>
         <a class="nav-link" href="#faq">FAQ</a>
       </nav>
@@ -39,161 +38,13 @@
   </header>
 
   <main>
-    <section class="hero container" id="inicio">
-      <div class="hero-copy">
-        <span class="eyebrow"><i class="spark"></i><span data-i18n="eyebrow">SUA LOJA DIGITAL</span></span>
-        <h1 data-i18n-html="heroTitle">Seu próximo nível <em>começa aqui.</em></h1>
-        <p data-i18n="heroLead">ESP, ajustes de mira e um loader com sua licença em um só lugar. Escolha seu plano e receba sua key após a confirmação.</p>
-        <div class="hero-actions">
-          <a class="primary-btn" href="#produtos"><span data-i18n="explore">Ver produtos</span><span>↗</span></a>
-          <a class="secondary-btn" href="#status" data-i18n="checkStatus">Ver status</a>
-        </div>
-        <div class="hero-trust"><span>✦ <b data-i18n="trust1">Pagamento seguro</b></span><span>✦ <b data-i18n="trust2">Suporte</b></span><span>✦ <b data-i18n="trust3">Atualizações</b></span></div>
-      </div>
-      <div class="hero-art" aria-label="Counter Flame" role="img">
-        <img class="cf-real-shot hero-shot" src="/media/counterframe_esp.jpg" alt="Captura real do menu Counter Flame em funcionamento" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
-        <div class="art-glow"></div><div class="art-outline"></div>
-        <span class="art-top">LB <small>LEGIT BARATINHO</small></span>
-        <div class="art-core">C<span>F</span></div>
-        <div class="art-caption"><span>COUNTER FLAME</span><small>ANDROID · iOS</small></div>
-        <div class="art-live"><i></i><span data-i18n="androidLive">Android disponível</span></div>
-      </div>
-    </section>
-
-    <figure class="container" style="margin-top:30px;margin-bottom:30px"><img src="/media/lc-counterflame-cover.jpg" alt="Mockup de apresentação do LC - Counter Flame Private" style="width:100%;display:block;border-radius:24px;border:1px solid #6b3690" loading="lazy"></figure>
-    <section class="products section container" id="produtos">
+    <section class="products section container" id="inicio">
       <div class="section-heading">
         <div><span class="overline" data-i18n="ourProducts">ESCOLHA SEU PRODUTO</span><h2 data-i18n="productsTitle">Produtos</h2></div>
         <p data-i18n="productsLead">Escolha o produto e abra os planos disponíveis.</p>
       </div>
-      <div class="product-grid">
-        <article class="product-card">
-          <div class="product-visual cs-visual" aria-hidden="true"><span class="visual-glyph">CS<span>2</span></span><small>PC • WINDOWS</small></div>
-          <div class="product-body">
-            <div class="product-heading"><h3>Counter-Strike 2</h3><span class="product-tag" data-i18n="windows">Windows</span></div>
-            <p data-i18n="csSubtitle">Planos para o projeto CS2 no Windows.</p>
-            <button type="button" class="primary-btn card-buy" data-product="cs2"><span data-i18n="buy">Comprar</span><span>→</span></button>
-          </div>
-        </article>
-        <article class="product-card featured-card">
-          <div class="product-visual cf-visual" aria-label="Imagem do Counter Flame">
-            <img class="cf-real-shot product-shot" src="/media/counterframe_aimbot.jpg" alt="Captura real do Counter Flame com menu de mira" loading="lazy" hidden onload="this.hidden=false;this.parentElement.classList.add('has-real-shot')" onerror="this.remove()">
-            <div class="cf-twist" aria-hidden="true">CF</div>
-            <div class="platform-chips"><span data-i18n="androidAvailable">Android disponível</span><span data-i18n="iosPresale">iOS disponível</span></div>
-          </div>
-          <div class="product-body">
-            <div class="product-heading"><h3>Counter Flame</h3><span class="product-tag violet">MOBILE</span></div>
-            <p data-i18n="cfSubtitle">Android e iOS disponíveis.</p>
-            <button type="button" class="primary-btn card-buy" data-product="counterframe"><span data-i18n="buy">Comprar</span><span>→</span></button>
-            <a class="cf-feature-link" href="#cf-functions"><span data-i18n="cfFeatureToggle">Ver todas as funções do Counter Flame</span><span aria-hidden="true">↗</span></a>
-            <button type="button" class="gallery-trigger" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
-          </div>
-        </article>
-        <article class="product-card cabr-card">
-          <div class="product-visual cabr-visual">
-            <img class="product-shot" src="/media/cabr_esp.webp" alt="Menu ESP do LegitBaratinho External para CA Brasil Server" loading="lazy">
-          </div>
-          <div class="product-body">
-            <div class="product-heading"><h3>LegitBaratinho External</h3><span class="product-tag violet">CaBr</span></div>
-            <p>External para CA Brasil Server (CaBr). Produto separado do CS2: ESP e Aimbot para Combat Arms Brasil.</p>
-            <button type="button" class="primary-btn card-buy" data-product="combatarms"><span>Comprar • R$ 20 / 30 dias</span><span>→</span></button>
-            <a class="cf-feature-link" href="#combat-arms"><span>Ver funções e tutorial</span><span aria-hidden="true">↗</span></a>
-          </div>
-        </article>
-      </div>
-      <section id="cf-functions" class="cf-functions-showcase" aria-labelledby="cf-functions-title">
-        <div class="cf-functions-head">
-          <div>
-            <span class="overline" data-i18n="functionsEyebrow">RECURSOS DO MENU REAL</span>
-            <h3 id="cf-functions-title" data-i18n="functionsHeadline">Funções do Counter Flame</h3>
-            <p data-i18n="functionsSubhead">Lista completa do que aparece nas capturas do menu ESP e Aimbot.</p>
-          </div>
-          <button type="button" class="gallery-trigger cf-functions-photos" data-gallery-open><span data-i18n="viewPhotos">Ver fotos reais do menu</span><span aria-hidden="true">↗</span></button>
-        </div>
-        <div class="cf-functions-layout">
-          <div class="cf-feature-content" id="cf-feature-content"></div>
-          <div class="cf-preview-stack">
-            <figure class="cf-preview cf-preview-primary">
-              <img src="/media/counterframe_esp.jpg" alt="Captura original do menu ESP do Counter Flame" loading="lazy">
-              <figcaption><span>01</span> ESP • COUNTER FLAME</figcaption>
-            </figure>
-            <figure class="cf-preview cf-preview-secondary">
-              <img src="/media/counterframe_aimbot.jpg" alt="Captura original do menu Aimbot do Counter Flame" loading="lazy">
-              <figcaption><span>02</span> AIMBOT • COUNTER FLAME</figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
+      <div class="product-grid" id="product-grid"><p>Carregando produtos…</p></div>
     </section>
-
-    <section class="section container cabr" id="combat-arms" aria-labelledby="cabr-title">
-      <div class="section-heading">
-        <div><span class="overline">EXTERNAL • COMBAT ARMS BRASIL</span><h2 id="cabr-title">LegitBaratinho External — CA Brasil Server</h2></div>
-        <p>External para CA Brasil Server (CaBr). Produto próprio, sem relação com o CS2.</p>
-      </div>
-      <div class="cabr-badges">
-        <span>EXTERNAL (não é INTERNAL)</span><span>Somente CA Brasil Server (CaBr)</span><span>Windows x64 • build VER_BR_15.3</span><span>R$ 20 / 30 dias</span>
-      </div>
-      <div class="cabr-grid">
-        <div>
-          <h3>O que é</h3>
-          <p>Programa <strong>external</strong>: roda como processo separado, <strong>lê</strong> a memória do cliente e desenha o overlay por cima da janela do jogo. Não é uma DLL injetada (internal) e não escreve na memória do jogo. O aimbot move o mouse via <code>SendInput</code>.</p>
-          <h3>Compatibilidade</h3>
-          <ul>
-            <li>Verificado somente com o cliente <strong>CA Brasil Server</strong> (CaBr), build <code>VER_BR_15.3</code>.</li>
-            <li>Outros servidores ou versões do jogo <strong>não são suportados</strong>. Se o cliente atualizar, o programa recusa ler em vez de mostrar dados errados, e é preciso esperar uma nova versão.</li>
-            <li>Jogo em modo janela ou borderless (veja o tutorial). Tela cheia exclusiva não funciona com overlay externo.</li>
-          </ul>
-          <h3>Funções</h3>
-          <div class="cabr-funcs">
-            <div><h4>ESP</h4><ul>
-              <li>Caixa: completa, preenchida, somente cantos, cantos preenchidos ou preenchida + cantos</li>
-              <li>Esqueleto e círculo da cabeça</li>
-              <li>Nome e distância em metros (escala ajustável)</li>
-              <li>Barra de vida (somente a sua: o cliente não informa a vida dos outros jogadores)</li>
-              <li>Somente inimigos; distância máxima, opacidade, espessura</li>
-              <li>Todas as cores configuráveis, com prévia ao vivo no menu</li>
-            </ul></div>
-            <div><h4>Aimbot</h4><ul>
-              <li>Tecla configurável (padrão: botão direito do mouse)</li>
-              <li>FOV em pixels, com círculo opcional na tela</li>
-              <li>Suavização (1–30), distância máxima, zona morta e ajuste da cabeça</li>
-              <li>Boneco clicável de hitboxes: cabeça, pescoço, peito, abdômen, pélvis, braços e pernas; com várias marcadas, a mira sorteia uma</li>
-              <li>Calibração da sensibilidade (F6) e calibração automática ao entrar na partida</li>
-            </ul></div>
-            <div><h4>Config</h4><ul>
-              <li>Salvar e carregar configurações</li>
-              <li>Marca d’água ligável/desligável</li>
-              <li>Tela cheia sem bordas (F7)</li>
-              <li>Atalhos: INSERT abre/fecha o menu, END encerra</li>
-            </ul></div>
-          </div>
-          <h3>Limitações conhecidas</h3>
-          <ul>
-            <li>Ainda não detecta se o inimigo está atrás da parede: o mesmo conjunto de cores é usado para todos.</li>
-            <li>Sem ESP de arma inimiga e sem vida dos outros jogadores (dado não disponível no cliente).</li>
-            <li>Nenhum bloqueio ou ban é prometido: o uso é por sua conta e risco.</li>
-          </ul>
-        </div>
-        <div>
-          <figure class="cabr-shot"><img src="/media/cabr_esp.webp" alt="Menu ESP em jogo" loading="lazy"><figcaption>Menu ESP</figcaption></figure>
-          <figure class="cabr-shot"><img src="/media/cabr_aimbot.webp" alt="Menu Aimbot em jogo" loading="lazy"><figcaption>Menu Aimbot</figcaption></figure>
-          <figure class="cabr-shot"><img src="/media/cabr_game.webp" alt="ESP funcionando em partida" loading="lazy"><figcaption>Em partida: caixa, esqueleto, nome e distância</figcaption></figure>
-        </div>
-      </div>
-      <div class="cabr-tutorial">
-        <h3>Tutorial: como usar em tela cheia</h3>
-        <ol>
-          <li>Compre o plano e entre no <strong>loader</strong> com o mesmo usuário e senha do site. O primeiro login vincula o seu PC (HWID).</li>
-          <li>No jogo, abra as opções de vídeo e escolha <strong>modo janela</strong> na resolução do seu monitor.</li>
-          <li>Abra o loader como administrador, escolha <em>LegitBaratinho External — CA Brasil Server</em> e inicie. O jogo também roda como administrador.</li>
-          <li>Entre em uma partida e pressione <strong>F7</strong> (ou o botão na aba Config): a janela perde a borda e cobre o monitor inteiro. Pronto: parece tela cheia e o overlay aparece.</li>
-          <li>Se escolher <em>Tela cheia sem bordas ao iniciar</em> na aba Config, o F7 passa a ser automático.</li>
-          <li><strong>INSERT</strong> abre o menu. Pressione <strong>F6</strong> vivo, dentro da partida, para calibrar o aimbot.</li>
-        </ol>
-        <p class="cabr-warn">Tela cheia exclusiva do D3D9 ignora o overlay externo. Se nada aparecer, volte ao modo janela e use o F7.</p>
-        <button type="button" class="primary-btn card-buy" data-product="combatarms"><span>Comprar • R$ 20 / 30 dias (PIX ou cartão)</span><span>→</span></button>
-      </div>
     </section>
 
     <section class="status-section section" id="status">
@@ -255,6 +106,7 @@
     </div>
   </dialog>
   <script src="/referrals.js?v=1" defer></script>
+  <script src="/home.js?v=20261113" defer></script>
   <script src="/landing.js?v=20261110-geo-showcase" defer></script>
   <script src="/support.js?v=20260923-support" defer></script>
 </body>

@@ -9,6 +9,8 @@ import { registerTelegram, initTelegram } from "./telegram.js";
 import { registerTelegramAdmin } from "./telegramAdmin.js";
 import { initCoupons, registerCoupons } from "./coupons.js";
 import { visitorCountry } from "./geoMarket.js";
+import { PRODUCT_CATALOG } from "./catalog.js";
+import { registerAdminStats } from "./adminStats.js";
 import { initReferrals, registerReferrals } from './referrals.js';
 import {initTerms} from './terms.js';
 import path from "node:path";
@@ -38,7 +40,7 @@ const PRODUCT_CODE = "cs2";
 // Sellable loader products. Requests without a product keep the CS2 behaviour.
 const PRODUCTS = {
   cs2: { name: "Counter-Strike 2" },
-  combatarms: { name: "LegitBaratinho External — CA Brasil Server" },
+  combatarms: { name: "Combat Arms External Brasil 7" },
   // Release channel for the CaBr loader executable itself; licensed through combatarms.
   "combatarms-loader": { name: "CaBr Loader", accessProduct: "combatarms" },
 };
@@ -1663,12 +1665,18 @@ app.get("/api/admin/clients", requireAdmin, async (req, res) => {
       p.expires_at,
       p.revoked_at
     FROM users u
-    LEFT JOIN user_products p
-      ON p.user_id = u.id
-      AND p.product_code = $1
+    LEFT JOIN LATERAL (
+      SELECT plan, expires_at, revoked_at
+      FROM user_products
+      WHERE user_id = u.id AND product_code = ANY($1)
+      ORDER BY (revoked_at IS NULL) DESC, expires_at DESC NULLS LAST
+      LIMIT 1
+    ) p ON TRUE
     ORDER BY u.id DESC
     LIMIT 500
-  `, [accessProductOf(productOf(req))]);
+  `, [String(req.query.game || "").toLowerCase() === "counterframe"
+        ? ["counterframe-android", "counterframe-ios"]
+        : [accessProductOf(productOf(req))]]);
 
   const now = Date.now();
   const clients = result.rows.map((row) => {
@@ -1847,6 +1855,17 @@ app.get("/api/admin/counterframe/preorders", requireAdmin, async (_req,res) => {
     console.error("Erro ao listar pré-vendas:",error?.message||error);
     res.status(500).json({error:"preorders_failed"});
   }
+});
+
+registerAdminStats(app, { pool, requireAdmin });
+
+app.get("/api/catalog", (_req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.json(PRODUCT_CATALOG);
+});
+
+app.get("/produto/:slug", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "produto.html"));
 });
 
 app.get("/account", (_req, res) => {

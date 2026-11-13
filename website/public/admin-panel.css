@@ -1,0 +1,40 @@
+/* Admin shell: tabs, sub-tabs, finance overview, client drawer. Purple theme, no page scrolling between sections. */
+.admin-dashboard{max-width:1280px;margin:0 auto}
+.adm-nav{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 18px;padding:8px;border:1px solid #3a2163;border-radius:16px;background:#120a22;position:sticky;top:8px;z-index:20;backdrop-filter:blur(8px)}
+.adm-nav button{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border:0;border-radius:11px;background:transparent;color:#cdbbf5;font-weight:700;cursor:pointer}
+.adm-nav button:hover{background:#1e1038}
+.adm-nav button.active{background:linear-gradient(135deg,#7c3aed,#a66bff);color:#fff}
+.adm-badge{min-width:20px;padding:1px 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:.75rem;text-align:center}
+.adm-subnav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px;border-bottom:1px solid #3a2163}
+.adm-subnav button{padding:10px 16px;border:0;border-bottom:2px solid transparent;background:transparent;color:#bfa8f0;font-weight:600;cursor:pointer;margin-bottom:-1px}
+.adm-subnav button.active{color:#fff;border-bottom-color:#a66bff}
+.adm-tab.hidden,[data-sub-panel][hidden]{display:none!important}
+.adm-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.adm-toolbar h2{margin:0;margin-right:auto}
+.adm-toolbar input{padding:8px 10px;border:1px solid #4b2a82;border-radius:9px;background:#190d30;color:#f5eafa}
+.adm-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+.adm-metric{padding:16px 18px;border:1px solid #3a2163;border-radius:16px;background:linear-gradient(160deg,#1a0e33,#120a22)}
+.adm-metric small{display:block;color:#b99cff;letter-spacing:.04em;text-transform:uppercase;font-size:.72rem}
+.adm-metric strong{display:block;font-size:1.55rem;margin:6px 0 2px}
+.adm-metric span{font-size:.82rem;opacity:.7}
+.adm-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.adm-bar-row{margin:12px 0}
+.adm-bar-head{display:flex;justify-content:space-between;gap:12px;font-size:.92rem;margin-bottom:5px}
+.adm-bar-head span{opacity:.75;text-align:right}
+.adm-bar{height:9px;border-radius:99px;background:#24133f;overflow:hidden}
+.adm-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7c3aed,#c4a1ff)}
+.adm-daily{display:flex;align-items:flex-end;gap:4px;height:150px;padding-top:8px}
+.adm-day{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.adm-day i{display:block;width:100%;min-height:2px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#c4a1ff,#7c3aed)}
+.adm-day span{font-size:.62rem;opacity:.6;margin-top:3px}
+.adm-link{background:none;border:0;padding:0;color:#d8c4ff;font-weight:700;font-size:inherit;cursor:pointer;text-align:left;text-decoration:underline dotted}
+.adm-link:hover{color:#fff}
+.adm-drawer{position:fixed;top:0;right:0;bottom:0;width:min(760px,96vw);overflow:auto;padding:22px;background:#0f0820;border-left:1px solid #4b2a82;box-shadow:-20px 0 60px rgba(0,0,0,.55);z-index:60}
+.adm-drawer.hidden{display:none}
+.adm-drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.adm-drawer-head strong{font-size:1.3rem}
+.adm-drawer h4{margin:20px 0 8px;color:#c9b0ff}
+.adm-client-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.adm-client-head small{display:block;opacity:.65}
+.adm-client-actions{margin:14px 0}
+@media(max-width:900px){.adm-two{grid-template-columns:1fr}.adm-nav button{padding:9px 13px}}

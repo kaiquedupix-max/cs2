@@ -8,7 +8,8 @@
   <link rel="icon" type="image/svg+xml" href="/brand-icon.svg?v=20260918-0610">
   <link rel="stylesheet" href="/styles.css?v=20260918-0610">
   <link rel="stylesheet" href="/purple-ui.css?v=20261109">
-<style>.admin-game-picker{display:flex;align-items:center;gap:12px;margin:18px 0;padding:16px 18px;border:1px solid #493052;border-radius:14px;background:#17101e}.admin-game-picker label{font-weight:700}.admin-game-picker select{min-width:220px;padding:10px 12px;border:1px solid #64407b;border-radius:9px;background:#24172d;color:#f5eafa}.admin-summary{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}.admin-summary .metric{padding:12px 16px;background:#21162a;border-radius:12px;min-width:130px}.admin-summary .metric b{display:block;font-size:24px}.admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.admin-tabs button.active{background:#8b43bd}.cf-access-admin h3{margin-top:20px}.cf-admin-extra{margin-top:18px}.telegram-admin-section{scroll-margin-top:20px}#counterFrameAdminPanel[hidden],#cs2AdminPanel[hidden]{display:none!important}</style></head>
+  <link rel="stylesheet" href="/admin-panel.css?v=20261113">
+</head>
 <body class="admin-body">
   <div class="glow glow-a"></div>
   <main class="admin-shell">
@@ -20,7 +21,7 @@
     <section id="loginBox" class="admin-card login-card">
       <div class="section-label">ADMINISTRAÇÃO</div>
       <h1>Entrar</h1>
-      <p>Use a senha configurada no Railway.</p>
+      <p>Use a senha de administrador do painel.</p>
       <form id="loginForm">
         <label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
         <button class="button primary full" type="submit">Entrar</button>
@@ -34,17 +35,39 @@
         <button id="logoutBtn" class="button ghost">Sair</button>
       </div>
 
-      <div class="admin-game-picker">
-        <label for="adminGameSelect">Jogo que estou administrando</label>
-        <select id="adminGameSelect">
-          <option value="cs2">Counter-Strike 2</option>
-          <option value="combatarms">LegitBaratinho External — CA Brasil Server (CaBr)</option>
-          <option value="counterframe">Counter Flame</option>
-        </select>
+      <nav class="adm-nav" id="admNav" aria-label="Seções do painel">
+        <button type="button" data-tab="overview" class="active">Visão geral</button>
+        <button type="button" data-tab="pc">Jogos de PC</button>
+        <button type="button" data-tab="mobile">Jogos mobile</button>
+        <button type="button" data-tab="clients">Clientes</button>
+        <button type="button" data-tab="support">Suporte <span id="admSupportBadge" class="adm-badge hidden">0</span></button>
+      </nav>
+
+      <div class="adm-tab" id="tab-overview">
+        <div class="adm-toolbar">
+          <h2>Financeiro</h2>
+          <label>Mês <input type="month" id="ovMonth"></label>
+          <button type="button" id="ovRefresh" class="button ghost small">Atualizar</button>
+        </div>
+        <div class="adm-metrics" id="ovMetrics"></div>
+        <div class="adm-two">
+          <article class="admin-card"><div class="section-label">GATEWAY</div><h2>Por onde saíram as vendas</h2><div id="ovGateway" class="adm-bars"></div></article>
+          <article class="admin-card"><div class="section-label">PRODUTOS</div><h2>O que mais vende</h2><div id="ovProduct" class="adm-bars"></div></article>
+        </div>
+        <article class="admin-card"><div class="section-label">DIA A DIA</div><h2>Vendas no mês (R$)</h2><div id="ovDaily" class="adm-daily"></div></article>
+        <article class="admin-card"><div class="section-label">ÚLTIMAS VENDAS</div><h2>Vendas recentes</h2>
+          <div class="table-wrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Produto</th><th>Gateway</th><th>Valor</th></tr></thead><tbody id="ovRecent"></tbody></table></div>
+          <p id="ovNote" class="admin-muted"></p>
+        </article>
       </div>
-      <div id="cs2AdminPanel">
-      <div class="admin-grid">
-        <article class="admin-card">
+
+      <div class="adm-tab hidden" id="tab-pc">
+        <div class="adm-subnav" data-for="pc">
+          <button type="button" data-game="cs2" class="active">Counter-Strike 2</button>
+          <button type="button" data-game="combatarms">Combat Arms Brasil 7</button>
+        </div>
+        <div class="admin-grid">
+          <article class="admin-card">
           <div class="section-label">SERVIÇO</div>
           <h2>Status CS2 — Windows</h2>
           <form id="statusForm">
@@ -59,8 +82,7 @@
             <button class="button primary full" type="submit">Atualizar status</button>
           </form>
         </article>
-
-        <article class="admin-card release-card">
+          <article class="admin-card release-card">
           <div class="section-label">DISTRIBUIÇÃO</div>
           <h2>Publicar loader</h2>
           <p class="admin-muted">A nova versão vira a versão ativa automaticamente após o upload.</p>
@@ -91,11 +113,122 @@
             <span id="currentReleaseMeta">—</span>
           </div>
         </article>
+        </div>
+        <article class="admin-card">
+        <div class="table-title">
+          <div>
+            <div class="section-label">VERSÕES</div>
+            <h2>Histórico do loader</h2>
+          </div>
+          <button id="refreshReleasesBtn" class="button ghost small">Atualizar</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Versão</th><th>Arquivo</th><th>Tamanho</th><th>Publicado</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="releasesBody"></tbody>
+          </table>
+        </div>
+      </article>
       </div>
 
+      <div class="adm-tab hidden" id="tab-mobile">
+        <div class="adm-subnav" data-for="mobile">
+          <button type="button" data-sub="status" class="active">Status</button>
+          <button type="button" data-sub="licencas">Licenças e acessos</button>
+          <button type="button" data-sub="extras">Cupons e extras</button>
+          <button type="button" data-sub="telegram">Telegram</button>
+        </div>
+        <div data-sub-panel="status"><article class="admin-card admin-product-statuses" id="product-status-admin">
+        <div class="section-label">DISPONIBILIDADE POR PLATAFORMA</div>
+        <h2>Counter Flame • Status independentes</h2>
+        <p class="admin-muted">Escolha o estado público de cada versão e escreva a mensagem que os visitantes verão na aba Status do site.</p>
+        <div class="admin-status-grid">
+          <form class="admin-product-status-form" data-product="counterFrameAndroid">
+            <h3>Counter Flame • Android</h3>
+            <label>Status
+              <select name="status" required>
+                <option value="coming_soon">Em breve</option>
+                <option value="online">Online</option>
+                <option value="maintenance">Manutenção</option>
+                <option value="offline">Offline</option>
+              </select>
+            </label>
+            <label>Mensagem pública
+              <textarea name="message" rows="3" maxlength="220" required></textarea>
+            </label>
+            <button class="button primary full" type="submit">Salvar status Android</button>
+            <small class="admin-status-feedback" role="status" aria-live="polite"></small>
+          </form>
+          <form class="admin-product-status-form" data-product="counterFrameIos">
+            <h3>Counter Flame • iOS</h3>
+            <label>Status
+              <select name="status" required>
+                <option value="presale">Pré-venda disponível (sem acesso imediato)</option>
+                <option value="coming_soon">Em breve</option>
+                <option value="online">Online</option>
+                <option value="maintenance">Manutenção</option>
+                <option value="offline">Offline</option>
+              </select>
+            </label>
+            <label>Mensagem pública
+              <textarea name="message" rows="3" maxlength="220" required></textarea>
+            </label>
+            <button class="button primary full" type="submit">Salvar status iOS</button>
+            <small class="admin-status-feedback" role="status" aria-live="polite"></small>
+          </form>
+        </div>
+        <p class="admin-muted">O status é uma informação publicada pela administração. Marcar como Online não ativa o aplicativo nem libera compras automaticamente.</p>
+      </article></div>
+        <div data-sub-panel="licencas" hidden><article class="admin-card cf-access-admin">
+          <div class="section-label">LICENÇAS E ACESSOS</div>
+          <h2>Counter Flame • clientes e ativações</h2>
+          <p class="admin-muted">Ativações, aparelhos, validade e último acesso registrado.</p>
+          <form id="status">
+            <label>Sistema<select name="availability"><option value="online">Online</option><option value="maintenance">Manutenção</option><option value="offline">Offline</option></select></label>
+            <label>Segurança<select name="safety"><option value="unknown">Não informado</option><option value="safe">Seguro</option><option value="unsafe">Não seguro</option></select></label>
+            <label>Detecção<select name="detection"><option value="unknown">Não informado</option><option value="undetected">Indetectado</option><option value="detected">Detectado</option></select></label>
+            <button class="button primary" type="submit">Salvar status</button>
+          </form>
+          <p id="updated" class="admin-muted"></p>
+          <p id="message" class="admin-status-feedback" role="status" aria-live="polite"></p>
+          <div id="summary" class="admin-summary"></div>
+          <div class="admin-client-toolbar">
+            <input id="search" placeholder="Buscar usuário, e-mail, IP ou aparelho">
+            <button id="refresh" class="button ghost small" type="button">Atualizar</button>
+          </div>
+          <h3>Counter Flame</h3><div class="table-wrap"><table id="cf"></table></div>
+          <h3>CS2</h3><div class="table-wrap"><table id="cs2"></table></div>
+          <h3>Histórico de acessos</h3><div class="table-wrap"><table id="events"></table></div>
+        </article></div>
+        <div data-sub-panel="extras" hidden><div id="cfAdminExtra"></div></div>
+        <div data-sub-panel="telegram" hidden><section class="admin-card telegram-admin-section" id="counterframe-telegram">
+          <div class="section-label">TELEGRAM</div>
+          <h2>Clientes, vendas e atividade do bot</h2>
+          <p class="admin-muted">Starts, comandos, pagamentos, keys e indicações. A ação de resetar libera a key para novo resgate.</p>
+          <div id="tgSummary" class="admin-summary"></div>
+          <div class="admin-client-toolbar">
+            <input id="tgSearch" placeholder="Filtrar os dados desta aba">
+            <button id="tgRefresh" class="button ghost small" type="button">Atualizar</button>
+          </div>
+          <div class="admin-tabs" role="tablist">
+            <button class="button ghost small active" data-tg-tab="users" type="button">Clientes / starts</button>
+            <button class="button ghost small" data-tg-tab="events" type="button">Comandos / logs</button>
+            <button class="button ghost small" data-tg-tab="orders" type="button">Vendas</button>
+            <button class="button ghost small" data-tg-tab="keys" type="button">Keys</button>
+            <button class="button ghost small" data-tg-tab="rewards" type="button">Indicações</button>
+          </div>
+          <p id="tgMessage" class="admin-status-feedback" role="status" aria-live="polite"></p>
+          <div class="table-wrap"><table id="tgTable"></table></div>
+        </section></div>
+      </div>
 
-
-      <article class="admin-card admin-clients-card">
+      <div class="adm-tab hidden" id="tab-clients">
+        <div class="adm-subnav" data-for="clients">
+          <button type="button" data-game="cs2" class="active">Counter-Strike 2</button>
+          <button type="button" data-game="combatarms">Combat Arms Brasil 7</button>
+          <button type="button" data-game="counterframe">Counter Flame</button>
+        </div>
+        <article class="admin-card admin-clients-card">
         <div class="table-title">
           <div>
             <div class="section-label">CLIENTES</div>
@@ -123,8 +256,13 @@
           </table>
         </div>
       </article>
+        <aside id="clientDrawer" class="adm-drawer hidden" aria-label="Detalhes do cliente">
+          <div class="adm-drawer-head"><strong id="cdTitle">Cliente</strong><button type="button" id="cdClose" class="button ghost small">Fechar</button></div>
+          <div id="cdBody"></div>
+        </aside>
+      </div>
 
-      <article class="admin-card support-admin-card">
+      <div class="adm-tab hidden" id="tab-support"><article class="admin-card support-admin-card">
         <div class="table-title">
           <div>
             <div class="section-label">SUPORTE</div>
@@ -173,114 +311,14 @@
             </div>
           </section>
         </div>
-      </article>
-
-      <article class="admin-card">
-        <div class="table-title">
-          <div>
-            <div class="section-label">VERSÕES</div>
-            <h2>Histórico do loader</h2>
-          </div>
-          <button id="refreshReleasesBtn" class="button ghost small">Atualizar</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Versão</th><th>Arquivo</th><th>Tamanho</th><th>Publicado</th><th>Status</th><th>Ações</th></tr></thead>
-            <tbody id="releasesBody"></tbody>
-          </table>
-        </div>
-      </article>
-      </div>
-      <div id="counterFrameAdminPanel" hidden>
-      <article class="admin-card admin-product-statuses" id="product-status-admin">
-        <div class="section-label">DISPONIBILIDADE POR PLATAFORMA</div>
-        <h2>Counter Flame • Status independentes</h2>
-        <p class="admin-muted">Escolha o estado público de cada versão e escreva a mensagem que os visitantes verão na aba Status do site.</p>
-        <div class="admin-status-grid">
-          <form class="admin-product-status-form" data-product="counterFrameAndroid">
-            <h3>Counter Flame • Android</h3>
-            <label>Status
-              <select name="status" required>
-                <option value="coming_soon">Em breve</option>
-                <option value="online">Online</option>
-                <option value="maintenance">Manutenção</option>
-                <option value="offline">Offline</option>
-              </select>
-            </label>
-            <label>Mensagem pública
-              <textarea name="message" rows="3" maxlength="220" required></textarea>
-            </label>
-            <button class="button primary full" type="submit">Salvar status Android</button>
-            <small class="admin-status-feedback" role="status" aria-live="polite"></small>
-          </form>
-          <form class="admin-product-status-form" data-product="counterFrameIos">
-            <h3>Counter Flame • iOS</h3>
-            <label>Status
-              <select name="status" required>
-                <option value="presale">Pré-venda disponível (sem acesso imediato)</option>
-                <option value="coming_soon">Em breve</option>
-                <option value="online">Online</option>
-                <option value="maintenance">Manutenção</option>
-                <option value="offline">Offline</option>
-              </select>
-            </label>
-            <label>Mensagem pública
-              <textarea name="message" rows="3" maxlength="220" required></textarea>
-            </label>
-            <button class="button primary full" type="submit">Salvar status iOS</button>
-            <small class="admin-status-feedback" role="status" aria-live="polite"></small>
-          </form>
-        </div>
-        <p class="admin-muted">O status é uma informação publicada pela administração. Marcar como Online não ativa o aplicativo nem libera compras automaticamente.</p>
-      </article>
-        <article class="admin-card cf-access-admin">
-          <div class="section-label">LICENÇAS E ACESSOS</div>
-          <h2>Counter Flame • clientes e ativações</h2>
-          <p class="admin-muted">Ativações, aparelhos, validade e último acesso registrado.</p>
-          <form id="status">
-            <label>Sistema<select name="availability"><option value="online">Online</option><option value="maintenance">Manutenção</option><option value="offline">Offline</option></select></label>
-            <label>Segurança<select name="safety"><option value="unknown">Não informado</option><option value="safe">Seguro</option><option value="unsafe">Não seguro</option></select></label>
-            <label>Detecção<select name="detection"><option value="unknown">Não informado</option><option value="undetected">Indetectado</option><option value="detected">Detectado</option></select></label>
-            <button class="button primary" type="submit">Salvar status</button>
-          </form>
-          <p id="updated" class="admin-muted"></p>
-          <p id="message" class="admin-status-feedback" role="status" aria-live="polite"></p>
-          <div id="summary" class="admin-summary"></div>
-          <div class="admin-client-toolbar">
-            <input id="search" placeholder="Buscar usuário, e-mail, IP ou aparelho">
-            <button id="refresh" class="button ghost small" type="button">Atualizar</button>
-          </div>
-          <h3>Counter Flame</h3><div class="table-wrap"><table id="cf"></table></div>
-          <h3>CS2</h3><div class="table-wrap"><table id="cs2"></table></div>
-          <h3>Histórico de acessos</h3><div class="table-wrap"><table id="events"></table></div>
-        </article>
-        <div id="cfAdminExtra"></div>
-        <section class="admin-card telegram-admin-section" id="counterframe-telegram">
-          <div class="section-label">TELEGRAM</div>
-          <h2>Clientes, vendas e atividade do bot</h2>
-          <p class="admin-muted">Starts, comandos, pagamentos, keys e indicações. A ação de resetar libera a key para novo resgate.</p>
-          <div id="tgSummary" class="admin-summary"></div>
-          <div class="admin-client-toolbar">
-            <input id="tgSearch" placeholder="Filtrar os dados desta aba">
-            <button id="tgRefresh" class="button ghost small" type="button">Atualizar</button>
-          </div>
-          <div class="admin-tabs" role="tablist">
-            <button class="button ghost small active" data-tg-tab="users" type="button">Clientes / starts</button>
-            <button class="button ghost small" data-tg-tab="events" type="button">Comandos / logs</button>
-            <button class="button ghost small" data-tg-tab="orders" type="button">Vendas</button>
-            <button class="button ghost small" data-tg-tab="keys" type="button">Keys</button>
-            <button class="button ghost small" data-tg-tab="rewards" type="button">Indicações</button>
-          </div>
-          <p id="tgMessage" class="admin-status-feedback" role="status" aria-live="polite"></p>
-          <div class="table-wrap"><table id="tgTable"></table></div>
-        </section>
-      </div>
+      </article></div>
     </section>
   </main>
-  <script src="/admin.js?v=20261111-product-selector"></script>
+  <script src="/admin.js?v=20261113-panel"></script>
   <script src="/cf-admin.js?v=20261111-single-admin"></script>
   <script src="/cf-admin-extra.js?v=20261111-coupon-usage"></script>
   <script src="/telegram-admin.js?v=20261111-single-admin"></script>
+  <script src="/admin-panel.js?v=20261113"></script>
 </body>
 </html>
 

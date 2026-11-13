@@ -17,7 +17,7 @@ const COUNTERFRAME_PLANS = [
   { key: "d30", name: "30 dias", days: 30, priceCents: 3500, usdPriceCents: 1000 },
 ];
 
-// LegitBaratinho External - CA Brasil Server (CaBr): single 30-day plan.
+// Combat Arms External Brasil 7: single 30-day plan.
 const COMBATARMS_PLANS = [
   { key: "d30", name: "1 mês", days: 30, priceCents: 2000 },
 ];

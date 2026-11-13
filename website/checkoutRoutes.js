@@ -340,7 +340,8 @@ export function registerCheckoutRoutes(app, deps) {
   app.get("/api/checkout/config", optionalUser, async (req, res) => {
     const product = normalizeProduct(req.query.product);
     const geo = await visitorMarket(req);
-    const market = geo.market;
+    // PC products (CS2, Combat Arms) are sold in BRL through Mercado Pago only; Stripe stays for Counter Flame abroad.
+    const market = product === "counterframe" ? geo.market : "BR";
     const config = checkoutConfig(product,market);
     const provider=market==='BR'?'mercadopago':'stripe';
     const configured=provider==='mercadopago'?config.configured:stripeReady()&&/^https:\/\//i.test(String(process.env.PUBLIC_URL||''));
@@ -367,7 +368,7 @@ export function registerCheckoutRoutes(app, deps) {
       configured,
       provider,
       product,
-      market: geo.market,
+      market,
       country: geo.country,
       geoVerified: geo.geolocated,
       settlementCurrency: provider==='stripe'&&product==='counterframe'?'USD':'BRL',
@@ -396,7 +397,7 @@ export function registerCheckoutRoutes(app, deps) {
   });
 
   app.post('/api/checkout/coupon', async(req,res)=>{
-    try{const product=normalizeProduct(req.body?.product),market=(await visitorMarket(req)).market,coupon=await couponDiscount(pool,req.body?.code,product),plan=checkoutPlan(req.body?.planKey,product,market);if(!plan)return res.status(400).json({error:'invalid_plan'});res.json({code:coupon.code,percent:coupon.percent,plan:{...plan,priceCents:discount(plan.priceCents,coupon.percent),usdPriceCents:plan.usdPriceCents?discount(plan.usdPriceCents,coupon.percent):null}});}catch(e){res.status(e.statusCode||500).json({error:e.statusCode?e.message:'server_error'});}
+    try{const product=normalizeProduct(req.body?.product),market=product==='counterframe'?(await visitorMarket(req)).market:'BR',coupon=await couponDiscount(pool,req.body?.code,product),plan=checkoutPlan(req.body?.planKey,product,market);if(!plan)return res.status(400).json({error:'invalid_plan'});res.json({code:coupon.code,percent:coupon.percent,plan:{...plan,priceCents:discount(plan.priceCents,coupon.percent),usdPriceCents:plan.usdPriceCents?discount(plan.usdPriceCents,coupon.percent):null}});}catch(e){res.status(e.statusCode||500).json({error:e.statusCode?e.message:'server_error'});}
   });
   app.post("/api/checkout/payment", requireUser, async (req, res) => {
     if(req.body?.termsAccepted!==true||req.body?.termsVersion!==TERMS_VERSION)return res.status(400).json({error:'terms_required',message:'Leia e aceite os termos antes de pagar.'});
@@ -411,7 +412,7 @@ export function registerCheckoutRoutes(app, deps) {
     }
     const orderedProductCode = product === "counterframe" ? "counterframe-" + platform : product === "combatarms" ? "combatarms" : productCode;
     // The submitted region is never trusted for pricing.
-    const market = (await visitorMarket(req)).market;
+    const market = product === "counterframe" ? (await visitorMarket(req)).market : "BR";
     const config = checkoutConfig(product,market);
     const provider=market==='BR'?'mercadopago':'stripe';
     const currency=provider==='stripe'&&product==='counterframe'?'USD':'BRL';
@@ -466,7 +467,7 @@ export function registerCheckoutRoutes(app, deps) {
         stripeParams.set('mode','payment');stripeParams.set('payment_method_types[0]','card');
         stripeParams.set('line_items[0][price_data][currency]',currency.toLowerCase());
         stripeParams.set('line_items[0][price_data][unit_amount]',String(plan.priceCents));
-        stripeParams.set('line_items[0][price_data][product_data][name]',`${product==='counterframe'?'Counter Flame '+platform.toUpperCase():product==='combatarms'?'LegitBaratinho External - CA Brasil Server':'CS2'} • ${plan.name}`);
+        stripeParams.set('line_items[0][price_data][product_data][name]',`${product==='counterframe'?'Counter Flame '+platform.toUpperCase():product==='combatarms'?'Combat Arms External Brasil 7':'CS2'} • ${plan.name}`);
         stripeParams.set('line_items[0][quantity]','1');stripeParams.set('customer_email',buyer.email);
         stripeParams.set('client_reference_id',String(localId));stripeParams.set('metadata[payment_id]',String(localId));stripeParams.set('metadata[user_id]',String(req.userId));
         stripeParams.set('success_url',`${publicUrl}/checkout?product=${product}&plan=${plan.key}${product==='counterframe'?'&platform='+platform:''}&payment_id=${localId}&stripe=success&session_id={CHECKOUT_SESSION_ID}`);

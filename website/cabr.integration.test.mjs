@@ -136,7 +136,7 @@ try {
   const la2 = await login("cabr_a", H1);
   check(la2.data?.account?.product?.hasAccess === true && la2.data.account.product.daysRemaining >= 29, "after license: hasAccess=true, ~30 days");
   const plist = la2.data?.account?.products || [];
-  check(plist.length === 1 && plist[0].code === "combatarms" && plist[0].hasAccess === true && plist[0].name.includes("CA Brasil Server") && plist[0].daysRemaining >= 29,
+  check(plist.length === 1 && plist[0].code === "combatarms" && plist[0].hasAccess === true && plist[0].name.includes("Brasil 7") && plist[0].daysRemaining >= 29,
     "login returns the owned products list (only combatarms for user A)", JSON.stringify(plist));
   const relA = await call("GET", "/api/client/release", { headers: authA });
   check(relA.data?.release?.product === "combatarms", "release metadata echoes the product (loaders refuse mismatches)", JSON.stringify(relA.data));
@@ -170,6 +170,47 @@ try {
   check(banned.status === 403 && banned.data?.error === "account_banned", "banned account cannot log in");
   await sql.end();
 
+  // --- storefront: catalog-driven home + product pages ---
+  const cat = (await call("GET", "/api/catalog")).data || [];
+  check(cat.length >= 3 && cat.some((p) => p.checkoutProduct === "combatarms" && p.name === "Combat Arms External Brasil 7"), "catalog lists CS2, Combat Arms External Brasil 7 and Counter Flame");
+  const ca = cat.find((p) => p.checkoutProduct === "combatarms");
+  check(ca && ca.info.includes("Compatível com Windows 10 e 11") && !JSON.stringify(ca).toLowerCase().includes("limita"), "Combat Arms page data: Windows 10/11, no limitations section");
+  const page = await call("GET", "/produto/combat-arms-external-brasil-7");
+  check(page.status === 200 && page.buf.toString().includes("produto.js"), "product page route serves the page shell");
+  const home = (await call("GET", "/")).buf.toString();
+  check(home.includes('id="product-grid"') && !home.includes("lc-counterflame-cover") && !home.includes('class="hero'), "home is the product grid (hero banner removed)");
+
+  // --- checkout: PC products are Mercado Pago only, regardless of visitor country ---
+  for (const prod of ["cs2", "combatarms"]) {
+    const cfg = (await call("GET", "/api/checkout/config?product=" + prod, { headers: { "x-forwarded-for": "8.8.8.8" } })).data;
+    check(cfg?.provider === "mercadopago" && cfg?.market === "BR", `${prod} checkout uses Mercado Pago (no Stripe)`, JSON.stringify({ p: cfg?.provider, m: cfg?.market }));
+  }
+
+  // --- admin finance overview + client detail (seeded paid payments, no real charge) ---
+  const fin = new pg.Client({ connectionString: DB_URL });
+  await fin.connect();
+  const seed = (key, provider, prod, amount, currency) => fin.query(
+    `INSERT INTO checkout_payments(user_id,provider,idempotency_key,payment_method,status,amount,buyer_name,buyer_cpf,buyer_email,buyer_phone,process_number,product_code,currency,paid_at)
+     VALUES($1,$2,$3,'pix','paid',$4,'Teste Silva','00000000000','t@example.test','+5500000000000','0',$5,$6,NOW())`, [B.id, provider, key, amount, prod, currency]);
+  await seed("seed-ca-0000000000001", "mercadopago", "combatarms", 20, "BRL");
+  await seed("seed-cs-0000000000002", "mercadopago", "cs2", 19.9, "BRL");
+  await seed("seed-cf-0000000000003", "stripe", "counterframe-android", 5, "USD");
+  await fin.end();
+  const ov = (await call("GET", "/api/admin/overview", { cookie: admin })).data;
+  check(ov?.totals?.sales === 3 && Math.abs(ov.totals.revenue.BRL - 39.9) < 0.001 && ov.totals.revenue.USD === 5, "overview totals for the month", JSON.stringify(ov?.totals));
+  const gw = Object.fromEntries((ov?.byGateway || []).map((g) => [g.key, g.sales]));
+  check(gw.mercadopago === 2 && gw.stripe === 1, "overview splits sales by gateway", JSON.stringify(gw));
+  const pr = Object.fromEntries((ov?.byProduct || []).map((g) => [g.key, g.sales]));
+  check(pr.combatarms === 1 && pr.cs2 === 1 && pr.counterframe === 1, "overview splits sales by product", JSON.stringify(pr));
+  check(ov?.top && ov.daily.length >= 28 && ov.recent.length === 3, "overview has top product, daily series and recent sales");
+  check((await call("GET", "/api/admin/overview?month=2020-02", { cookie: admin })).data?.totals?.sales === 0, "other months are empty");
+  check((await call("GET", "/api/admin/overview")).status === 401, "overview requires admin");
+  const det = (await call("GET", `/api/admin/clients/${B.id}/detail`, { cookie: admin })).data;
+  const lic = det?.licenses?.find((l) => l.product === "combatarms");
+  check(lic?.status === "active" && lic.label === "Combat Arms External Brasil 7" && det.payments.length === 3, "client detail: licenses and purchase history", JSON.stringify(det?.licenses));
+  check((await call("GET", `/api/admin/clients/${B.id}/detail`)).status === 401 && (await call("GET", "/api/admin/clients/999999/detail", { cookie: admin })).status === 404, "client detail requires admin / 404 for unknown client");
+  check((await call("GET", "/api/admin/clients?game=counterframe", { cookie: admin })).status === 200, "clients list accepts game=counterframe");
+
   // --- checkout error handling (Mercado Pago not configured, terms) ---
   const payBody = { product: "combatarms", planKey: "d30", method: "pix", termsAccepted: true, termsVersion: TERMS_VERSION };
   const noTerms = await call("POST", "/api/checkout/payment", { cookie: B.cookie, json: { ...payBody, termsAccepted: false } });
@@ -178,7 +219,7 @@ try {
   check(noAuth.status === 401, "checkout requires a logged-in site account", String(noAuth.status));
   const unconf = await call("POST", "/api/checkout/payment", { cookie: B.cookie, json: payBody });
   // 127.0.0.1 is not a BR visitor, so the server may route to Stripe; either way no provider is configured here.
-  check(unconf.status === 503 && ["checkout_not_configured", "stripe_not_configured"].includes(unconf.data?.error), "checkout without provider credentials fails safely (503), nothing charged", JSON.stringify(unconf.data));
+  check(unconf.status === 503 && unconf.data?.error === "checkout_not_configured" && String(unconf.data?.message).includes("Mercado Pago"), "checkout without Mercado Pago credentials fails safely (503), nothing charged", JSON.stringify(unconf.data));
   const unknownProd = await call("POST", "/api/checkout/payment", { cookie: B.cookie, json: { ...payBody, product: "other" } });
   check(unknownProd.status === 400 && unknownProd.data?.error === "unknown_product", "unknown product rejected");
   const coupon = await call("POST", "/api/checkout/coupon", { json: { product: "combatarms", planKey: "d30", code: "NOPE123" } });

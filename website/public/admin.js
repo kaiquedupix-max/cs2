@@ -46,31 +46,23 @@ async function api(url, options = {}) {
   return data;
 }
 
-const adminGameSelect = document.getElementById("adminGameSelect");
-function selectAdminGame(product, updateHash = false) {
-  const counterFrame = product === "counterframe";
+// Game shown in the Clients tab (cs2 | combatarms | counterframe). The PC tab drives adminProduct (status/releases).
+let clientGame = "cs2";
+
+function setAdminProduct(product) {
   const combatArms = product === "combatarms";
-  const previous = adminProduct;
-  if (!counterFrame) adminProduct = combatArms ? "combatarms" : "cs2";
-  document.getElementById("cs2AdminPanel")?.toggleAttribute("hidden", counterFrame);
-  document.getElementById("counterFrameAdminPanel")?.toggleAttribute("hidden", !counterFrame);
+  adminProduct = combatArms ? "combatarms" : "cs2";
   // The admin status switch only exists for CS2; the release card is relabeled per product.
   document.getElementById("statusForm")?.closest("article")?.toggleAttribute("hidden", combatArms);
   const releaseTitle = document.querySelector(".release-card h2");
   if (releaseTitle) releaseTitle.textContent = combatArms ? "Publicar External (cbr.exe)" : "Publicar loader";
-  const value = counterFrame ? "counterframe" : combatArms ? "combatarms" : "cs2";
-  if (adminGameSelect) adminGameSelect.value = value;
-  if (updateHash) history.replaceState(null, "", location.pathname + location.search + "#" + value);
-  if (previous !== adminProduct && !dashboard.classList.contains("hidden")) { loadClients(); loadReleases(); }
+  return loadReleases();
 }
-document.querySelectorAll("[data-cs2-tab]").forEach((button) => button.addEventListener("click", () => {
-  document.querySelectorAll("[data-cs2-tab]").forEach((tab) => tab.classList.toggle("active", tab === button));
-  document.querySelectorAll(".cs2-panel").forEach((panel) => { panel.hidden = panel.id !== button.dataset.cs2Tab; });
-}));
-adminGameSelect?.addEventListener("change", () => selectAdminGame(adminGameSelect.value, true));
-const gameFromHash = () => location.hash.includes("counterframe") ? "counterframe" : location.hash.includes("combatarms") ? "combatarms" : "cs2";
-window.addEventListener("hashchange", () => selectAdminGame(gameFromHash()));
-selectAdminGame(gameFromHash());
+
+function setClientGame(game) {
+  clientGame = ["cs2", "combatarms", "counterframe"].includes(game) ? game : "cs2";
+  return loadClients();
+}
 window.addEventListener("admin:ready", () => {
   if (location.hash === "#counterframe-telegram") {
     document.getElementById("counterframe-telegram")?.scrollIntoView({ block: "start" });
@@ -167,7 +159,9 @@ document.querySelectorAll(".admin-product-status-form").forEach((form) => {
 });
 
 async function loadClients() {
-  const data = await api("/api/admin/clients");
+  const data = await api("/api/admin/clients?game=" + clientGame, {
+    headers: { "x-product": clientGame === "counterframe" ? "cs2" : clientGame },
+  });
   cachedClients = data.clients || [];
   renderClients();
 }
@@ -193,14 +187,14 @@ function renderClients() {
       : '<span class="tag ok">Ativo</span>';
 
     row.innerHTML = `
-      <td><div class="client-cell"><strong>${escapeHtml(client.username)}</strong><small>${escapeHtml(client.email)}</small></div></td>
+      <td><div class="client-cell"><button type="button" class="adm-link client-open" data-id="${client.id}">${escapeHtml(client.username)}</button><small>${escapeHtml(client.email)}</small></div></td>
       <td>${escapeHtml(client.plan === "free" ? "Teste grátis" : (client.plan || "Sem acesso"))}</td>
       <td><strong>${client.daysRemaining || 0}</strong></td>
       <td>${hwid}</td>
       <td>${status}</td>
       <td>
         <div class="client-actions">
-          <button class="button ghost small add-days" data-id="${client.id}" data-user="${escapeHtml(client.username)}">+ Dias</button>
+          ${clientGame === "counterframe" ? "" : `<button class="button ghost small add-days" data-id="${client.id}" data-user="${escapeHtml(client.username)}">+ Dias</button>`}
           <button class="button ghost small reset-hwid" data-id="${client.id}" ${client.hwidBound ? "" : "disabled"}>Reset HWID</button>
           <button class="button ${client.banned ? "primary" : "danger"} small toggle-ban" data-id="${client.id}" data-banned="${client.banned}">
             ${client.banned ? "Desbanir" : "Banir"}
@@ -222,6 +216,7 @@ function renderClients() {
       }
       await api(`/api/admin/clients/${button.dataset.id}/add-days`, {
         method: "POST",
+        headers: { "x-product": clientGame },
         body: JSON.stringify({ days, plan: "admin" }),
       });
       await loadClients();
