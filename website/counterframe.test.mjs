@@ -7,6 +7,7 @@ import {initCoupons,discount,couponDiscount} from './coupons.js';
 import {initTerms} from './terms.js';
 import {initReferrals,grantReferral,reverseReferral,resolveReferrer} from './referrals.js';
 import crypto from 'node:crypto';
+import {ALLOWED_CERTS,MIGRATION_NOTICES} from './migrationNotice.js';
 
 process.env.SESSION_SECRET=crypto.randomBytes(32).toString('hex');
 process.env.CF_GEO_ENABLED='false';
@@ -25,7 +26,7 @@ process.env.CF_TELEGRAM_ADMIN_IDS='123';
 const telegramCalls=[];registerTelegram(app,{pool,telegramApi:async(method,body)=>{telegramCalls.push({method,body});return {message_id:1};}});process.env.CF_TELEGRAM_WEBHOOK_SECRET=crypto.randomBytes(24).toString('hex');
 const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const base=`http://127.0.0.1:${server.address().port}`;
 const device='a'.repeat(64),other='b'.repeat(64);let token='';
-async function call(path,body,opts={}){const r=await fetch(base+'/api/'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Device-Id':opts.device||device,'X-Forwarded-For':opts.ip||'192.0.2.1',Authorization:opts.admin?'Admin':'Bearer '+token},body:body?JSON.stringify(body):undefined});let data;try{data=await r.json();}catch{data={};}return {status:r.status,data};}
+async function call(path,body,opts={}){const r=await fetch(base+'/api/'+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Device-Id':opts.device||device,'X-Forwarded-For':opts.ip||'192.0.2.1','Accept-Language':opts.lang||'en',Authorization:opts.admin?'Admin':'Bearer '+token},body:body?JSON.stringify(body):undefined});let data;try{data=await r.json();}catch{data={};}return {status:r.status,data};}
 try{
  assert.equal(language('ru-RU'),'ru');assert.equal(language('fr-FR'),'en');for(const l of ['pt','en','es','ru'])for(const k of Object.keys(messages.en))assert.ok(messages[l][k],l+':'+k);
  const raw='CF-'+crypto.randomBytes(18).toString('hex').toUpperCase();const iv=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',crypto.createHash('sha256').update(process.env.SESSION_SECRET).digest(),iv);const enc=Buffer.concat([iv,cipher.update(raw),cipher.final(),cipher.getAuthTag()]).toString('base64');await db.query('INSERT INTO cf_keys(key_hash,key_cipher,days,plan) VALUES($1,$2,1,$3)',[crypto.createHash('sha256').update(raw).digest('hex'),enc,'1d']);
@@ -50,7 +51,7 @@ try{
  const fresh=token;token=old;assert.equal((await call('cf/me')).status,401,'old session must be invalidated');token=fresh;
  assert.equal((await call('admin/cf')).status,401);
  assert.equal((await call('admin/cf/status',{availability:'online',safety:'safe',detection:'undetected'},{admin:true})).status,200);
- const release={url:'https://example.com/game.apk',packageName:'com.ScarletWork.CounterFlame',versionCode:184,sha256:'a'.repeat(64),certificateSha256:'b'.repeat(64),size:100};
+ const release={url:'https://example.com/game.apk',packageName:'com.ScarletWork.CounterFlame',versionCode:184,sha256:'a'.repeat(64),certificateSha256:ALLOWED_CERTS[0],size:100};
  assert.equal((await call('admin/cf/release',{...release,url:'http://example.com/game.apk'},{admin:true})).status,400);
  assert.equal((await call('admin/cf/release',release,{admin:true})).status,200);
  assert.equal((await call('cf/release')).status,200);
@@ -64,6 +65,20 @@ try{
  assert.equal((await call('cf/notifications?after='+notice.data.id)).data.notifications.length,0,'seen notifications must not repeat');
  assert.equal((await call('cf/notifications?after=0',null,{device:other})).status,401,'other device must not read notifications');
  assert.equal((await call('cf/notifications?after=0',null,{ip:'192.0.2.9'})).status,200,'IP change must not block background polling');
+ // Migration notice: an old loader gets exactly one notice in its language; a new loader (?client=) never sees it.
+ assert.equal((await call('admin/cf/migration-notice',{})).status,401);
+ assert.equal((await call('admin/cf/migration-notice',{},{admin:true})).status,200);
+ for(const l of ['pt','en','es','ru']){const n=(await call('cf/notifications?after='+notice.data.id,null,{lang:l+'-XX'})).data.notifications;assert.equal(n.length,1,l);assert.equal(n[0].title,MIGRATION_NOTICES[l].title);assert.ok(n[0].title.length<=80&&n[0].body.length<=500,l+' limits');}
+ assert.equal((await call('cf/notifications?after='+notice.data.id+'&client=230')).data.notifications.length,0,'new loader must not see the legacy notice');
+ // Only the two authorised certificates are accepted for releases; the loader release can never switch certificate.
+ const gameRelease=cert=>({url:'https://example.com/g.apk',packageName:'com.ScarletWork.CounterFlame',versionCode:1,sha256:'a'.repeat(64),certificateSha256:cert,size:1});
+ const loaderRelease=cert=>({url:'https://example.com/l.apk',packageName:'com.cf.overlay',versionCode:228,sha256:'b'.repeat(64),certificateSha256:cert,size:1});
+ for(const c of ALLOWED_CERTS)assert.equal((await call('admin/cf/release',gameRelease(c),{admin:true})).status,200,'game cert '+c);
+ assert.equal((await call('admin/cf/release',gameRelease('c'.repeat(64)),{admin:true})).status,400,'unknown game cert');
+ assert.equal((await call('admin/cf/loader-release',loaderRelease('c'.repeat(64)),{admin:true})).status,400,'unknown loader cert');
+ assert.equal((await call('admin/cf/loader-release',loaderRelease(ALLOWED_CERTS[0]),{admin:true})).status,200);
+ assert.equal((await call('admin/cf/loader-release',loaderRelease(ALLOWED_CERTS[1]),{admin:true})).status,400,'loader release must not change certificate');
+ assert.equal((await call('cf/loader-migration')).status,404,'no migration build published yet');
  assert.equal(discount(3500,20),2800);assert.throws(()=>discount(3500,100));
  await db.query("INSERT INTO sale_coupons(code,percent,product) VALUES('TEST10',10,'counterframe')");assert.equal((await couponDiscount(pool,'test10','counterframe')).percent,10);await assert.rejects(couponDiscount(pool,'test10','cs2'));
  const bot=async update=>{const r=await fetch(base+'/api/cf/telegram',{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Bot-Api-Secret-Token':process.env.CF_TELEGRAM_WEBHOOK_SECRET},body:JSON.stringify(update)});assert.equal(r.status,200);};

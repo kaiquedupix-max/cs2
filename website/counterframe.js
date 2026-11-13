@@ -5,6 +5,7 @@ import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
 import {Transform} from 'node:stream';
 import {inspectApk} from './apkMetadata.js';
+import {ALLOWED_CERTS,MIGRATION_NOTICES} from './migrationNotice.js';
 
 export const language = value => ['pt','en','es','ru'].includes(String(value || '').split(/[-_]/)[0]) ? String(value).split(/[-_]/)[0] : 'en';
 const hash = v => crypto.createHash('sha256').update(String(v)).digest('hex');
@@ -33,6 +34,7 @@ export async function initCounterframe(pool) {
     CREATE INDEX IF NOT EXISTS access_audit_user ON access_audit(user_id,created_at DESC);
     CREATE TABLE IF NOT EXISTS cf_bot_users(telegram_id BIGINT PRIMARY KEY,language TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS cf_notifications(id BIGSERIAL PRIMARY KEY,title TEXT NOT NULL,body TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    ALTER TABLE cf_notifications ADD COLUMN IF NOT EXISTS lang TEXT,ADD COLUMN IF NOT EXISTS legacy_only BOOLEAN NOT NULL DEFAULT FALSE;
     ALTER TABLE access_audit ADD COLUMN IF NOT EXISTS device_model TEXT,ADD COLUMN IF NOT EXISTS loader_version TEXT,ADD COLUMN IF NOT EXISTS timezone TEXT;
     ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS lifetime BOOLEAN NOT NULL DEFAULT FALSE;
     ALTER TABLE cf_keys ADD COLUMN IF NOT EXISTS duration_seconds BIGINT;
@@ -142,8 +144,14 @@ export function registerCounterframe(app,deps) {
     const token=String(req.headers.authorization||'').replace(/^Bearer /,''),after=Math.max(0,Number(req.query.after)||0);
     const {rows}=await pool.query('SELECT 1 FROM cf_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.device_hash=$2 AND s.expires_at>NOW() AND u.disabled_at IS NULL',[tokenHash(token),device(req)]);
     if(!rows[0])throw fail('unauthorized',401);
-    const list=await pool.query("SELECT id,title,body,created_at FROM cf_notifications WHERE id>$1 AND created_at>NOW()-INTERVAL '7 days' ORDER BY id LIMIT 20",[after]);
+    // Loaders without ?client= are the old ones: they also get the migration notice, in their Accept-Language (default en).
+    const list=await pool.query("SELECT id,title,body,created_at FROM cf_notifications WHERE id>$1 AND created_at>NOW()-INTERVAL '7 days' AND (lang IS NULL OR lang=$2) AND (NOT legacy_only OR $3::boolean) ORDER BY id LIMIT 20",[after,language(req.headers['accept-language']),!req.query.client]);
     res.json({notifications:list.rows});
+  }));
+  // Admin action: queue the four-language notice. Nothing is queued until this is called.
+  app.post('/api/admin/cf/migration-notice',requireAdmin,wrap(async(_req,res)=>{
+    for(const [lang,n] of Object.entries(MIGRATION_NOTICES))await pool.query('INSERT INTO cf_notifications(title,body,lang,legacy_only) VALUES($1,$2,$3,TRUE)',[n.title,n.body,lang]);
+    res.json({ok:true,languages:Object.keys(MIGRATION_NOTICES)});
   }));
   app.get('/api/admin/cf/notifications',requireAdmin,wrap(async(_req,res)=>res.json({notifications:(await pool.query('SELECT id,title,body,created_at FROM cf_notifications ORDER BY id DESC LIMIT 50')).rows})));
   app.post('/api/admin/cf/notifications',requireAdmin,wrap(async(req,res)=>{
@@ -185,21 +193,28 @@ export function registerCounterframe(app,deps) {
       let meta;try{meta=await inspectApk(tmp,kind);}catch(e){throw fail(['wrong_package','invalid_signature','invalid_version'].includes(e.message)?e.message:'apk_validation_failed');}
       loader=meta.packageName==='com.cf.overlay';if(loader&&size>50000000)throw fail('invalid_size');
       const previous=JSON.parse(await setting(loader?'cf_loader_release':'cf_release','null'));
-      const trustedCert=previous?.certificateSha256||process.env.CF_APK_CERT_SHA256||'92168fe76e8dd4f557e690bb84b071605d872672bc1b7cb6a4ef536fe2f94166';
-      if(meta.certificateSha256!==trustedCert)throw fail('invalid_signature');
+      if(!ALLOWED_CERTS.includes(meta.certificateSha256))throw fail('invalid_signature');
+      // A loader signed with a different key than the published one can never be installed over it, so it is never the auto-update release.
+      const migration=loader&&previous&&meta.certificateSha256!==previous.certificateSha256;
       const sha256=digest.digest('hex');
-      if(loader&&previous&&meta.versionCode<=previous.versionCode&&sha256!==previous.sha256)throw fail('loader_version_must_increase');
+      if(loader&&previous&&!migration&&meta.versionCode<=previous.versionCode&&sha256!==previous.sha256)throw fail('loader_version_must_increase');
       meta={...meta,size,sha256,publishedAt:new Date().toISOString()};
       const name=sha256+'.apk';await fs.promises.rename(tmp,path.join(fileDir,name));
-      const url=(process.env.PUBLIC_SITE_URL||'https://legitbaratinho.xyz')+'/api/cf/'+(loader?'loader-apk':'game-apk');
-      await setSetting(loader?'cf_loader_release':'cf_release',JSON.stringify({...meta,sha256:meta.sha256.toLowerCase(),certificateSha256:meta.certificateSha256.toLowerCase(),url}));res.json({ok:true,url});
+      const base=(process.env.PUBLIC_SITE_URL||'https://legitbaratinho.xyz')+'/api/cf/';
+      const url=base+(migration?'loader-migration-apk':loader?'loader-apk':'game-apk');
+      await setSetting(migration?'cf_loader_migration':loader?'cf_loader_release':'cf_release',JSON.stringify({...meta,sha256:meta.sha256.toLowerCase(),certificateSha256:meta.certificateSha256.toLowerCase(),url}));res.json({ok:true,url,migration:!!migration});
     }finally{if(!retain)await fs.promises.unlink(tmp).catch(()=>{});}
   }));
   app.get('/api/cf/loader-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'LC-Counter Flame-Private.apk');}));
+  // Official manual download of the loader signed with the new key (not offered to the in-app updater).
+  app.get('/api/cf/loader-migration',wrap(async(_req,res)=>{const {url,versionCode,versionName,sha256,certificateSha256,size}=JSON.parse(await setting('cf_loader_migration','null'))||{};if(!url)throw fail('release_unavailable',404);res.json({url,versionCode,versionName,sha256,certificateSha256,size});}));
+  app.get('/api/cf/loader-migration-apk',wrap(async(req,res)=>{const r=JSON.parse(await setting('cf_loader_migration','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'LC-Counter Flame-Private.apk');}));
   app.get('/api/cf/game-apk',auth,wrap(async(req,res)=>{if(!(await snapshot(req.cf)).expiresAt)throw fail('license_required',403);if((await status()).availability!=='online')throw fail('maintenance',503);const r=JSON.parse(await setting('cf_release','null'));if(!r)throw fail('release_unavailable',404);res.download(path.join(fileDir,r.sha256+'.apk'),'Counter Flame.apk');}));
   app.post('/api/admin/cf/loader-release',requireAdmin,wrap(async(req,res)=>{
     const r=req.body||{},url=new URL(r.url);
     if(url.protocol!=='https:'||r.packageName!=='com.cf.overlay'||!Number.isSafeInteger(r.versionCode)||r.versionCode<1||!HEX.test(r.sha256)||!HEX.test(r.certificateSha256)||!Number.isSafeInteger(r.size)||r.size<1)throw fail('invalid_release');
+    const current=JSON.parse(await setting('cf_loader_release','null'));
+    if(!ALLOWED_CERTS.includes(r.certificateSha256.toLowerCase())||(current&&current.certificateSha256!==r.certificateSha256.toLowerCase()))throw fail('invalid_signature');
     await setSetting('cf_loader_release',JSON.stringify({...r,url:url.href,sha256:r.sha256.toLowerCase(),certificateSha256:r.certificateSha256.toLowerCase()}));res.json({ok:true});
   }));
   app.get('/api/account/cf/keys',requireUser,wrap(async(req,res)=>{
@@ -250,6 +265,7 @@ export function registerCounterframe(app,deps) {
   app.post('/api/admin/cf/release',requireAdmin,wrap(async(req,res)=>{
     const r=req.body||{};const url=new URL(r.url);
     if(url.protocol!=='https:'||r.packageName!=='com.ScarletWork.CounterFlame'||!Number.isSafeInteger(r.versionCode)||r.versionCode<1||!HEX.test(r.sha256)||!HEX.test(r.certificateSha256)||!Number.isSafeInteger(r.size)||r.size<1)throw fail('invalid_release');
+    if(!ALLOWED_CERTS.includes(r.certificateSha256.toLowerCase()))throw fail('invalid_signature');
     await setSetting('cf_release',JSON.stringify({url:url.href,packageName:r.packageName,versionCode:r.versionCode,sha256:r.sha256.toLowerCase(),certificateSha256:r.certificateSha256.toLowerCase(),size:r.size,label:String(r.label||'').slice(0,80)}));res.json({ok:true});
   }));
 }
