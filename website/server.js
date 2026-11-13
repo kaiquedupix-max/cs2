@@ -1648,7 +1648,7 @@ app.delete("/api/admin/releases/:id", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/admin/clients", requireAdmin, async (_req, res) => {
+app.get("/api/admin/clients", requireAdmin, async (req, res) => {
   if (!pool) return res.status(503).json({ error: "database_not_configured" });
 
   const result = await pool.query(`
@@ -1668,7 +1668,7 @@ app.get("/api/admin/clients", requireAdmin, async (_req, res) => {
       AND p.product_code = $1
     ORDER BY u.id DESC
     LIMIT 500
-  `, [PRODUCT_CODE]);
+  `, [accessProductOf(productOf(req))]);
 
   const now = Date.now();
   const clients = result.rows.map((row) => {
@@ -1715,7 +1715,7 @@ app.post("/api/admin/clients/:id/add-days", requireAdmin, async (req, res) => {
      DO UPDATE SET
        expires_at = GREATEST(COALESCE(user_products.expires_at, NOW()), NOW()) + ($4 || ' days')::interval,
        revoked_at = NULL`,
-    [userId, PRODUCT_CODE, plan, String(days)]
+    [userId, accessProductOf(productOf(req)), plan, String(days)]
   );
 
   res.json({ ok: true });

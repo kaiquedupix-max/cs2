@@ -72,6 +72,18 @@ try {
   const admin = cookieOf(adminLogin, "lb_admin");
   check(adminLogin.status === 200 && admin, "admin login");
 
+  // --- admin panel: grant access per product (this is what the "+ Dias" button calls) ---
+  const adminCa = { "x-product": "combatarms" };
+  const grantCa = await call("POST", `/api/admin/clients/${B.id}/add-days`, { cookie: admin, headers: adminCa, json: { days: 30, plan: "admin" } });
+  check(grantCa.status === 200, "admin grants 30 days of combatarms", JSON.stringify(grantCa.data));
+  const listCa = (await call("GET", "/api/admin/clients", { cookie: admin, headers: adminCa })).data?.clients || [];
+  const listCs = (await call("GET", "/api/admin/clients", { cookie: admin })).data?.clients || [];
+  check(listCa.find((c) => c.id === B.id)?.hasAccess === true && listCs.find((c) => c.id === B.id)?.hasAccess === false,
+    "admin client list is per product (B has combatarms, not cs2)");
+  const bLogin = await call("POST", "/api/client/login", { json: { identifier: "cabr_b", password: "Senha-Teste-123", hwid: "d".repeat(64) }, headers: { "x-product": "combatarms" } });
+  check(bLogin.data?.account?.product?.hasAccess === true && bLogin.data.account.products.length === 1 && bLogin.data.account.products[0].code === "combatarms",
+    "customer granted by admin sees combatarms in the loader product list", JSON.stringify(bLogin.data?.account?.products));
+
   // --- releases are separated per product ---
   const up = (product, name, bytes) => call("POST", `/api/admin/releases/upload?${product ? "product=" + product + "&" : ""}fileName=${name}`, { raw: bytes, cookie: admin });
   const csBytes = Buffer.from("CS2-LOADER-BYTES");

@@ -27,9 +27,13 @@ const supportContactEmail = document.getElementById("supportContactEmail");
 const supportContactWhatsapp = document.getElementById("supportContactWhatsapp");
 const supportAdminSoundBtn = document.getElementById("supportAdminSoundBtn");
 
+// Product being administered (cs2 | combatarms); clients and releases are per product on the server.
+let adminProduct = "cs2";
+
 async function api(url, options = {}) {
+  const productHeader = /^\/api\/admin\/(clients|releases)/.test(url) ? { "x-product": adminProduct } : {};
   const response = await fetch(url, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: { "Content-Type": "application/json", ...productHeader, ...(options.headers || {}) },
     ...options,
   });
   const data = await response.json().catch(() => ({}));
@@ -45,18 +49,28 @@ async function api(url, options = {}) {
 const adminGameSelect = document.getElementById("adminGameSelect");
 function selectAdminGame(product, updateHash = false) {
   const counterFrame = product === "counterframe";
+  const combatArms = product === "combatarms";
+  const previous = adminProduct;
+  if (!counterFrame) adminProduct = combatArms ? "combatarms" : "cs2";
   document.getElementById("cs2AdminPanel")?.toggleAttribute("hidden", counterFrame);
   document.getElementById("counterFrameAdminPanel")?.toggleAttribute("hidden", !counterFrame);
-  if (adminGameSelect) adminGameSelect.value = counterFrame ? "counterframe" : "cs2";
-  if (updateHash) history.replaceState(null, "", location.pathname + location.search + (counterFrame ? "#counterframe" : "#cs2"));
+  // The admin status switch only exists for CS2; the release card is relabeled per product.
+  document.getElementById("statusForm")?.closest("article")?.toggleAttribute("hidden", combatArms);
+  const releaseTitle = document.querySelector(".release-card h2");
+  if (releaseTitle) releaseTitle.textContent = combatArms ? "Publicar External (cbr.exe)" : "Publicar loader";
+  const value = counterFrame ? "counterframe" : combatArms ? "combatarms" : "cs2";
+  if (adminGameSelect) adminGameSelect.value = value;
+  if (updateHash) history.replaceState(null, "", location.pathname + location.search + "#" + value);
+  if (previous !== adminProduct && !dashboard.classList.contains("hidden")) { loadClients(); loadReleases(); }
 }
 document.querySelectorAll("[data-cs2-tab]").forEach((button) => button.addEventListener("click", () => {
   document.querySelectorAll("[data-cs2-tab]").forEach((tab) => tab.classList.toggle("active", tab === button));
   document.querySelectorAll(".cs2-panel").forEach((panel) => { panel.hidden = panel.id !== button.dataset.cs2Tab; });
 }));
 adminGameSelect?.addEventListener("change", () => selectAdminGame(adminGameSelect.value, true));
-window.addEventListener("hashchange", () => selectAdminGame(location.hash.includes("counterframe") ? "counterframe" : "cs2"));
-selectAdminGame(location.hash.includes("counterframe") ? "counterframe" : "cs2");
+const gameFromHash = () => location.hash.includes("counterframe") ? "counterframe" : location.hash.includes("combatarms") ? "combatarms" : "cs2";
+window.addEventListener("hashchange", () => selectAdminGame(gameFromHash()));
+selectAdminGame(gameFromHash());
 window.addEventListener("admin:ready", () => {
   if (location.hash === "#counterframe-telegram") {
     document.getElementById("counterframe-telegram")?.scrollIntoView({ block: "start" });
@@ -680,6 +694,7 @@ document.getElementById("releaseForm").addEventListener("submit", (event) => {
 
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/admin/releases/upload?" + query.toString());
+  xhr.setRequestHeader("x-product", adminProduct);
 
   xhr.upload.addEventListener("progress", (e) => {
     if (!e.lengthComputable) return;
