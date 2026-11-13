@@ -30,7 +30,7 @@ function cleanBuyer(body, product, market='BR') {
     throw Object.assign(new Error("Informe o nome completo."), { statusCode: 400 });
   }
 
-  if (((product === "cs2"&&market==='BR') || buyer.cpf) && !validCpf(buyer.cpf)) {
+  if ((((product === "cs2" || product === "combatarms")&&market==='BR') || buyer.cpf) && !validCpf(buyer.cpf)) {
     throw Object.assign(new Error("Informe um CPF válido ou deixe o documento vazio para compra internacional de Counter Flame."), { statusCode: 400 });
   }
 
@@ -201,7 +201,7 @@ export function registerCheckoutRoutes(app, deps) {
         await issuePurchaseKey(client, localId, payment);
       }
       if (!payment.access_granted_at) {
-        const fallback = checkoutPlan("d30", payment.product_code === "cs2" ? "cs2" : "counterframe");
+        const fallback = checkoutPlan("d30", ["cs2", "combatarms"].includes(payment.product_code) ? payment.product_code : "counterframe");
         const planName = String(payment.plan_name || fallback?.name || "1 mês");
         const planDays = Math.max(1, Number(payment.plan_days || fallback?.days || 30));
         const lifetime = Boolean(payment.plan_lifetime) || planName.toLowerCase() === "lifetime";
@@ -400,7 +400,7 @@ export function registerCheckoutRoutes(app, deps) {
   app.post("/api/checkout/payment", requireUser, async (req, res) => {
     if(req.body?.termsAccepted!==true||req.body?.termsVersion!==TERMS_VERSION)return res.status(400).json({error:'terms_required',message:'Leia e aceite os termos antes de pagar.'});
     const requested = String(req.body?.product || "cs2").toLowerCase();
-    if (!["cs2", "counterframe", "cf"].includes(requested)) {
+    if (!["cs2", "combatarms", "cabr", "counterframe", "cf"].includes(requested)) {
       return res.status(400).json({ error: "unknown_product" });
     }
     const product = normalizeProduct(requested);
@@ -408,7 +408,7 @@ export function registerCheckoutRoutes(app, deps) {
     if (product === "counterframe" && !["android", "ios"].includes(platform)) {
       return res.status(400).json({ error: "invalid_platform" });
     }
-    const orderedProductCode = product === "counterframe" ? "counterframe-" + platform : productCode;
+    const orderedProductCode = product === "counterframe" ? "counterframe-" + platform : product === "combatarms" ? "combatarms" : productCode;
     // The submitted region is never trusted for pricing.
     const market = (await visitorMarket(req)).market;
     const config = checkoutConfig(product,market);
@@ -465,7 +465,7 @@ export function registerCheckoutRoutes(app, deps) {
         stripeParams.set('mode','payment');stripeParams.set('payment_method_types[0]','card');
         stripeParams.set('line_items[0][price_data][currency]',currency.toLowerCase());
         stripeParams.set('line_items[0][price_data][unit_amount]',String(plan.priceCents));
-        stripeParams.set('line_items[0][price_data][product_data][name]',`${product==='counterframe'?'Counter Flame '+platform.toUpperCase():'CS2'} • ${plan.name}`);
+        stripeParams.set('line_items[0][price_data][product_data][name]',`${product==='counterframe'?'Counter Flame '+platform.toUpperCase():product==='combatarms'?'LegitBaratinho External - CA Brasil Server':'CS2'} • ${plan.name}`);
         stripeParams.set('line_items[0][quantity]','1');stripeParams.set('customer_email',buyer.email);
         stripeParams.set('client_reference_id',String(localId));stripeParams.set('metadata[payment_id]',String(localId));stripeParams.set('metadata[user_id]',String(req.userId));
         stripeParams.set('success_url',`${publicUrl}/checkout?product=${product}&plan=${plan.key}${product==='counterframe'?'&platform='+platform:''}&payment_id=${localId}&stripe=success&session_id={CHECKOUT_SESSION_ID}`);

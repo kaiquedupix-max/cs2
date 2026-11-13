@@ -138,7 +138,7 @@ export function registerCoupons(app, { pool, requireAdmin }) {
       const maxUses = rawMaxUses == null || rawMaxUses === "" ? null : Number(rawMaxUses);
       if (!/^[A-Z0-9_-]{3,32}$/.test(code) ||
           !Number.isInteger(percent) || percent < 1 || percent > 90 ||
-          !["all", "cs2", "counterframe"].includes(product) ||
+          !["all", "cs2", "combatarms", "counterframe"].includes(product) ||
           typeof enabled !== "boolean" ||
           (maxUses !== null && (!Number.isSafeInteger(maxUses) || maxUses < 1 || maxUses > 1000000000))) {
         return res.status(400).json({ error: "invalid_coupon" });

@@ -18,6 +18,18 @@ const COUNTERFRAME_PLANS = [
   { key: "lifetime", name: "Permanente", days: null, lifetime: true, priceCents: 5000, usdPriceCents: 1000 },
 ];
 
+// LegitBaratinho External - CA Brasil Server (CaBr): single 30-day plan.
+const COMBATARMS_PLANS = [
+  { key: "d30", name: "1 mês", days: 30, priceCents: 2000 },
+];
+
+function plansFor(product) {
+  const p = normalizeProduct(product);
+  if (p === "counterframe") return COUNTERFRAME_PLANS;
+  if (p === "combatarms") return COMBATARMS_PLANS;
+  return PLANS;
+}
+
 export function normalizeMarket(value) {
   return String(value || "br").trim().toLowerCase() === "intl" ? "INTL" : "BR";
 }
@@ -45,6 +57,7 @@ function quotePlan(plan, product, market) {
 export function normalizeProduct(value) {
   const product = String(value || "cs2").trim().toLowerCase();
   if (product === "cf" || product === "counterframe") return "counterframe";
+  if (product === "combatarms" || product === "cabr") return "combatarms";
   return "cs2";
 }
 
@@ -94,14 +107,14 @@ export function checkoutConfig(product = "cs2", market = "BR") {
     publicUrl,
     market: intl ? "INTL" : "BR",
     settlementCurrency: "BRL",
-    plans: (normalizeProduct(product) === "counterframe" ? COUNTERFRAME_PLANS : PLANS)
+    plans: plansFor(product)
       .map((plan) => ({ ...quotePlan(plan, product, market), available: configured && settlementConfigured })),
   };
 }
 
 export function checkoutPlan(key, product = "cs2", market = "BR") {
   const normalized = String(key || "d30").trim().toLowerCase();
-  const plans = normalizeProduct(product) === "counterframe" ? COUNTERFRAME_PLANS : PLANS;
+  const plans = plansFor(product);
   const selected = plans.find((plan) => plan.key === normalized);
   return selected ? quotePlan(selected, product, market) : null;
 }
