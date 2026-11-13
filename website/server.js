@@ -42,6 +42,7 @@ const PRODUCTS = {
   // Release channel for the CaBr loader executable itself; licensed through combatarms.
   "combatarms-loader": { name: "CaBr Loader", accessProduct: "combatarms" },
 };
+const SELLABLE_PRODUCTS = ["cs2", "combatarms"];
 const accessProductOf = (product) => PRODUCTS[product]?.accessProduct || product;
 function productOf(req) {
   const raw = String(
@@ -677,6 +678,33 @@ async function accountSnapshot(userId, product = PRODUCT_CODE) {
 
   const row = productResult.rows[0] || null;
   const trial = trialResult.rows[0] || null;
+
+  // Every sellable product this user has acquired (active or expired), for the loader's product list.
+  const ownedResult = await pool.query(
+    `SELECT product_code, plan, purchased_at, expires_at, revoked_at
+     FROM user_products
+     WHERE user_id = $1 AND product_code = ANY($2)
+     ORDER BY purchased_at ASC`,
+    [userId, SELLABLE_PRODUCTS]
+  );
+  const ownedNow = Date.now();
+  const products = ownedResult.rows.map((r) => {
+    const plan = String(r.plan || "");
+    const isLifetime = plan.toLowerCase() === "lifetime";
+    const exp = r.expires_at ? new Date(r.expires_at).getTime() : 0;
+    const active = !r.revoked_at && (isLifetime || exp > ownedNow);
+    return {
+      code: r.product_code,
+      name: PRODUCTS[r.product_code].name,
+      hasAccess: active,
+      plan: active ? plan : null,
+      planLabel: active ? (plan.toLowerCase() === "free" ? "Teste grátis" : plan) : null,
+      purchasedAt: r.purchased_at || null,
+      expiresAt: isLifetime ? null : (r.expires_at || null),
+      daysRemaining: active && !isLifetime ? Math.max(1, Math.ceil((exp - ownedNow) / 86400000)) : 0, // 0 for lifetime/expired: clients read `lifetime`
+      lifetime: isLifetime,
+    };
+  });
   const now = Date.now();
   const expires = row?.expires_at ? new Date(row.expires_at).getTime() : 0;
   const normalizedPlan = String(row?.plan || "").toLowerCase();
@@ -715,6 +743,7 @@ async function accountSnapshot(userId, product = PRODUCT_CODE) {
       expiresAt: trial?.expires_at || null,
       deviceActivated: Boolean(trial?.activated_device_hash),
     },
+    products,
     status: await productStatus(),
   };
 }
@@ -877,6 +906,7 @@ app.get("/api/loader/latest", async (req, res) => {
     }
 
     res.json({
+      product: productOf(req),
       version: release.version,
       fileName: release.file_name,
       fileSize: Number(release.file_size),
@@ -1418,6 +1448,7 @@ app.get("/api/client/release", requireClient, async (req, res) => {
       notes: release.notes,
       uploadedAt: release.uploaded_at,
       downloadUrl: "/api/client/download-loader",
+      product: productOf(req),
     },
   });
 });

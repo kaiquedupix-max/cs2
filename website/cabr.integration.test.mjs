@@ -123,6 +123,11 @@ try {
 
   const la2 = await login("cabr_a", H1);
   check(la2.data?.account?.product?.hasAccess === true && la2.data.account.product.daysRemaining >= 29, "after license: hasAccess=true, ~30 days");
+  const plist = la2.data?.account?.products || [];
+  check(plist.length === 1 && plist[0].code === "combatarms" && plist[0].hasAccess === true && plist[0].name.includes("CA Brasil Server") && plist[0].daysRemaining >= 29,
+    "login returns the owned products list (only combatarms for user A)", JSON.stringify(plist));
+  const relA = await call("GET", "/api/client/release", { headers: authA });
+  check(relA.data?.release?.product === "combatarms", "release metadata echoes the product (loaders refuse mismatches)", JSON.stringify(relA.data));
   const rel = await call("GET", "/api/client/release", { headers: authA });
   check(rel.status === 200 && rel.data.release.version === "1.0" && rel.data.release.sha256 === sha(caBytes), "licensed user gets combatarms release metadata");
   const dl = await call("GET", "/api/client/download-loader", { headers: authA });
@@ -136,6 +141,8 @@ try {
   const lc = await login("cabr_c", H1.replace(/a/g, "c"), "combatarms");
   const authC = { authorization: "Bearer " + lc.data.token, "x-device-id": "c".repeat(64), "x-product": "combatarms" };
   check(lc.data?.account?.product?.hasAccess === false, "CS2-only customer has no combatarms access");
+  const cl = lc.data?.account?.products || [];
+  check(cl.length === 1 && cl[0].code === "cs2" && cl[0].hasAccess === true, "CS2-only customer's product list shows only cs2", JSON.stringify(cl));
   check((await call("GET", "/api/client/download-loader", { headers: authC })).status === 403, "CS2-only customer cannot download combatarms payload");
   const csDefault = await call("GET", "/api/client/release", { headers: { ...authC, "x-product": "" } });
   check(csDefault.status === 200 && csDefault.data.release.sha256 === sha(csBytes), "no product header keeps the legacy CS2 behaviour");

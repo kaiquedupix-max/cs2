@@ -58,10 +58,7 @@ namespace Mac1ota_Menu.Classes
 
             using var bgBrush =
                 new SolidBrush(
-                    Color.FromArgb(
-                        7,
-                        16,
-                        13));
+                    Color.FromArgb(10, 7, 16));
 
             g.FillPath(
                 bgBrush,
@@ -97,14 +94,8 @@ namespace Mac1ota_Menu.Classes
             using var gradient =
                 new LinearGradientBrush(
                     bounds,
-                    Color.FromArgb(
-                        87,
-                        244,
-                        193),
-                    Color.FromArgb(
-                        13,
-                        183,
-                        127),
+                    Color.FromArgb(149, 87, 244),
+                    Color.FromArgb(110, 28, 239),
                     45f);
 
             g.FillPath(
@@ -113,10 +104,7 @@ namespace Mac1ota_Menu.Classes
 
             using var accent =
                 new SolidBrush(
-                    Color.FromArgb(
-                        225,
-                        249,
-                        240));
+                    Color.FromArgb(233, 225, 249));
 
             g.FillPolygon(
                 accent,

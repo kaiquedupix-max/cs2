@@ -8,34 +8,19 @@ namespace Mac1ota_Menu.Classes
     internal sealed class ProductSelectionForm : Form
     {
         private static readonly Color Bg =
-            Color.FromArgb(
-                5,
-                10,
-                11);
+            Color.FromArgb(10, 5, 11);
 
         private static readonly Color PanelBg =
-            Color.FromArgb(
-                11,
-                19,
-                21);
+            Color.FromArgb(21, 10, 22);
 
         private static readonly Color Accent =
-            Color.FromArgb(
-                21,
-                232,
-                169);
+            Color.FromArgb(149, 85, 240);
 
         private static readonly Color TextPrimary =
-            Color.FromArgb(
-                239,
-                244,
-                244);
+            Color.FromArgb(243, 239, 244);
 
         private static readonly Color TextSecondary =
-            Color.FromArgb(
-                126,
-                143,
-                148);
+            Color.FromArgb(147, 126, 148);
 
         private readonly LoaderBackgroundCanvas _background =
             new();
@@ -77,6 +62,23 @@ namespace Mac1ota_Menu.Classes
             new();
 
         private bool _refreshing;
+
+        private readonly Panel _chipHost =
+            new();
+
+        private Label? _icon;
+
+        private Label? _productName;
+
+        private Label? _category;
+
+        private ClientPortalApi.AccountSnapshot? _account;
+
+        private string _selected =
+            "";
+
+        private const string CombatArmsCode =
+            "combatarms";
 
         public ProductSelectionForm()
         {
@@ -243,16 +245,10 @@ namespace Mac1ota_Menu.Classes
                         18,
 
                     FillColor =
-                        Color.FromArgb(
-                            8,
-                            16,
-                            17),
+                        Color.FromArgb(15, 8, 17),
 
                     BorderColor =
-                        Color.FromArgb(
-                            31,
-                            52,
-                            53)
+                        Color.FromArgb(50, 27, 57)
                 };
 
             AddMetric(
@@ -308,10 +304,7 @@ namespace Mac1ota_Menu.Classes
                 PanelBg;
 
             _panel.BorderColor =
-                Color.FromArgb(
-                    39,
-                    58,
-                    62);
+                Color.FromArgb(64, 33, 68);
 
             var small =
                 MakeLabel(
@@ -349,6 +342,22 @@ namespace Mac1ota_Menu.Classes
             subtitle.Parent =
                 _panel;
 
+            _chipHost.Parent =
+                _panel;
+
+            _chipHost.BackColor =
+                Color.Transparent;
+
+            _chipHost.Location =
+                new Point(
+                    45,
+                    147);
+
+            _chipHost.Size =
+                new Size(
+                    504,
+                    28);
+
             var game =
                 new RoundedPanel
                 {
@@ -369,16 +378,10 @@ namespace Mac1ota_Menu.Classes
                         16,
 
                     FillColor =
-                        Color.FromArgb(
-                            8,
-                            15,
-                            17),
+                        Color.FromArgb(16, 8, 17),
 
                     BorderColor =
-                        Color.FromArgb(
-                            35,
-                            60,
-                            55)
+                        Color.FromArgb(48, 31, 64)
                 };
 
             var icon =
@@ -396,10 +399,7 @@ namespace Mac1ota_Menu.Classes
                             FontStyle.Bold),
 
                     ForeColor =
-                        Color.FromArgb(
-                            13,
-                            15,
-                            15),
+                        Color.FromArgb(16, 9, 19),
 
                     BackColor =
                         Color.FromArgb(
@@ -444,6 +444,15 @@ namespace Mac1ota_Menu.Classes
 
             category.Parent =
                 game;
+
+            _icon =
+                icon;
+
+            _productName =
+                product;
+
+            _category =
+                category;
 
             _access.Parent =
                 game;
@@ -716,6 +725,33 @@ namespace Mac1ota_Menu.Classes
         private void RenderAccount(
             ClientPortalApi.AccountSnapshot account)
         {
+            _account =
+                account;
+
+            List<ClientPortalApi.AccountProduct> owned =
+                OwnedProducts(account);
+
+            ClientPortalApi.AccountProduct current =
+                owned.FirstOrDefault(p => p.Code == _selected) ??
+                owned.FirstOrDefault(p => p.HasAccess) ??
+                owned[0];
+
+            _selected =
+                current.Code;
+
+            RebuildChips(owned);
+            ApplyProductIdentity(current);
+
+            // Only CS2 has an admin-published status; other products report "unknown" (start stays allowed).
+            ClientPortalApi.ProductStatus productStatus =
+                current.Code == "cs2"
+                    ? account.Status
+                    : new ClientPortalApi.ProductStatus
+                    {
+                        Status = "unknown",
+                        Message = ""
+                    };
+
             _username.Text =
                 account.User.Username;
 
@@ -723,30 +759,32 @@ namespace Mac1ota_Menu.Classes
                 account.User.Email;
 
             _plan.Text =
-                account.Product.HasAccess
-                    ? account.Product.PlanLabel ??
-                      account.Product.Plan ??
+                current.HasAccess
+                    ? current.PlanLabel ??
+                      current.Plan ??
                       "Ativo"
                     : "Sem acesso";
 
             _days.Text =
-                account.Product.DaysRemaining
-                    .ToString();
+                current.Lifetime
+                    ? "∞"
+                    : current.DaysRemaining
+                        .ToString();
 
             _expires.Text =
-                account.Product.ExpiresAt
+                current.ExpiresAt
                     ?.ToLocalTime()
                     .ToString(
                         "dd/MM/yyyy HH:mm") ??
                 "—";
 
             _access.Text =
-                account.Product.HasAccess
+                current.HasAccess
                     ? "●  ACESSO ATIVO"
                     : "●  SEM ACESSO";
 
             _access.ForeColor =
-                account.Product.HasAccess
+                current.HasAccess
                     ? Accent
                     : Color.FromArgb(
                         235,
@@ -754,7 +792,7 @@ namespace Mac1ota_Menu.Classes
                         86);
 
             string status =
-                account.Status.Status
+                productStatus.Status
                     .Trim()
                     .ToLowerInvariant();
 
@@ -767,6 +805,9 @@ namespace Mac1ota_Menu.Classes
                     "maintenance" =>
                         "● MANUTENÇÃO",
 
+                    "unknown" =>
+                        "● SEM STATUS",
+
                     _ =>
                         "● OFFLINE"
                 };
@@ -776,6 +817,9 @@ namespace Mac1ota_Menu.Classes
                 {
                     "online" =>
                         Accent,
+
+                    "unknown" =>
+                        TextSecondary,
 
                     "maintenance" =>
                         Color.FromArgb(
@@ -795,20 +839,241 @@ namespace Mac1ota_Menu.Classes
                 "maintenance"
                     ? (
                         string.IsNullOrWhiteSpace(
-                            account.Status.Message)
+                            productStatus.Message)
                             ? "Produto em manutenção. Caso prossiga, o uso é por sua conta e risco."
-                            : account.Status.Message +
+                            : productStatus.Message +
                               "  Caso prossiga, o uso é por sua conta e risco."
                     )
-                    : account.Status.Message;
+                    : productStatus.Message;
 
             _start.Enabled =
-                account.Product.HasAccess &&
+                current.HasAccess &&
                 status !=
                 "offline";
 
             _buy.Visible =
-                !account.Product.HasAccess;
+                !current.HasAccess;
+        }
+
+        private static List<ClientPortalApi.AccountProduct> OwnedProducts(
+            ClientPortalApi.AccountSnapshot account)
+        {
+            return account.Products.Count > 0
+                ? account.Products
+                : new List<ClientPortalApi.AccountProduct>
+                {
+                    account.Product
+                };
+        }
+
+        private static string DisplayName(
+            string code)
+        {
+            return code switch
+            {
+                CombatArmsCode =>
+                    "CA Brasil Server (CaBr)",
+
+                _ =>
+                    "Counter-Strike 2"
+            };
+        }
+
+        private void RebuildChips(
+            List<ClientPortalApi.AccountProduct> owned)
+        {
+            _chipHost.Controls.Clear();
+
+            int x =
+                0;
+
+            foreach (ClientPortalApi.AccountProduct item in owned)
+            {
+                string code =
+                    item.Code;
+
+                bool selected =
+                    code == _selected;
+
+                var chip =
+                    new Button
+                    {
+                        Parent =
+                            _chipHost,
+
+                        Text =
+                            DisplayName(code) +
+                            (item.HasAccess ? "" : "  (sem acesso)"),
+
+                        FlatStyle =
+                            FlatStyle.Flat,
+
+                        BackColor =
+                            selected
+                                ? Color.FromArgb(52, 30, 92)
+                                : Color.FromArgb(12, 8, 17),
+
+                        ForeColor =
+                            selected
+                                ? TextPrimary
+                                : TextSecondary,
+
+                        Font =
+                            FontOf(
+                                8f,
+                                FontStyle.Bold),
+
+                        Cursor =
+                            Cursors.Hand,
+
+                        Location =
+                            new Point(
+                                x,
+                                0),
+
+                        Size =
+                            new Size(
+                                code == CombatArmsCode ? 210 : 170,
+                                28)
+                    };
+
+                chip.FlatAppearance.BorderSize =
+                    1;
+
+                chip.FlatAppearance.BorderColor =
+                    selected
+                        ? Accent
+                        : Color.FromArgb(52, 38, 70);
+
+                chip.Click +=
+                    (_, _) =>
+                    {
+                        if (_account == null ||
+                            _selected == code)
+                        {
+                            return;
+                        }
+
+                        _selected =
+                            code;
+
+                        RenderAccount(
+                            _account);
+                    };
+
+                x +=
+                    chip.Width + 8;
+            }
+        }
+
+        private void ApplyProductIdentity(
+            ClientPortalApi.AccountProduct current)
+        {
+            bool combatArms =
+                current.Code == CombatArmsCode;
+
+            if (_icon != null)
+            {
+                _icon.Text =
+                    combatArms ? "CA" : "CS";
+
+                _icon.BackColor =
+                    combatArms
+                        ? Accent
+                        : Color.FromArgb(222, 164, 71);
+            }
+
+            if (_productName != null)
+            {
+                _productName.Text =
+                    combatArms
+                        ? "External — CA Brasil Server"
+                        : "Counter-Strike 2";
+
+                _productName.Font =
+                    FontOf(
+                        combatArms ? 15f : 18f,
+                        FontStyle.Bold);
+            }
+
+            if (_category != null)
+            {
+                _category.Text =
+                    combatArms
+                        ? "COMBAT ARMS • EXTERNAL • CABR"
+                        : "CS2 • WINDOWS";
+            }
+
+            _start.Text =
+                combatArms
+                    ? "INICIAR CA BRASIL SERVER     →"
+                    : "INICIAR COUNTER-STRIKE 2     →";
+        }
+
+        private async Task StartCombatArmsAsync()
+        {
+            _start.Enabled =
+                false;
+
+            try
+            {
+                ClientPortalApi.AccountSnapshot? account =
+                    await ClientPortalApi.RefreshAsync();
+
+                if (account == null)
+                {
+                    MessageBox.Show(
+                        "Não foi possível validar sua conta no servidor.",
+                        "legitbaratinho.xyz",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+
+                    return;
+                }
+
+                RenderAccount(
+                    account);
+
+                if (!OwnedProducts(account).Any(
+                        p => p.Code == CombatArmsCode &&
+                             p.HasAccess))
+                {
+                    MessageBox.Show(
+                        "Sua conta não possui acesso ativo ao CA Brasil Server.",
+                        "legitbaratinho.xyz",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    return;
+                }
+
+                MessageBox.Show(
+                    this,
+                    "Para o overlay funcionar no CA Brasil Server, use o jogo em modo janela na resolução do monitor e pressione F7 dentro da partida (tela cheia sem bordas). O jogo e o external precisam rodar como administrador.",
+                    "Modo de exibição do CA Brasil Server",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                (bool success, string message) =
+                    await CombatArmsLauncher.StartAsync();
+
+                MessageBox.Show(
+                    this,
+                    message,
+                    "legitbaratinho.xyz — CA Brasil Server",
+                    MessageBoxButtons.OK,
+                    success
+                        ? MessageBoxIcon.Information
+                        : MessageBoxIcon.Warning);
+            }
+            finally
+            {
+                _start.Enabled =
+                    _account != null &&
+                    OwnedProducts(_account).Any(
+                        p => p.Code == CombatArmsCode &&
+                             p.HasAccess);
+            }
         }
 
         private void ShowDisplayNotice()
@@ -820,6 +1085,12 @@ namespace Mac1ota_Menu.Classes
 
         private async Task StartProductAsync()
         {
+            if (_selected == CombatArmsCode)
+            {
+                await StartCombatArmsAsync();
+                return;
+            }
+
             ShowDisplayNotice();
             _start.Enabled =
                 false;
@@ -960,19 +1231,13 @@ namespace Mac1ota_Menu.Classes
                 FlatStyle.Flat;
 
             button.FlatAppearance.BorderColor =
-                Color.FromArgb(
-                    38,
-                    70,
-                    61);
+                Color.FromArgb(52, 38, 70);
 
             button.FlatAppearance.BorderSize =
                 1;
 
             button.BackColor =
-                Color.FromArgb(
-                    8,
-                    17,
-                    15);
+                Color.FromArgb(12, 8, 17);
 
             button.ForeColor =
                 TextPrimary;
