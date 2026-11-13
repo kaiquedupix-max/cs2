@@ -514,6 +514,7 @@ namespace Mac1ota_Menu.Classes
                 };
 
             BuildGameCard();
+            BuildCombatArmsCard();
 
             EnableDrag(menu);
             EnableDrag(slogan);
@@ -758,6 +759,75 @@ namespace Mac1ota_Menu.Classes
                 new Point(
                     378,
                     26);
+        }
+
+        // Second supported product, shown above the CS2 card (same style).
+        private void BuildCombatArmsCard()
+        {
+            var card =
+                new RoundedPanel
+                {
+                    Parent =
+                        _background,
+
+                    Location =
+                        new Point(
+                            55,
+                            628),
+
+                    Size =
+                        new Size(
+                            492,
+                            68),
+
+                    Radius =
+                        17,
+
+                    FillColor =
+                        Color.FromArgb(18, 9, 18),
+
+                    BorderColor =
+                        Color.FromArgb(61, 31, 65),
+
+                    BorderWidth =
+                        1
+                };
+
+            Label Make(string text, float size, FontStyle style, Color color, int x, int y)
+            {
+                return new Label
+                {
+                    Parent =
+                        card,
+
+                    Text =
+                        text,
+
+                    Font =
+                        FontOf(
+                            size,
+                            style),
+
+                    ForeColor =
+                        color,
+
+                    BackColor =
+                        Color.Transparent,
+
+                    AutoSize =
+                        true,
+
+                    Location =
+                        new Point(
+                            x,
+                            y)
+                };
+            }
+
+            Make("CA", 13f, FontStyle.Bold, TextPrimary, 20, 22);
+            Make("CA Brasil Server (CaBr)", 9.5f, FontStyle.Regular, TextPrimary, 70, 14);
+            Make("External • Combat Arms Brasil", 7.5f, FontStyle.Regular, TextSecondary, 70, 37);
+            Make("●  EXTERNAL", 8f, FontStyle.Bold, TextSecondary, 378, 26);
         }
 
         // ============================================================
