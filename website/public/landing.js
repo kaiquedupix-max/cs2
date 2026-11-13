@@ -134,6 +134,7 @@
 
   const pricesFallback = {
     cs2: [{key:"d1",days:1,priceCents:590},{key:"d7",days:7,priceCents:990},{key:"d15",days:15,priceCents:1490},{key:"d30",days:30,priceCents:1990},{key:"d90",days:90,priceCents:3990},{key:"d180",days:180,priceCents:6490},{key:"lifetime",lifetime:true,priceCents:10000}],
+    combatarms: [{key:"d30",days:30,priceCents:2000}],
     counterframe: [{key:"d1",days:1,priceCents:490,usdPriceCents:150},{key:"d7",days:7,priceCents:1290,usdPriceCents:400},{key:"d15",days:15,priceCents:2190,usdPriceCents:700},{key:"d30",days:30,priceCents:3500,usdPriceCents:1000}]
   };
   const statuses = ["cs2","counterFrameAndroid","counterFrameIos"];
@@ -238,7 +239,7 @@
   async function openPurchase(product) {
     selectedProduct = product;
     selectedPlan = "d30";
-    productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : "Counter Flame";
+    productTitle.textContent = product==="cs2" ? "Counter-Strike 2" : product==="combatarms" ? "LegitBaratinho External — CA Brasil Server" : "Counter Flame";
     if (product==="counterframe") platformSelect.value="android";
     checkoutAvailable = false;
     regionResolved = product !== "counterframe";

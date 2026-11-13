@@ -1,5 +1,5 @@
 const checkoutParams = new URLSearchParams(location.search);
-const checkoutProduct = checkoutParams.get("product") === "counterframe" ? "counterframe" : "cs2";
+const checkoutProduct = ({counterframe:"counterframe",combatarms:"combatarms"})[checkoutParams.get("product")] || "cs2";
 const checkoutPlatform = checkoutProduct === "counterframe" && checkoutParams.get("platform") === "ios" ? "ios" :
   checkoutProduct === "counterframe" ? "android" : "windows";
 const checkoutLang = ["pt","en","es","ru"].includes(checkoutParams.get("lang"))
@@ -610,10 +610,10 @@ document.getElementById("copyPixBtn").addEventListener("click", async () => {
 
 async function boot() {
   try {
-    document.title = (isCounterFrame ? "Counter Flame" : "CS2") + " | Legit Baratinho";
+    document.title = (isCounterFrame ? "Counter Flame" : checkoutProduct === "combatarms" ? "CA Brasil Server" : "CS2") + " | Legit Baratinho";
     document.getElementById("checkoutProductName").textContent =
-      isCounterFrame ? "Counter Flame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : "Counter-Strike 2";
-    document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : "CS";
+      isCounterFrame ? "Counter Flame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : checkoutProduct === "combatarms" ? "LegitBaratinho External — CA Brasil Server" : "Counter-Strike 2";
+    document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : checkoutProduct === "combatarms" ? "CA" : "CS";
     document.getElementById("iosCheckoutNotice")?.classList.toggle("hidden", !isIosPreorder);
     if (isCounterFrame) document.getElementById("buyerCpf").required = false;
 

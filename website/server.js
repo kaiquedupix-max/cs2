@@ -35,6 +35,20 @@ const ADMIN_SESSION_MS = 12 * 60 * 60 * 1000;
 const USER_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CLIENT_SESSION_MS = 12 * 60 * 60 * 1000;
 const PRODUCT_CODE = "cs2";
+// Sellable loader products. Requests without a product keep the CS2 behaviour.
+const PRODUCTS = {
+  cs2: { name: "Counter-Strike 2" },
+  combatarms: { name: "LegitBaratinho External — CA Brasil Server" },
+  // Release channel for the CaBr loader executable itself; licensed through combatarms.
+  "combatarms-loader": { name: "CaBr Loader", accessProduct: "combatarms" },
+};
+const accessProductOf = (product) => PRODUCTS[product]?.accessProduct || product;
+function productOf(req) {
+  const raw = String(
+    req.headers?.["x-product"] || req.body?.product || req.query?.product || PRODUCT_CODE
+  ).trim().toLowerCase();
+  return Object.hasOwn(PRODUCTS, raw) ? raw : PRODUCT_CODE;
+}
 app.disable("x-powered-by");
 app.use(express.json({
   limit: "512kb",
@@ -429,8 +443,11 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_support_messages_conversation
       ON support_messages(conversation_id, id ASC);
 
+    ALTER TABLE loader_releases
+      ADD COLUMN IF NOT EXISTS product_code TEXT NOT NULL DEFAULT 'cs2';
+
     CREATE INDEX IF NOT EXISTS idx_loader_releases_active
-      ON loader_releases(is_active, uploaded_at DESC);
+      ON loader_releases(product_code, is_active, uploaded_at DESC);
 
     ALTER TABLE users
       ADD COLUMN IF NOT EXISTS hwid_hash TEXT NULL;
@@ -538,7 +555,7 @@ async function productStatuses() {
   };
 }
 
-async function activeProductAccess(userId) {
+async function activeProductAccess(userId, product = PRODUCT_CODE) {
   if (!pool) return false;
 
   const result = await pool.query(
@@ -549,21 +566,22 @@ async function activeProductAccess(userId) {
        AND revoked_at IS NULL
        AND expires_at > NOW()
      LIMIT 1`,
-    [userId, PRODUCT_CODE]
+    [userId, accessProductOf(product)]
   );
 
   return Boolean(result.rows[0]);
 }
 
-async function activeLoaderReleaseMeta() {
+async function activeLoaderReleaseMeta(product = PRODUCT_CODE) {
   if (!pool) return null;
 
   const active = await pool.query(
     `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
      FROM loader_releases
-     WHERE is_active = TRUE
+     WHERE is_active = TRUE AND product_code = $1
      ORDER BY uploaded_at DESC
-     LIMIT 1`
+     LIMIT 1`,
+    [product]
   );
 
   if (active.rows[0]) {
@@ -573,8 +591,10 @@ async function activeLoaderReleaseMeta() {
   const latest = await pool.query(
     `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at
      FROM loader_releases
+     WHERE product_code = $1
      ORDER BY uploaded_at DESC
-     LIMIT 1`
+     LIMIT 1`,
+    [product]
   );
 
   const release = latest.rows[0] || null;
@@ -584,21 +604,24 @@ async function activeLoaderReleaseMeta() {
 
   await pool.query(
     `UPDATE loader_releases
-     SET is_active = (id = $1)`,
-    [release.id]
+     SET is_active = (id = $1)
+     WHERE product_code = $2`,
+    [release.id, product]
   );
 
   return release;
 }
 
-async function nextLoaderVersion() {
+async function nextLoaderVersion(product = PRODUCT_CODE) {
   if (!pool) return "1.0";
 
   const result = await pool.query(
     `SELECT version
      FROM loader_releases
+     WHERE product_code = $1
      ORDER BY id DESC
-     LIMIT 1`
+     LIMIT 1`,
+    [product]
   );
 
   const current = String(result.rows[0]?.version || "").trim();
@@ -622,7 +645,7 @@ function sanitizeFileName(value) {
   return clean || "legitbaratinho-loader.zip";
 }
 
-async function accountSnapshot(userId) {
+async function accountSnapshot(userId, product = PRODUCT_CODE) {
   if (!pool) throw new Error("database_not_configured");
 
   const userResult = await pool.query(
@@ -641,7 +664,7 @@ async function accountSnapshot(userId) {
      FROM user_products
      WHERE user_id = $1 AND product_code = $2
      LIMIT 1`,
-    [userId, PRODUCT_CODE]
+    [userId, product]
   );
 
   const trialResult = await pool.query(
@@ -672,8 +695,8 @@ async function accountSnapshot(userId) {
       createdAt: user.created_at,
     },
     product: {
-      code: PRODUCT_CODE,
-      name: "Counter-Strike 2",
+      code: product,
+      name: PRODUCTS[product].name,
       hasAccess,
       plan: hasAccess ? row.plan : null,
       planLabel: hasAccess
@@ -826,7 +849,7 @@ app.post("/api/account/logout", (_req, res) => {
 });
 
 app.get("/api/account/me", requireUser, async (req, res) => {
-  const snapshot = await accountSnapshot(req.userId);
+  const snapshot = await accountSnapshot(req.userId, productOf(req));
   if (!snapshot) return res.status(401).json({ error: "account_unavailable" });
   res.json(snapshot);
 });
@@ -840,14 +863,14 @@ app.post("/api/account/free-trial", requireUser, (_req, res) => {
   });
 });
 
-app.get("/api/loader/latest", async (_req, res) => {
+app.get("/api/loader/latest", async (req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.setHeader("Surrogate-Control", "no-store");
 
   try {
-    const release = await activeLoaderReleaseMeta();
+    const release = await activeLoaderReleaseMeta(productOf(req));
 
     if (!release) {
       return res.status(204).end();
@@ -890,7 +913,7 @@ app.get("/api/loader/download", async (req, res) => {
        AND p.revoked_at IS NULL
        AND p.expires_at > NOW()
      LIMIT 1`,
-    [PRODUCT_CODE, hwidHash]
+    [accessProductOf(productOf(req)), hwidHash]
   );
 
   if (!access.rows[0]) {
@@ -900,9 +923,10 @@ app.get("/api/loader/download", async (req, res) => {
   const result = await pool.query(
     `SELECT version, file_name, mime_type, file_size, sha256, file_data
      FROM loader_releases
-     WHERE is_active = TRUE
+     WHERE is_active = TRUE AND product_code = $1
      ORDER BY uploaded_at DESC
-     LIMIT 1`
+     LIMIT 1`,
+    [productOf(req)]
   );
 
   const release = result.rows[0];
@@ -921,14 +945,14 @@ app.get("/api/loader/download", async (req, res) => {
 
 
 app.get("/api/account/release", requireUser, async (req, res) => {
-  if (!await activeProductAccess(req.userId)) {
+  if (!await activeProductAccess(req.userId, productOf(req))) {
     return res.status(403).json({
       error: "access_required",
       message: "Você precisa de um acesso ativo para baixar o loader.",
     });
   }
 
-  const release = await activeLoaderReleaseMeta();
+  const release = await activeLoaderReleaseMeta(productOf(req));
 
   if (!release) {
     return res.status(404).json({
@@ -952,16 +976,17 @@ app.get("/api/account/release", requireUser, async (req, res) => {
 });
 
 app.get("/api/account/download-loader", requireUser, async (req, res) => {
-  if (!await activeProductAccess(req.userId)) {
+  if (!await activeProductAccess(req.userId, productOf(req))) {
     return res.status(403).send("Acesso ativo necessário.");
   }
 
   const result = await pool.query(
     `SELECT version, file_name, mime_type, file_size, sha256, file_data
      FROM loader_releases
-     WHERE is_active = TRUE
+     WHERE is_active = TRUE AND product_code = $1
      ORDER BY uploaded_at DESC
-     LIMIT 1`
+     LIMIT 1`,
+    [productOf(req)]
   );
 
   const release = result.rows[0];
@@ -1051,7 +1076,7 @@ app.post("/api/client/login", async (req, res) => {
        FROM user_products
        WHERE user_id = $1 AND product_code = $2
        FOR UPDATE`,
-      [user.id, PRODUCT_CODE]
+      [user.id, productOf(req)]
     );
 
     const product = productResult.rows[0] || null;
@@ -1151,7 +1176,7 @@ app.post("/api/client/login", async (req, res) => {
   const userId = Number(user.id);
   const loginIp=req.ip || req.socket.remoteAddress || '';
   const loginCountry=await visitorCountry({headers:{},socket:{remoteAddress:loginIp}});
-  await pool.query("INSERT INTO access_audit(user_id,product,event,ip,device_hash,language,country) VALUES($1,'cs2','login',$2,$3,$4,$5)", [userId, loginIp, hwidHash, String(req.headers['accept-language']||'en').slice(0,20), loginCountry]);
+  await pool.query("INSERT INTO access_audit(user_id,product,event,ip,device_hash,language,country) VALUES($1,$6,'login',$2,$3,$4,$5)", [userId, loginIp, hwidHash, String(req.headers['accept-language']||'en').slice(0,20), loginCountry, productOf(req)]);
   const token = signSession({
     kind: "loader",
     userId,
@@ -1161,12 +1186,12 @@ app.post("/api/client/login", async (req, res) => {
 
   res.json({
     token,
-    account: await accountSnapshot(userId),
+    account: await accountSnapshot(userId, productOf(req)),
   });
 });
 
 app.get("/api/client/me", requireClient, async (req, res) => {
-  const snapshot = await accountSnapshot(req.userId);
+  const snapshot = await accountSnapshot(req.userId, productOf(req));
   if (!snapshot) return res.status(401).json({ error: "account_unavailable" });
   res.json(snapshot);
 });
@@ -1367,14 +1392,14 @@ app.delete("/api/client/community-configs/:id", requireClient, async (req, res) 
 });
 
 app.get("/api/client/release", requireClient, async (req, res) => {
-  if (!await activeProductAccess(req.userId)) {
+  if (!await activeProductAccess(req.userId, productOf(req))) {
     return res.status(403).json({
       error: "access_required",
       message: "Acesso ativo necessário para atualizar o loader.",
     });
   }
 
-  const release = await activeLoaderReleaseMeta();
+  const release = await activeLoaderReleaseMeta(productOf(req));
 
   if (!release) {
     return res.status(404).json({
@@ -1398,16 +1423,17 @@ app.get("/api/client/release", requireClient, async (req, res) => {
 });
 
 app.get("/api/client/download-loader", requireClient, async (req, res) => {
-  if (!await activeProductAccess(req.userId)) {
+  if (!await activeProductAccess(req.userId, productOf(req))) {
     return res.status(403).send("Acesso ativo necessário.");
   }
 
   const result = await pool.query(
     `SELECT version, file_name, mime_type, file_size, sha256, file_data
      FROM loader_releases
-     WHERE is_active = TRUE
+     WHERE is_active = TRUE AND product_code = $1
      ORDER BY uploaded_at DESC
-     LIMIT 1`
+     LIMIT 1`,
+    [productOf(req)]
   );
 
   const release = result.rows[0];
@@ -1461,14 +1487,16 @@ app.get("/api/admin/me", requireAdmin, (_req, res) => {
   res.json({ authenticated: true });
 });
 
-app.get("/api/admin/releases", requireAdmin, async (_req, res) => {
+app.get("/api/admin/releases", requireAdmin, async (req, res) => {
   if (!pool) return res.status(503).json({ error: "database_not_configured" });
 
   const result = await pool.query(
     `SELECT id, version, file_name, mime_type, file_size, sha256, notes, uploaded_at, is_active
      FROM loader_releases
+     WHERE product_code = $1
      ORDER BY uploaded_at DESC
-     LIMIT 30`
+     LIMIT 30`,
+    [productOf(req)]
   );
 
   res.json({
@@ -1501,7 +1529,8 @@ app.post(
       });
     }
 
-    const version = await nextLoaderVersion();
+    const product = productOf(req);
+    const version = await nextLoaderVersion(product);
     const notes = String(req.query.notes || "").trim().slice(0, 500);
     const fileName = sanitizeFileName(req.query.fileName);
     const mimeType = String(req.query.mimeType || "application/octet-stream").slice(0, 120);
@@ -1511,15 +1540,15 @@ app.post(
 
     try {
       await client.query("BEGIN");
-      await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE");
+      await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE AND product_code = $1", [product]);
 
       const result = await client.query(
         `INSERT INTO loader_releases(
-          version, file_name, mime_type, file_size, sha256, notes, file_data, is_active
+          version, file_name, mime_type, file_size, sha256, notes, file_data, is_active, product_code
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, $8)
         RETURNING id, version, file_name, file_size, sha256, notes, uploaded_at, is_active`,
-        [version, fileName, mimeType, file.length, digest, notes, file]
+        [version, fileName, mimeType, file.length, digest, notes, file, product]
       );
 
       await client.query("COMMIT");
@@ -1547,7 +1576,7 @@ app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
     await client.query("BEGIN");
 
     const exists = await client.query(
-      "SELECT 1 FROM loader_releases WHERE id = $1 LIMIT 1",
+      "SELECT product_code FROM loader_releases WHERE id = $1 LIMIT 1",
       [releaseId]
     );
 
@@ -1556,7 +1585,7 @@ app.post("/api/admin/releases/:id/activate", requireAdmin, async (req, res) => {
       return res.status(404).json({ error: "release_not_found" });
     }
 
-    await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE");
+    await client.query("UPDATE loader_releases SET is_active = FALSE WHERE is_active = TRUE AND product_code = $1", [exists.rows[0].product_code]);
     await client.query("UPDATE loader_releases SET is_active = TRUE WHERE id = $1", [releaseId]);
     await client.query("COMMIT");
 
