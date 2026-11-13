@@ -1539,6 +1539,8 @@ app.get("/api/client/catalog", requireClient, async (req, res) => {
     products.push({
       code: r.product_code,
       name: def.name,
+      glyph: def.glyph,
+      notice: def.notice,
       platform: def.platform,
       channel: def.channel,
       launch: { type: def.launch.type, requiresAdmin: def.launch.requiresAdmin },

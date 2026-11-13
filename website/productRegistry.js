@@ -12,6 +12,7 @@ const EXT_RE = /^\.[a-z0-9]{1,8}$/;
 export const BUILTIN_PRODUCTS = {
   cs2: {
     name: "Counter-Strike 2",
+    glyph: "CS",
     kind: "product",
     platform: "windows",
     channel: "stable",
@@ -22,6 +23,8 @@ export const BUILTIN_PRODUCTS = {
   },
   combatarms: {
     name: "Combat Arms External Brasil 7",
+    glyph: "CA",
+    notice: "Para o overlay funcionar, use o jogo em modo janela na resolução do monitor e pressione F7 dentro da partida (tela cheia sem bordas). O jogo e o external precisam rodar como administrador.",
     kind: "product",
     platform: "windows",
     channel: "stable",
@@ -63,8 +66,10 @@ export function normalizeProductDef(code, def, existing = {}) {
   }
   const dependencies = [...new Set((def.dependencies || []).map(String))];
   for (const dep of dependencies) if (dep === code || !existing[dep]) fail("dependency:" + dep);
+  const glyph = String(def.glyph || name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2)).toUpperCase().slice(0, 3);
+  const notice = String(def.notice || "").trim().slice(0, 400);
   return {
-    name, kind, platform: String(def.platform || "windows").slice(0, 16),
+    name, glyph, notice, kind, platform: String(def.platform || "windows").slice(0, 16),
     channel: String(def.channel || "stable").slice(0, 16),
     sellable: kind === "product" && def.sellable !== false,
     allowedExtensions,

@@ -141,6 +141,9 @@ namespace Mac1ota_Menu.Classes
                     await response.Content
                         .ReadFromJsonAsync<AccountSnapshot>();
 
+                Catalog =
+                    await FetchCatalogAsync();
+
                 return Account;
             }
             catch
@@ -229,6 +232,40 @@ namespace Mac1ota_Menu.Classes
                     "Falha ao baixar atualização: " +
                     ex.Message
                 );
+            }
+        }
+
+        // Products of this account with license state and latest release. Null when the server predates the
+        // catalog endpoint or the call fails: the UI then falls back to the plain account snapshot.
+        internal static List<CatalogProduct>? Catalog { get; private set; }
+
+        private static async Task<List<CatalogProduct>?> FetchCatalogAsync()
+        {
+            try
+            {
+                using HttpRequestMessage request =
+                    CreateClientRequest(
+                        HttpMethod.Get,
+                        "api/client/catalog");
+
+                using HttpResponseMessage response =
+                    await Http.SendAsync(
+                        request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                CatalogResponse? body =
+                    await response.Content
+                        .ReadFromJsonAsync<CatalogResponse>();
+
+                return body?.Products;
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -474,6 +511,9 @@ namespace Mac1ota_Menu.Classes
 
             Account =
                 null;
+
+            Catalog =
+                null;
         }
 
         internal sealed class ClientLoginResponse
@@ -536,6 +576,69 @@ namespace Mac1ota_Menu.Classes
             public int DaysRemaining { get; set; }
 
             public bool Lifetime { get; set; }
+        }
+
+        internal sealed class CatalogResponse
+        {
+            public List<CatalogProduct> Products { get; set; } =
+                new();
+        }
+
+        internal sealed class CatalogProduct
+        {
+            public string Code { get; set; } =
+                string.Empty;
+
+            public string Name { get; set; } =
+                string.Empty;
+
+            public string Glyph { get; set; } =
+                string.Empty;
+
+            public string? Notice { get; set; }
+
+            public string Platform { get; set; } =
+                string.Empty;
+
+            public CatalogLaunch Launch { get; set; } =
+                new();
+
+            public CatalogLicense License { get; set; } =
+                new();
+
+            public CatalogRelease? Release { get; set; }
+
+            public bool CanLaunch { get; set; }
+        }
+
+        internal sealed class CatalogLaunch
+        {
+            public string Type { get; set; } =
+                string.Empty;
+
+            public bool RequiresAdmin { get; set; }
+        }
+
+        internal sealed class CatalogLicense
+        {
+            public string Status { get; set; } =
+                string.Empty;
+
+            public string? Plan { get; set; }
+
+            public DateTime? ExpiresAt { get; set; }
+
+            public int DaysRemaining { get; set; }
+
+            public bool Lifetime { get; set; }
+        }
+
+        internal sealed class CatalogRelease
+        {
+            public string Version { get; set; } =
+                string.Empty;
+
+            public long Size { get; set; }
         }
 
         internal sealed class ProductStatus

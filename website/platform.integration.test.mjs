@@ -85,6 +85,7 @@ try {
   check(cat.status === 200 && byCode.cs2?.canLaunch && byCode.combatarms?.canLaunch && byCode.combatarms.release?.version === "1.0" && byCode.combatarms.license.status === "active",
     "catalog: owned products with license + release + canLaunch", JSON.stringify(cat.data));
   check(!("combatarms-loader" in byCode), "catalog hides loader channels");
+  check(byCode.combatarms?.glyph === "CA" && byCode.combatarms.notice?.includes("administrador") && byCode.cs2?.launch.type === "in-process" && byCode.combatarms.launch.type === "external-exe", "catalog carries glyph, notice and launch type for the UI", JSON.stringify(byCode.combatarms));
 
   // --- signed manifest ---
   const pubPem = (await call("GET", "/api/admin/signing-key", { cookie: admin })).data?.publicKeyPem;

@@ -77,9 +77,6 @@ namespace Mac1ota_Menu.Classes
         private string _selected =
             "";
 
-        private const string CombatArmsCode =
-            "combatarms";
-
         public ProductSelectionForm()
         {
             SuspendLayout();
@@ -739,8 +736,11 @@ namespace Mac1ota_Menu.Classes
             _selected =
                 current.Code;
 
+            ClientPortalApi.CatalogProduct? entry =
+                CatalogEntry(current.Code);
+
             RebuildChips(owned);
-            ApplyProductIdentity(current);
+            ApplyProductIdentity(current, entry);
 
             // Only CS2 has an admin-published status; other products report "unknown" (start stays allowed).
             ClientPortalApi.ProductStatus productStatus =
@@ -847,7 +847,7 @@ namespace Mac1ota_Menu.Classes
                     : productStatus.Message;
 
             _start.Enabled =
-                current.HasAccess &&
+                (entry?.CanLaunch ?? current.HasAccess) &&
                 status !=
                 "offline";
 
@@ -866,16 +866,32 @@ namespace Mac1ota_Menu.Classes
                 };
         }
 
-        private static string DisplayName(
+        private static ClientPortalApi.CatalogProduct? CatalogEntry(
             string code)
         {
-            return code switch
-            {
-                CombatArmsCode =>
-                    "Combat Arms Brasil 7",
+            return ClientPortalApi.Catalog?.FirstOrDefault(
+                p => p.Code == code);
+        }
 
-                _ =>
-                    "Counter-Strike 2"
+        // Names come from the server's product registry; nothing here knows individual products.
+        private static string DisplayName(
+            ClientPortalApi.AccountProduct item)
+        {
+            return !string.IsNullOrWhiteSpace(item.Name)
+                ? item.Name
+                : item.Code;
+        }
+
+        private static string LicenseSuffix(
+            ClientPortalApi.AccountProduct item,
+            ClientPortalApi.CatalogProduct? entry)
+        {
+            return entry?.License.Status switch
+            {
+                "expired" => "  (expirado)",
+                "revoked" => "  (revogado)",
+                null => item.HasAccess ? "" : "  (sem acesso)",
+                _ => ""
             };
         }
 
@@ -902,8 +918,8 @@ namespace Mac1ota_Menu.Classes
                             _chipHost,
 
                         Text =
-                            DisplayName(code) +
-                            (item.HasAccess ? "" : "  (sem acesso)"),
+                            DisplayName(item) +
+                            LicenseSuffix(item, CatalogEntry(code)),
 
                         FlatStyle =
                             FlatStyle.Flat,
@@ -933,7 +949,10 @@ namespace Mac1ota_Menu.Classes
 
                         Size =
                             new Size(
-                                code == CombatArmsCode ? 210 : 170,
+                                28 + TextRenderer.MeasureText(
+                                    DisplayName(item) +
+                                    LicenseSuffix(item, CatalogEntry(code)),
+                                    FontOf(8f, FontStyle.Bold)).Width,
                                 28)
                     };
 
@@ -967,50 +986,63 @@ namespace Mac1ota_Menu.Classes
         }
 
         private void ApplyProductIdentity(
-            ClientPortalApi.AccountProduct current)
+            ClientPortalApi.AccountProduct current,
+            ClientPortalApi.CatalogProduct? entry)
         {
-            bool combatArms =
-                current.Code == CombatArmsCode;
+            string name =
+                DisplayName(current);
+
+            string glyph =
+                !string.IsNullOrWhiteSpace(entry?.Glyph)
+                    ? entry!.Glyph
+                    : name.Length >= 2
+                        ? name[..2].ToUpperInvariant()
+                        : name.ToUpperInvariant();
 
             if (_icon != null)
             {
                 _icon.Text =
-                    combatArms ? "CA" : "CS";
+                    glyph;
 
                 _icon.BackColor =
-                    combatArms
-                        ? Accent
-                        : Color.FromArgb(222, 164, 71);
+                    current.Code == "cs2"
+                        ? Color.FromArgb(222, 164, 71)
+                        : Accent;
             }
 
             if (_productName != null)
             {
                 _productName.Text =
-                    combatArms
-                        ? "External — Brasil 7"
-                        : "Counter-Strike 2";
+                    name;
 
                 _productName.Font =
                     FontOf(
-                        combatArms ? 15f : 18f,
+                        name.Length > 20 ? 15f : 18f,
                         FontStyle.Bold);
             }
 
             if (_category != null)
             {
+                string version =
+                    entry?.Release != null
+                        ? " • V" + entry.Release.Version
+                        : "";
+
                 _category.Text =
-                    combatArms
-                        ? "COMBAT ARMS • EXTERNAL • BRASIL 7"
-                        : "CS2 • WINDOWS";
+                    (glyph + " • " +
+                     (string.IsNullOrWhiteSpace(entry?.Platform)
+                         ? "WINDOWS"
+                         : entry!.Platform.ToUpperInvariant()) +
+                     version).ToUpperInvariant();
             }
 
             _start.Text =
-                combatArms
-                    ? "INICIAR COMBAT ARMS BRASIL 7     →"
-                    : "INICIAR COUNTER-STRIKE 2     →";
+                "INICIAR " +
+                name.ToUpperInvariant() +
+                "     →";
         }
 
-        private async Task StartCombatArmsAsync()
+        private async Task StartExternalAsync(string code)
         {
             _start.Enabled =
                 false;
@@ -1034,12 +1066,22 @@ namespace Mac1ota_Menu.Classes
                 RenderAccount(
                     account);
 
-                if (!OwnedProducts(account).Any(
-                        p => p.Code == CombatArmsCode &&
-                             p.HasAccess))
+                ClientPortalApi.CatalogProduct? entry =
+                    CatalogEntry(code);
+
+                string name =
+                    OwnedProducts(account)
+                        .Where(p => p.Code == code)
+                        .Select(DisplayName)
+                        .FirstOrDefault() ?? code;
+
+                if (!(entry?.CanLaunch ??
+                      OwnedProducts(account).Any(
+                          p => p.Code == code &&
+                               p.HasAccess)))
                 {
                     MessageBox.Show(
-                        "Sua conta não possui acesso ativo ao Combat Arms Brasil 7.",
+                        "Sua conta não possui acesso ativo a " + name + ", ou não há versão publicada.",
                         "legitbaratinho.xyz",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
@@ -1047,18 +1089,23 @@ namespace Mac1ota_Menu.Classes
                     return;
                 }
 
-                MessageBox.Show(
-                    this,
-                    "Para o overlay funcionar no Combat Arms Brasil 7, use o jogo em modo janela na resolução do monitor e pressione F7 dentro da partida (tela cheia sem bordas). O jogo e o external precisam rodar como administrador.",
-                    "Modo de exibição do Combat Arms Brasil 7",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                if (!string.IsNullOrWhiteSpace(entry?.Notice))
+                {
+                    MessageBox.Show(
+                        this,
+                        entry!.Notice,
+                        "Aviso — " + name,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
 
                 string idleText =
                     _start.Text;
 
                 (bool success, string message) =
-                    await CombatArmsLauncher.StartAsync(
+                    await ProductLauncher.StartAsync(
+                        code,
+                        name,
                         (stage, done, total) =>
                             _start.Text =
                                 stage switch
@@ -1082,7 +1129,7 @@ namespace Mac1ota_Menu.Classes
                     MessageBox.Show(
                         this,
                         message,
-                        "legitbaratinho.xyz — Combat Arms Brasil 7",
+                        "legitbaratinho.xyz — " + name,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
                 }
@@ -1091,9 +1138,10 @@ namespace Mac1ota_Menu.Classes
             {
                 _start.Enabled =
                     _account != null &&
-                    OwnedProducts(_account).Any(
-                        p => p.Code == CombatArmsCode &&
-                             p.HasAccess);
+                    (CatalogEntry(code)?.CanLaunch ??
+                     OwnedProducts(_account).Any(
+                         p => p.Code == code &&
+                              p.HasAccess));
             }
         }
 
@@ -1106,9 +1154,13 @@ namespace Mac1ota_Menu.Classes
 
         private async Task StartProductAsync()
         {
-            if (_selected == CombatArmsCode)
+            // Data-driven: the server's launch type decides. Without a catalog, only CS2 is known to run in-process.
+            ClientPortalApi.CatalogProduct? selected =
+                CatalogEntry(_selected);
+
+            if ((selected?.Launch.Type ?? (_selected == "cs2" ? "in-process" : "external-exe")) == "external-exe")
             {
-                await StartCombatArmsAsync();
+                await StartExternalAsync(_selected);
                 return;
             }
 
