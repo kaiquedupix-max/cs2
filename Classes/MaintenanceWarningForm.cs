@@ -7,16 +7,10 @@ namespace Mac1ota_Menu.Classes
     internal sealed class MaintenanceWarningForm : Form
     {
         private static readonly Color Bg =
-            Color.FromArgb(
-                7,
-                12,
-                11);
+            Color.FromArgb(10, 6, 13);
 
         private static readonly Color Panel =
-            Color.FromArgb(
-                12,
-                20,
-                18);
+            Color.FromArgb(16, 10, 22);
 
         private static readonly Color Amber =
             Color.FromArgb(
@@ -25,16 +19,10 @@ namespace Mac1ota_Menu.Classes
                 76);
 
         private static readonly Color TextPrimary =
-            Color.FromArgb(
-                241,
-                245,
-                243);
+            Color.FromArgb(242, 241, 245);
 
         private static readonly Color TextSecondary =
-            Color.FromArgb(
-                132,
-                147,
-                141);
+            Color.FromArgb(137, 132, 147);
 
         public MaintenanceWarningForm(
             string message)
@@ -268,10 +256,7 @@ namespace Mac1ota_Menu.Classes
                         FlatStyle.Flat,
 
                     BackColor =
-                        Color.FromArgb(
-                            9,
-                            16,
-                            14),
+                        Color.FromArgb(12, 8, 17),
 
                     ForeColor =
                         TextSecondary,
@@ -300,10 +285,7 @@ namespace Mac1ota_Menu.Classes
                 };
 
             cancel.FlatAppearance.BorderColor =
-                Color.FromArgb(
-                    41,
-                    58,
-                    52);
+                Color.FromArgb(45, 32, 67);
 
             var proceed =
                 new GlowButton

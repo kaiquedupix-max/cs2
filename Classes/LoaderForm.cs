@@ -11,22 +11,22 @@ namespace Mac1ota_Menu.Classes
     internal sealed class LoaderForm : Form
     {
         private static readonly Color Bg =
-            Color.FromArgb(5, 10, 11);
+            Color.FromArgb(10, 5, 11);
 
         private static readonly Color PanelBg =
-            Color.FromArgb(11, 19, 21);
+            Color.FromArgb(21, 10, 22);
 
         private static readonly Color Accent =
-            Color.FromArgb(21, 232, 169);
+            Color.FromArgb(149, 85, 240);
 
         private static readonly Color AccentDark =
-            Color.FromArgb(5, 139, 101);
+            Color.FromArgb(63, 5, 139);
 
         private static readonly Color TextPrimary =
-            Color.FromArgb(239, 244, 244);
+            Color.FromArgb(243, 239, 244);
 
         private static readonly Color TextSecondary =
-            Color.FromArgb(126, 143, 148);
+            Color.FromArgb(147, 126, 148);
 
         private readonly LoaderBackgroundCanvas _background = new();
         private readonly RoundedPanel _loginPanel = new();
@@ -341,10 +341,7 @@ namespace Mac1ota_Menu.Classes
                     FontStyle.Regular);
 
             _versionLabel.ForeColor =
-                Color.FromArgb(
-                    95,
-                    111,
-                    116);
+                Color.FromArgb(115, 95, 116);
 
             _versionLabel.BackColor =
                 Color.Transparent;
@@ -369,10 +366,7 @@ namespace Mac1ota_Menu.Classes
                     FontStyle.Regular);
 
             _latestVersionLabel.ForeColor =
-                Color.FromArgb(
-                    73,
-                    92,
-                    86);
+                Color.FromArgb(81, 73, 92);
 
             _latestVersionLabel.BackColor =
                 Color.Transparent;
@@ -455,10 +449,7 @@ namespace Mac1ota_Menu.Classes
                             FontStyle.Regular),
 
                     ForeColor =
-                        Color.FromArgb(
-                            154,
-                            169,
-                            174),
+                        Color.FromArgb(173, 154, 174),
 
                     BackColor =
                         Color.Transparent,
@@ -508,10 +499,7 @@ namespace Mac1ota_Menu.Classes
                             FontStyle.Italic),
 
                     ForeColor =
-                        Color.FromArgb(
-                            153,
-                            166,
-                            170),
+                        Color.FromArgb(169, 153, 170),
 
                     BackColor =
                         Color.Transparent,
@@ -650,16 +638,10 @@ namespace Mac1ota_Menu.Classes
                         17,
 
                     FillColor =
-                        Color.FromArgb(
-                            9,
-                            16,
-                            18),
+                        Color.FromArgb(18, 9, 18),
 
                     BorderColor =
-                        Color.FromArgb(
-                            37,
-                            55,
-                            59),
+                        Color.FromArgb(61, 31, 65),
 
                     BorderWidth =
                         1
@@ -804,10 +786,7 @@ namespace Mac1ota_Menu.Classes
                 PanelBg;
 
             _loginPanel.BorderColor =
-                Color.FromArgb(
-                    39,
-                    58,
-                    62);
+                Color.FromArgb(64, 33, 68);
 
             _loginPanel.BorderWidth =
                 1;
@@ -940,10 +919,7 @@ namespace Mac1ota_Menu.Classes
                 .BorderSize = 0;
 
             _showPassword.BackColor =
-                Color.FromArgb(
-                    19,
-                    29,
-                    32);
+                Color.FromArgb(33, 17, 34);
 
             _showPassword.ForeColor =
                 TextSecondary;
@@ -1251,16 +1227,10 @@ namespace Mac1ota_Menu.Classes
                         14,
 
                     FillColor =
-                        Color.FromArgb(
-                            8,
-                            15,
-                            17),
+                        Color.FromArgb(16, 8, 17),
 
                     BorderColor =
-                        Color.FromArgb(
-                            30,
-                            48,
-                            51),
+                        Color.FromArgb(51, 26, 55),
 
                     BorderWidth =
                         1
@@ -2412,10 +2382,7 @@ namespace Mac1ota_Menu.Classes
                 true);
 
             BackColor =
-                Color.FromArgb(
-                    5,
-                    10,
-                    11);
+                Color.FromArgb(10, 5, 11);
         }
 
         protected override void OnPaint(
@@ -2431,10 +2398,7 @@ namespace Mac1ota_Menu.Classes
                 PixelOffsetMode.HighQuality;
 
             e.Graphics.Clear(
-                Color.FromArgb(
-                    5,
-                    10,
-                    11));
+                Color.FromArgb(10, 5, 11));
 
             if (_artwork != null)
             {
@@ -2493,11 +2457,7 @@ namespace Mac1ota_Menu.Classes
             // Escurecimento geral
             using (var dim =
                    new SolidBrush(
-                       Color.FromArgb(
-                           36,
-                           0,
-                           5,
-                           6)))
+                       Color.FromArgb(36, 5, 0, 6)))
             {
                 e.Graphics.FillRectangle(
                     dim,
@@ -2517,17 +2477,9 @@ namespace Mac1ota_Menu.Classes
                    new LinearGradientBrush(
                        blendRect,
 
-                       Color.FromArgb(
-                           0,
-                           5,
-                           10,
-                           11),
+                       Color.FromArgb(0, 10, 5, 11),
 
-                       Color.FromArgb(
-                           255,
-                           5,
-                           10,
-                           11),
+                       Color.FromArgb(255, 10, 5, 11),
 
                        LinearGradientMode.Horizontal))
             {
@@ -2539,11 +2491,7 @@ namespace Mac1ota_Menu.Classes
             // Uniformiza completamente o lado direito
             using (var right =
                    new SolidBrush(
-                       Color.FromArgb(
-                           230,
-                           5,
-                           10,
-                           11)))
+                       Color.FromArgb(230, 10, 5, 11)))
             {
                 e.Graphics.FillRectangle(
                     right,
@@ -2565,17 +2513,9 @@ namespace Mac1ota_Menu.Classes
                    new LinearGradientBrush(
                        bottomRect,
 
-                       Color.FromArgb(
-                           0,
-                           5,
-                           10,
-                           11),
+                       Color.FromArgb(0, 10, 5, 11),
 
-                       Color.FromArgb(
-                           215,
-                           5,
-                           10,
-                           11),
+                       Color.FromArgb(215, 10, 5, 11),
 
                        LinearGradientMode.Vertical))
             {
@@ -2587,11 +2527,7 @@ namespace Mac1ota_Menu.Classes
             // Header
             using (var top =
                    new SolidBrush(
-                       Color.FromArgb(
-                           155,
-                           4,
-                           8,
-                           9)))
+                       Color.FromArgb(155, 9, 4, 9)))
             {
                 e.Graphics.FillRectangle(
                     top,
@@ -2648,18 +2584,12 @@ namespace Mac1ota_Menu.Classes
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
         public Color FillColor { get; set; } =
-            Color.FromArgb(
-                11,
-                19,
-                21);
+            Color.FromArgb(21, 10, 22);
 
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
         public Color BorderColor { get; set; } =
-            Color.FromArgb(
-                36,
-                54,
-                58);
+            Color.FromArgb(60, 31, 63);
 
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
@@ -2838,10 +2768,7 @@ namespace Mac1ota_Menu.Classes
                 BorderStyle.None;
 
             _box.BackColor =
-                Color.FromArgb(
-                    19,
-                    29,
-                    32);
+                Color.FromArgb(33, 17, 34);
 
             _box.ForeColor =
                 Color.White;
@@ -2911,10 +2838,7 @@ namespace Mac1ota_Menu.Classes
 
             using var fill =
                 new SolidBrush(
-                    Color.FromArgb(
-                        19,
-                        29,
-                        32));
+                    Color.FromArgb(33, 17, 34));
 
             e.Graphics.FillPath(
                 fill,
@@ -2923,14 +2847,8 @@ namespace Mac1ota_Menu.Classes
             using var border =
                 new Pen(
                     _focused
-                        ? Color.FromArgb(
-                            21,
-                            232,
-                            169)
-                        : Color.FromArgb(
-                            46,
-                            64,
-                            68),
+                        ? Color.FromArgb(149, 85, 240)
+                        : Color.FromArgb(66, 46, 68),
 
                     _focused
                         ? 1.5f
@@ -3029,10 +2947,7 @@ namespace Mac1ota_Menu.Classes
                 Cursors.Hand;
 
             ForeColor =
-                Color.FromArgb(
-                    226,
-                    234,
-                    234);
+                Color.FromArgb(232, 226, 234);
 
             Font =
                 new Font(
@@ -3073,14 +2988,8 @@ namespace Mac1ota_Menu.Classes
             using var fill =
                 new SolidBrush(
                     Checked
-                        ? Color.FromArgb(
-                            21,
-                            232,
-                            169)
-                        : Color.FromArgb(
-                            19,
-                            29,
-                            32));
+                        ? Color.FromArgb(149, 85, 240)
+                        : Color.FromArgb(33, 17, 34));
 
             e.Graphics.FillPath(
                 fill,
@@ -3089,14 +2998,8 @@ namespace Mac1ota_Menu.Classes
             using var border =
                 new Pen(
                     Checked
-                        ? Color.FromArgb(
-                            72,
-                            255,
-                            205)
-                        : Color.FromArgb(
-                            59,
-                            75,
-                            79));
+                        ? Color.FromArgb(153, 72, 255)
+                        : Color.FromArgb(77, 59, 79));
 
             e.Graphics.DrawPath(
                 border,
@@ -3148,10 +3051,7 @@ namespace Mac1ota_Menu.Classes
 
                 Enabled
                     ? ForeColor
-                    : Color.FromArgb(
-                        90,
-                        105,
-                        106),
+                    : Color.FromArgb(102, 90, 106),
 
                 TextFormatFlags.Left |
                 TextFormatFlags.VerticalCenter);
@@ -3217,10 +3117,7 @@ namespace Mac1ota_Menu.Classes
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
         public Color AccentColor { get; set; } =
-            Color.FromArgb(
-                21,
-                232,
-                169);
+            Color.FromArgb(149, 85, 240);
 
         public GlowButton()
         {
@@ -3354,39 +3251,21 @@ namespace Mac1ota_Menu.Classes
 
             Color top =
                 _hover
-                    ? Color.FromArgb(
-                        51,
-                        247,
-                        191)
-                    : Color.FromArgb(
-                        32,
-                        224,
-                        166);
+                    ? Color.FromArgb(175, 120, 250)
+                    : Color.FromArgb(152, 95, 233);
 
             Color bottom =
                 _hover
-                    ? Color.FromArgb(
-                        7,
-                        177,
-                        130)
-                    : Color.FromArgb(
-                        5,
-                        139,
-                        101);
+                    ? Color.FromArgb(114, 10, 245)
+                    : Color.FromArgb(63, 5, 139);
 
             if (!Enabled)
             {
                 top =
-                    Color.FromArgb(
-                        60,
-                        99,
-                        88);
+                    Color.FromArgb(77, 60, 99);
 
                 bottom =
-                    Color.FromArgb(
-                        38,
-                        68,
-                        60);
+                    Color.FromArgb(51, 38, 68);
             }
 
             using (var gradient =
@@ -3404,16 +3283,8 @@ namespace Mac1ota_Menu.Classes
             using (var border =
                    new Pen(
                        _hover
-                           ? Color.FromArgb(
-                               150,
-                               109,
-                               255,
-                               215)
-                           : Color.FromArgb(
-                               90,
-                               109,
-                               255,
-                               215),
+                           ? Color.FromArgb(150, 174, 109, 255)
+                           : Color.FromArgb(90, 174, 109, 255),
 
                        1.2f))
             {
@@ -3446,10 +3317,7 @@ namespace Mac1ota_Menu.Classes
 
                 Enabled
                     ? ForeColor
-                    : Color.FromArgb(
-                        160,
-                        176,
-                        172),
+                    : Color.FromArgb(167, 160, 176),
 
                 TextFormatFlags.HorizontalCenter |
                 TextFormatFlags.VerticalCenter);
@@ -3514,10 +3382,7 @@ namespace Mac1ota_Menu.Classes
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
         public Color AccentColor { get; set; } =
-            Color.FromArgb(
-                21,
-                232,
-                169);
+            Color.FromArgb(149, 85, 240);
 
         [DesignerSerializationVisibility(
             DesignerSerializationVisibility.Hidden)]
@@ -3568,10 +3433,7 @@ namespace Mac1ota_Menu.Classes
 
             using (var bg =
                    new SolidBrush(
-                       Color.FromArgb(
-                           39,
-                           53,
-                           57)))
+                       Color.FromArgb(63, 31, 65)))
             {
                 e.Graphics.FillPath(
                     bg,
@@ -3609,10 +3471,7 @@ namespace Mac1ota_Menu.Classes
                 new LinearGradientBrush(
                     progressRect,
 
-                    Color.FromArgb(
-                        5,
-                        166,
-                        120),
+                    Color.FromArgb(74, 5, 166),
 
                     AccentColor,
 
@@ -3707,10 +3566,7 @@ namespace Mac1ota_Menu.Classes
                     13f);
 
             ForeColor =
-                Color.FromArgb(
-                    145,
-                    161,
-                    166);
+                Color.FromArgb(165, 145, 166);
         }
 
         protected override void OnMouseEnter(

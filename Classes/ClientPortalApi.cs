@@ -232,6 +232,33 @@ namespace Mac1ota_Menu.Classes
             }
         }
 
+        // Same as CreateClientRequest but for a specific product channel (X-Product); the CS2 calls never set it.
+        internal static HttpRequestMessage CreateProductRequest(
+            HttpMethod method,
+            string path,
+            string product)
+        {
+            HttpRequestMessage request =
+                CreateClientRequest(
+                    method,
+                    path);
+
+            request.Headers.Add(
+                "X-Product",
+                product);
+
+            return request;
+        }
+
+        internal static Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            HttpCompletionOption completion)
+        {
+            return Http.SendAsync(
+                request,
+                completion);
+        }
+
         private static HttpRequestMessage CreateClientRequest(
             HttpMethod method,
             string path)
@@ -467,6 +494,10 @@ namespace Mac1ota_Menu.Classes
 
             public ProductStatus Status { get; set; } =
                 new();
+
+            // Every acquired product (active or expired). Empty when the server predates multi-product support.
+            public List<AccountProduct> Products { get; set; } =
+                new();
         }
 
         internal sealed class AccountUser
@@ -503,6 +534,8 @@ namespace Mac1ota_Menu.Classes
             public DateTime? ExpiresAt { get; set; }
 
             public int DaysRemaining { get; set; }
+
+            public bool Lifetime { get; set; }
         }
 
         internal sealed class ProductStatus
