@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace Mac1ota_Menu.Classes
 {
-    // Downloads (when the published version/SHA changed), verifies and starts the Combat Arms (CaBr) external.
+    // Downloads (when the published version/SHA changed), verifies and starts the Combat Arms Brasil 7 external.
     // The server is asked with X-Product: combatarms and must echo the product back; a server that does not know the
     // product would answer with the CS2 release, which must never be run as the Combat Arms program.
     internal static class CombatArmsLauncher
@@ -36,12 +36,12 @@ namespace Mac1ota_Menu.Classes
 
                 if (meta.StatusCode == HttpStatusCode.Forbidden)
                 {
-                    return (false, "Sua conta não possui acesso ativo ao CA Brasil Server.");
+                    return (false, "Sua conta não possui acesso ativo ao Combat Arms Brasil 7.");
                 }
 
                 if (!meta.IsSuccessStatusCode)
                 {
-                    return (false, "Versão do CA Brasil Server indisponível no servidor.");
+                    return (false, "Versão do Combat Arms Brasil 7 indisponível no servidor.");
                 }
 
                 ReleaseEnvelope? envelope =
@@ -60,7 +60,7 @@ namespace Mac1ota_Menu.Classes
                 {
                     return (
                         false,
-                        "O servidor ainda não publicou o CA Brasil Server. Nada foi executado.");
+                        "O servidor ainda não publicou o Combat Arms Brasil 7. Nada foi executado.");
                 }
 
                 string exe =
@@ -111,7 +111,7 @@ namespace Mac1ota_Menu.Classes
                         "Permissão de administrador negada: o external precisa dela para ler o jogo.");
                 }
 
-                return (true, "CA Brasil Server iniciado (v" + release.Version + "). INSERT abre o menu no jogo.");
+                return (true, "Combat Arms Brasil 7 iniciado (v" + release.Version + "). INSERT abre o menu no jogo.");
             }
             catch (TaskCanceledException)
             {
@@ -119,7 +119,7 @@ namespace Mac1ota_Menu.Classes
             }
             catch (Exception ex)
             {
-                return (false, "Falha ao iniciar o CA Brasil Server: " + ex.Message);
+                return (false, "Falha ao iniciar o Combat Arms Brasil 7: " + ex.Message);
             }
         }
 
@@ -147,7 +147,7 @@ namespace Mac1ota_Menu.Classes
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return (false, "Não foi possível baixar o CA Brasil Server.");
+                    return (false, "Não foi possível baixar o Combat Arms Brasil 7.");
                 }
 
                 await using (Stream source =
@@ -180,7 +180,7 @@ namespace Mac1ota_Menu.Classes
                 {
                 }
 
-                return (false, "Falha ao baixar o CA Brasil Server: " + ex.Message);
+                return (false, "Falha ao baixar o Combat Arms Brasil 7: " + ex.Message);
             }
         }
 
