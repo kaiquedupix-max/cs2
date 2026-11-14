@@ -32,6 +32,9 @@ namespace Mac1ota_Menu.Classes
             Text =
                 "legitbaratinho.xyz — Manutenção";
 
+            Icon =
+                AppIcon.Get();
+
             ClientSize =
                 new Size(
                     560,

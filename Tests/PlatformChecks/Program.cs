@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -126,6 +127,21 @@ using (ReleaseWorkspace live = ReleaseWorkspace.Create(baseDir, "cs2"))
     Check(Directory.Exists(busyDir), "files still in use are not deleted");
     handle.Dispose();
     Check(ReleaseWorkspace.SweepOrphans(baseDir, "cs2") >= 1 && !Directory.Exists(busyDir), "deferred cleanup succeeds once the file is released");
+}
+
+// ---- detach: the loader closes right after the product starts, the product keeps running ----
+{
+    byte[] cmd = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, "cmd.exe"));
+    var det = Sign(Manifest("cs2", cmd, "cmd.exe"));
+    var sw = Stopwatch.StartNew();
+    var rd = await ProductSession.RunAsync(new FakeSource(det, cmd), "cs2", pub, Loader, baseDir, detach: true);
+    Check(rd.Success && sw.Elapsed < TimeSpan.FromSeconds(20), "detach: returns as soon as the product has started (does not wait for it to exit)", rd.ErrorCode + " " + sw.Elapsed);
+    bool running = Process.GetProcessesByName("cmd").Any(p => { try { return p.MainModule?.FileName?.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase) == true; } catch { return false; } });
+    Check(running, "detach: the product process is still running after the session returned");
+    int owned() => Directory.GetDirectories(runs("cs2")).Count(d => File.Exists(Path.Combine(d, ".lb-workspace")));
+    Check(owned() == 1, "detach: its folder is kept while the executable is in use", owned().ToString());
+    foreach (var p in Process.GetProcessesByName("cmd")) { try { if (p.MainModule?.FileName?.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase) == true) { p.Kill(); p.WaitForExit(5000); } } catch { } }
+    Check(ReleaseWorkspace.SweepOrphans(baseDir, "cs2") >= 1 && owned() == 0, "detach: the next sweep removes the folder once the product has exited", owned().ToString());
 }
 
 // ---- launch rules (unit-level: BuildStartInfo only; no process is started here) ----

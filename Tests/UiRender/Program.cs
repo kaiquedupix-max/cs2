@@ -6,6 +6,9 @@ using Mac1ota_Menu.Classes;
 // Also asserts what the user would read on screen (button text, status, category line).
 internal static class UiRender
 {
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
     private static int failures;
 
     private static void Check(bool ok, string name, string detail = "")
@@ -82,6 +85,33 @@ internal static class UiRender
             string Text(string field) => ((Control)typeof(ProductSelectionForm).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(form)!).Text;
             Check(Text("_start").Trim().StartsWith(sc.Expect), sc.File + ": start button reads \"" + sc.Expect + "\"", Text("_start"));
             Check(Text("_category") == sc.Category, sc.File + ": category line \"" + sc.Category + "\"", Text("_category"));
+
+            // Taskbar icon: a form without Icon showed the generic blank icon (this screen is the one users reported).
+            // The icon Windows really uses for the window is compared with the application icon (a missing Icon falls back
+            // to the generic "blank window" icon, which also answers WM_GETICON, so "non-zero" proves nothing).
+            static long Sig(Icon ic)
+            {
+                using Bitmap b = ic.ToBitmap();
+                long sum = 0;
+                for (int x = 0; x < b.Width; x += 2)
+                    for (int y = 0; y < b.Height; y += 2) { Color c = b.GetPixel(x, y); sum += c.R * 3 + c.G * 5 + c.B * 7 + c.A; }
+                return sum;
+            }
+            long appSig = Sig(AppIcon.Get()!);
+            bool hasIcon()
+            {
+                IntPtr h = SendMessage(form.Handle, 0x7F, (IntPtr)1, IntPtr.Zero);
+                if (h == IntPtr.Zero) h = SendMessage(form.Handle, 0x7F, (IntPtr)0, IntPtr.Zero);
+                return h != IntPtr.Zero && Sig(Icon.FromHandle(h)) == appSig;
+            }
+            Check(form.Icon != null && hasIcon(), sc.File + ": the window carries the application icon (taskbar)");
+            if (sc.File.StartsWith("1_"))
+            {
+                Icon? keep = form.Icon;
+                form.Icon = null;
+                Check(!hasIcon(), "control: without Icon the window has none (that was the blank taskbar icon)");
+                form.Icon = keep;
+            }
 
             using var bmp = new Bitmap(form.Width, form.Height);
             form.DrawToBitmap(bmp, new Rectangle(0, 0, form.Width, form.Height));
