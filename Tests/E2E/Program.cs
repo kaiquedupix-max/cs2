@@ -10,6 +10,27 @@ void Check(bool ok, string name, string detail = "")
 }
 string Env(string n) => Environment.GetEnvironmentVariable(n) ?? throw new InvalidOperationException("missing " + n);
 
+// ---- optional: real CI artifacts (E2E_ARTIFACTS = folder with <product>/attestation.json, signature.b64, <file>) ----
+// Verifies them with the key that ships in the loader (ReleaseTrust), the exact check a user's loader performs.
+if (Environment.GetEnvironmentVariable("E2E_ARTIFACTS") is { Length: > 0 } artifacts)
+{
+    foreach ((string product, string dir) in new[] { ("combatarms", "cabr"), ("cs2", "cs2") })
+    {
+        string folder = Path.Combine(artifacts, dir);
+        string payload = File.ReadAllText(Path.Combine(folder, "attestation.json"));
+        string signature = File.ReadAllText(Path.Combine(folder, "signature.b64")).Trim();
+        var m = ManifestVerifier.Verify(payload, signature, ReleaseTrust.PublicKeySpkiBase64, product, "1.22", out string err);
+        Check(m != null, "CI release of " + product + " verifies with the key embedded in the loader", err);
+        if (m != null)
+        {
+            string hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(Path.Combine(folder, m.FileName)))).ToLowerInvariant();
+            Check(hash == m.Sha256 && new FileInfo(Path.Combine(folder, m.FileName)).Length == m.Size, "attested SHA-256 and size match the CI file (" + m.FileName + " v" + m.Version + ")", hash);
+        }
+    }
+    Console.WriteLine(failures == 0 ? "E2E CI ARTIFACTS: ALL PASSED" : $"E2E CI ARTIFACTS: {failures} FAILED");
+    return failures == 0 ? 0 : 1;
+}
+
 Check(ClientPortalApi.PortalBaseUrl.StartsWith("http://127.0.0.1") || ClientPortalApi.PortalBaseUrl.StartsWith("http://localhost"), "loader talks to the loopback test server", ClientPortalApi.PortalBaseUrl);
 Check(ClientPortalApi.ResolvePortalUrl("https://evil.example/") == ClientPortalApi.ProductionPortalUrl, "a remote LB_PORTAL_URL is ignored (cannot redirect the loader)");
 Check(ClientPortalApi.ResolvePortalUrl(null) == ClientPortalApi.ProductionPortalUrl && ClientPortalApi.ResolvePortalUrl("ftp://127.0.0.1/") == ClientPortalApi.ProductionPortalUrl, "no or non-http value -> production URL");

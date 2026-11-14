@@ -12,6 +12,7 @@
     <Compile Include="../../Classes/ClientPortalApi.cs" Link="ClientPortalApi.cs" />
     <Compile Include="../../Classes/DeviceIdentity.cs" Link="DeviceIdentity.cs" />
     <Compile Include="../../Classes/Platform/ReleaseManifest.cs" Link="Platform/ReleaseManifest.cs" />
+    <Compile Include="../../Classes/Platform/ReleaseTrust.cs" Link="Platform/ReleaseTrust.cs" />
     <Compile Include="../../Classes/Platform/ReleaseWorkspace.cs" Link="Platform/ReleaseWorkspace.cs" />
     <Compile Include="../../Classes/Platform/ProductSession.cs" Link="Platform/ProductSession.cs" />
     <Compile Include="../../Classes/Platform/PortalReleaseSource.cs" Link="Platform/PortalReleaseSource.cs" />
