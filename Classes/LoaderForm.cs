@@ -825,8 +825,8 @@ namespace Mac1ota_Menu.Classes
             }
 
             Make("CA", 13f, FontStyle.Bold, TextPrimary, 20, 22);
-            Make("Combat Arms Brasil 7", 9.5f, FontStyle.Regular, TextPrimary, 70, 14);
-            Make("External • Brasil 7", 7.5f, FontStyle.Regular, TextSecondary, 70, 37);
+            Make("Combat Arms Brasil Server", 9.5f, FontStyle.Regular, TextPrimary, 70, 14);
+            Make("External • Brasil Server", 7.5f, FontStyle.Regular, TextSecondary, 70, 37);
             Make("●  EXTERNAL", 8f, FontStyle.Bold, TextSecondary, 378, 26);
         }
 

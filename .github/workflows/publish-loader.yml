@@ -37,6 +37,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      - name: Loader checks (must pass before anything is published)
+        shell: pwsh
+        run: |
+          dotnet run --project Tests/PlatformChecks/PlatformChecks.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw "PlatformChecks failed." }
+          dotnet run --project Tests/SkinMaterialChecks.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw "SkinMaterialChecks failed." }
+
       - name: Publish single-file executable
         shell: pwsh
         run: >-
@@ -99,7 +107,8 @@ jobs:
           $fileName = [Uri]::EscapeDataString("legitbaratinho.xyz.exe")
           $notes = [Uri]::EscapeDataString("Automatic build from commit $env:GITHUB_SHA")
           $mimeType = [Uri]::EscapeDataString("application/octet-stream")
-          $uploadUri = "$env:PORTAL_URL/api/admin/releases/upload?fileName=$fileName&notes=$notes&mimeType=$mimeType"
+          # The loader's own channel is "cs2"; naming it explicitly keeps working now that publishing never guesses a channel.
+          $uploadUri = "$env:PORTAL_URL/api/admin/releases/upload?product=cs2&fileName=$fileName&notes=$notes&mimeType=$mimeType"
 
           $published = Invoke-RestMethod `
             -Uri $uploadUri `
