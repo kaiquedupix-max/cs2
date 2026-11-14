@@ -6,7 +6,7 @@
 
   let catalog = [];
   try { catalog = await (await fetch("/api/catalog", { cache: "no-store" })).json(); } catch {}
-  const p = catalog.find((x) => x.slug === slug);
+  const p = catalog.find((x) => x.slug === slug || (x.aliases || []).includes(slug));
   if (!p) {
     root.replaceChildren(el("p", "", "Produto não encontrado."), Object.assign(el("a", "prod-back", "← Voltar aos produtos"), { href: "/" }));
     return;

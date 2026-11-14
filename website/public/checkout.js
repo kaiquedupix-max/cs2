@@ -610,9 +610,9 @@ document.getElementById("copyPixBtn").addEventListener("click", async () => {
 
 async function boot() {
   try {
-    document.title = (isCounterFrame ? "Counter Flame" : checkoutProduct === "combatarms" ? "Combat Arms Brasil 7" : "CS2") + " | Legit Baratinho";
+    document.title = (isCounterFrame ? "Counter Flame" : checkoutProduct === "combatarms" ? "Combat Arms Brasil Server" : "CS2") + " | Legit Baratinho";
     document.getElementById("checkoutProductName").textContent =
-      isCounterFrame ? "Counter Flame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : checkoutProduct === "combatarms" ? "Combat Arms External Brasil 7" : "Counter-Strike 2";
+      isCounterFrame ? "Counter Flame • " + (checkoutPlatform === "ios" ? "iOS" : "Android") : checkoutProduct === "combatarms" ? "Combat Arms Brasil Server" : "Counter-Strike 2";
     document.getElementById("checkoutProductIcon").textContent = isCounterFrame ? "CF" : checkoutProduct === "combatarms" ? "CA" : "CS";
     document.getElementById("iosCheckoutNotice")?.classList.toggle("hidden", !isIosPreorder);
     if (isCounterFrame) document.getElementById("buyerCpf").required = false;

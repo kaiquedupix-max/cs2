@@ -7,6 +7,11 @@ import { spawn } from "node:child_process";
 import crypto from "node:crypto";
 import pg from "pg";
 import { TERMS_VERSION } from "./terms.js";
+import { buildAttestation, signPayload } from "./tools/make-attestation.mjs";
+
+// combatarms is a signed channel: releases carry a CI attestation, the server only knows the public key.
+const { privateKey: CI_PRIV, publicKey: CI_PUB } = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+const CI_PRIV_PEM = CI_PRIV.export({ type: "pkcs8", format: "pem" }).toString();
 
 const DB_PORT = 54329, WEB_PORT = 3999, BASE = `http://127.0.0.1:${WEB_PORT}`;
 const DB_URL = `postgres://postgres:postgres@127.0.0.1:${DB_PORT}/postgres`;
@@ -21,7 +26,7 @@ const dbServer = new PGLiteSocketServer({ db, port: DB_PORT, host: "127.0.0.1", 
 await dbServer.start();
 
 const web = spawn(process.execPath, ["server.js"], {
-  env: { ...process.env, DATABASE_URL: DB_URL, PORT: String(WEB_PORT), SESSION_SECRET: "test-secret-0123456789",
+  env: { ...process.env, DATABASE_URL: DB_URL, PORT: String(WEB_PORT), SESSION_SECRET: "test-secret-0123456789", RELEASE_PUBLIC_KEY: CI_PUB.export({ type: "spki", format: "pem" }).toString(),
          ADMIN_PASSWORD: "admin-test-pass", PUBLIC_URL: BASE, MP_PUBLIC_KEY: "", MP_ACCESS_TOKEN: "", MP_WEBHOOK_SECRET: "" },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -86,15 +91,21 @@ try {
 
   // --- releases are separated per product ---
   const up = (product, name, bytes) => call("POST", `/api/admin/releases/upload?${product ? "product=" + product + "&" : ""}fileName=${name}`, { raw: bytes, cookie: admin });
-  const csBytes = Buffer.from("CS2-LOADER-BYTES");
-  const caBytes = Buffer.from("CABR-PAYLOAD-BYTES-v1");
-  const u1 = await up("", "cs2.zip", csBytes);
-  const u2 = await up("combatarms", "cbr.exe", caBytes);
-  const u3 = await up("combatarms-loader", "CaBrLoader.exe", Buffer.from("LOADER-1.0"));
-  const u4 = await up("combatarms-loader", "CaBrLoader.exe", Buffer.from("LOADER-1.1"));
+  // Publishing validates the file type (PE "MZ" for .exe, "PK" for .zip), so fixtures carry real magic bytes.
+  const pe = (tag) => Buffer.concat([Buffer.from("MZ"), Buffer.alloc(0x40), Buffer.from(tag)]);
+  const csBytes = Buffer.concat([Buffer.from("PK"), Buffer.alloc(8), Buffer.from("CS2-LOADER-BYTES")]);
+  const caBytes = pe("CABR-PAYLOAD-BYTES-v1");
+  const u1 = await up("cs2", "cs2.zip", csBytes);
+  const attestation = JSON.stringify(buildAttestation({ product: "combatarms", version: "1.0.0", fileBytes: caBytes,
+    config: { fileName: "cbr.exe", launch: { type: "external-exe", requiresAdmin: true }, compat: { minLoader: "1.21" } } }));
+  const u2 = await fetch(`${BASE}/api/admin/releases/upload?product=combatarms&fileName=cbr.exe`, { method: "POST",
+    headers: { cookie: admin, "content-type": "application/octet-stream", "x-product": "combatarms", "x-release-attestation": Buffer.from(attestation).toString("base64"), "x-release-signature": signPayload(attestation, CI_PRIV_PEM) }, body: caBytes })
+    .then(async (r) => ({ status: r.status }));
+  const u3 = await up("combatarms-loader", "CaBrLoader.exe", pe("LOADER-1.0"));
+  const u4 = await up("combatarms-loader", "CaBrLoader.exe", pe("LOADER-1.1"));
   check([u1, u2, u3, u4].every((u) => u.status === 201), "upload releases for cs2, combatarms, combatarms-loader x2", [u1, u2, u3, u4].map((u) => u.status).join());
   const lat = async (p) => (await call("GET", "/api/loader/latest", { headers: p ? { "x-product": p } : {} })).data?.version;
-  check((await lat("")) === "1.0" && (await lat("combatarms")) === "1.0" && (await lat("combatarms-loader")) === "1.1",
+  check((await lat("")) === "1.0" && (await lat("combatarms")) === "1.0.0" && (await lat("combatarms-loader")) === "1.1",
     "independent version counters per product (cs2 1.0, combatarms 1.0, loader 1.1)");
   const csLatest = (await call("GET", "/api/loader/latest")).data;
   check(csLatest?.sha256 === sha(csBytes), "uploading combatarms did not replace the active cs2 release");
@@ -136,16 +147,16 @@ try {
   const la2 = await login("cabr_a", H1);
   check(la2.data?.account?.product?.hasAccess === true && la2.data.account.product.daysRemaining >= 29, "after license: hasAccess=true, ~30 days");
   const plist = la2.data?.account?.products || [];
-  check(plist.length === 1 && plist[0].code === "combatarms" && plist[0].hasAccess === true && plist[0].name.includes("Brasil 7") && plist[0].daysRemaining >= 29,
+  check(plist.length === 1 && plist[0].code === "combatarms" && plist[0].hasAccess === true && plist[0].name.includes("Brasil Server") && plist[0].daysRemaining >= 29,
     "login returns the owned products list (only combatarms for user A)", JSON.stringify(plist));
   const relA = await call("GET", "/api/client/release", { headers: authA });
   check(relA.data?.release?.product === "combatarms", "release metadata echoes the product (loaders refuse mismatches)", JSON.stringify(relA.data));
   const rel = await call("GET", "/api/client/release", { headers: authA });
-  check(rel.status === 200 && rel.data.release.version === "1.0" && rel.data.release.sha256 === sha(caBytes), "licensed user gets combatarms release metadata");
+  check(rel.status === 200 && rel.data.release.version === "1.0.0" && rel.data.release.sha256 === sha(caBytes), "licensed user gets combatarms release metadata");
   const dl = await call("GET", "/api/client/download-loader", { headers: authA });
   check(dl.status === 200 && dl.buf.equals(caBytes) && dl.headers.get("x-content-sha256") === sha(caBytes), "download returns combatarms payload bytes + SHA header");
   const dlLoader = await call("GET", "/api/client/download-loader", { headers: { ...authA, "x-product": "combatarms-loader" } });
-  check(dlLoader.status === 200 && dlLoader.buf.toString() === "LOADER-1.1", "loader channel serves the active loader build");
+  check(dlLoader.status === 200 && dlLoader.buf.equals(pe("LOADER-1.1")), "loader channel serves the active loader build");
   const dlNoDev = await call("GET", "/api/client/download-loader", { headers: { authorization: "Bearer " + tokenA, "x-product": "combatarms" } });
   check(dlNoDev.status === 401, "download without device header -> 401");
 
@@ -172,10 +183,12 @@ try {
 
   // --- storefront: catalog-driven home + product pages ---
   const cat = (await call("GET", "/api/catalog")).data || [];
-  check(cat.length >= 3 && cat.some((p) => p.checkoutProduct === "combatarms" && p.name === "Combat Arms External Brasil 7"), "catalog lists CS2, Combat Arms External Brasil 7 and Counter Flame");
+  check(cat.length >= 3 && cat.some((p) => p.checkoutProduct === "combatarms" && p.name === "Combat Arms Brasil Server"), "catalog lists CS2, Combat Arms Brasil Server and Counter Flame");
   const ca = cat.find((p) => p.checkoutProduct === "combatarms");
   check(ca && ca.info.includes("Compatível com Windows 10 e 11") && !JSON.stringify(ca).toLowerCase().includes("limita"), "Combat Arms page data: Windows 10/11, no limitations section");
-  const page = await call("GET", "/produto/combat-arms-external-brasil-7");
+  const page = await call("GET", "/produto/combat-arms-brasil-server");
+  const oldUrl = await call("GET", "/produto/combat-arms-external-brasil-7");
+  check(oldUrl.status === 200 && (cat.find((p) => p.checkoutProduct === "combatarms")?.aliases || []).includes("combat-arms-external-brasil-7"), "old product URL still served and listed as alias");
   check(page.status === 200 && page.buf.toString().includes("produto.js"), "product page route serves the page shell");
   const home = (await call("GET", "/")).buf.toString();
   check(home.includes('id="product-grid"') && !home.includes("lc-counterflame-cover") && !home.includes('class="hero'), "home is the product grid (hero banner removed)");
@@ -207,7 +220,7 @@ try {
   check((await call("GET", "/api/admin/overview")).status === 401, "overview requires admin");
   const det = (await call("GET", `/api/admin/clients/${B.id}/detail`, { cookie: admin })).data;
   const lic = det?.licenses?.find((l) => l.product === "combatarms");
-  check(lic?.status === "active" && lic.label === "Combat Arms External Brasil 7" && det.payments.length === 3, "client detail: licenses and purchase history", JSON.stringify(det?.licenses));
+  check(lic?.status === "active" && lic.label === "Combat Arms Brasil Server" && det.payments.length === 3, "client detail: licenses and purchase history", JSON.stringify(det?.licenses));
   check((await call("GET", `/api/admin/clients/${B.id}/detail`)).status === 401 && (await call("GET", "/api/admin/clients/999999/detail", { cookie: admin })).status === 404, "client detail requires admin / 404 for unknown client");
   check((await call("GET", "/api/admin/clients?game=counterframe", { cookie: admin })).status === 200, "clients list accepts game=counterframe");
 

@@ -24,14 +24,15 @@ export const PRODUCT_CATALOG = [
     ]
   },
   {
-    slug: "combat-arms-external-brasil-7",
+    slug: "combat-arms-brasil-server",
+    aliases: ["combat-arms-external-brasil-7"], // old URL keeps working
     checkoutProduct: "combatarms",
-    name: "Combat Arms External Brasil 7",
+    name: "Combat Arms Brasil Server",
     tag: "PC • Windows 10 e 11",
-    tagline: "External para o servidor Combat Arms Brasil 7.",
+    tagline: "External para o Combat Arms Brasil Server.",
     art: "/media/cabr_esp.webp",
     glyph: "CA",
-    info: ["External para o servidor Combat Arms Brasil 7", "Compatível com Windows 10 e 11"],
+    info: ["External para o Combat Arms Brasil Server", "Compatível com Windows 10 e 11"],
     screenshots: [
       { src: "/media/cabr_esp.webp", caption: "Menu ESP" },
       { src: "/media/cabr_aimbot.webp", caption: "Menu Aimbot" },
@@ -45,7 +46,7 @@ export const PRODUCT_CATALOG = [
     tutorial: [
       "Compre o plano e entre no loader com o mesmo usuário e senha do site. O primeiro login vincula o seu PC (HWID).",
       "No jogo, abra as opções de vídeo e escolha modo janela na resolução do seu monitor.",
-      "Abra o loader como administrador, escolha Combat Arms External Brasil 7 e clique em iniciar. O jogo também roda como administrador.",
+      "Abra o loader como administrador, escolha Combat Arms Brasil Server e clique em iniciar. O jogo também roda como administrador.",
       "Entre em uma partida e pressione F7 (ou o botão na aba Config): a janela perde a borda e cobre o monitor inteiro. Fica como tela cheia e o overlay aparece.",
       "Se marcar “Tela cheia sem bordas ao iniciar” na aba Config, o F7 passa a ser automático.",
       "INSERT abre o menu. Pressione F6 vivo, dentro da partida, para calibrar o aimbot."
