@@ -32,9 +32,11 @@ let adminProduct = "cs2";
 
 async function api(url, options = {}) {
   const productHeader = /^\/api\/admin\/(clients|releases)/.test(url) ? { "x-product": adminProduct } : {};
+  // options first, merged headers last: spreading options afterwards used to replace the merged headers and drop
+  // Content-Type, so the JSON body of calls that pass their own headers (e.g. "+ Dias") was never parsed.
   const response = await fetch(url, {
-    headers: { "Content-Type": "application/json", ...productHeader, ...(options.headers || {}) },
     ...options,
+    headers: { "Content-Type": "application/json", ...productHeader, ...(options.headers || {}) },
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
