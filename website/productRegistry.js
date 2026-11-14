@@ -35,6 +35,7 @@ export const BUILTIN_PRODUCTS = {
     channel: "stable",
     sellable: true,
     requireSignature: true,
+    ciPublish: true,
     allowedExtensions: [".exe"],
     launch: { type: "external-exe", fileName: "cbr.exe", requiresAdmin: true },
     dependencies: [],
@@ -49,6 +50,7 @@ export const BUILTIN_PRODUCTS = {
     channel: "stable",
     sellable: false,
     requireSignature: true,
+    ciPublish: true,
     allowedExtensions: [".exe"],
     launch: { type: "external-exe", fileName: "LegitBaratinhoCS2.exe", requiresAdmin: false },
     dependencies: [],
@@ -92,6 +94,9 @@ export function normalizeProductDef(code, def, existing = {}) {
   }
   // Signed releases (CI attestation) are mandatory for every external payload unless explicitly disabled.
   const requireSignature = def.requireSignature !== undefined ? Boolean(def.requireSignature) : kind === "product" && launchType === "external-exe";
+  // ciPublish: the product's CI may publish to this channel without the admin password, authorised by the release signature
+  // alone (see requireAdminOrCiRelease). Opt-in, only meaningful on signed channels.
+  const ciPublish = requireSignature && def.ciPublish === true;
   const preferPayload = Boolean(def.launch?.preferPayload);
   if (preferPayload && !releaseChannel) fail("preferPayload_needs_releaseChannel");
   const dependencies = [...new Set((def.dependencies || []).map(String))];
@@ -104,6 +109,7 @@ export function normalizeProductDef(code, def, existing = {}) {
     sellable: kind === "product" && def.sellable !== false,
     allowedExtensions,
     requireSignature,
+    ciPublish,
     launch: { type: launchType, fileName: fileName || undefined, requiresAdmin: Boolean(def.launch?.requiresAdmin), ...(preferPayload ? { preferPayload } : {}) },
     ...(releaseChannel ? { releaseChannel } : {}),
     dependencies,

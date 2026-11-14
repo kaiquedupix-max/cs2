@@ -14,7 +14,7 @@ import { registerAdminStats } from "./adminStats.js";
 import { initReferrals, registerReferrals } from './referrals.js';
 import {initTerms} from './terms.js';
 import { createRegistry } from "./productRegistry.js";
-import { verifyAttestation, inspectUpload, isVersion } from "./releaseManifest.js";
+import { verifyAttestation, verifySignature, inspectUpload, isVersion, compareVersions } from "./releaseManifest.js";
 import { releasePublicKey } from "./releaseTrust.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -139,6 +139,34 @@ function validUsername(value) {
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 160;
+}
+
+// Release upload: an admin session, OR a product CI holding the release-signing key. The CI path needs no shared password:
+// the signature on the attestation is the credential. It is accepted only for channels that opted in (ciPublish), only for a
+// fresh (<= 24 h) attestation of the channel's own product, and only for a version newer than everything already in the
+// channel (so a captured attestation cannot be replayed as a downgrade). Everything is checked BEFORE the body is read.
+async function requireAdminOrCiRelease(req, res, next) {
+  if (verifySession(req.cookies?.[ADMIN_COOKIE])?.admin) return next();
+  const reject = (status, error) => res.status(status).json({ error });
+  const channel = strictProductOf(req);
+  const def = channel && registry.get(channel);
+  const b64 = String(req.headers["x-release-attestation"] || "");
+  const signature = String(req.headers["x-release-signature"] || "");
+  if (!def?.ciPublish || !b64 || !signature || b64.length > 8192) return reject(401, "unauthorized");
+  const key = releasePublicKey();
+  if (!key) return reject(503, "release_trust_not_configured");
+  const payload = Buffer.from(b64, "base64").toString("utf8");
+  if (!verifySignature(payload, signature, key)) return reject(401, "unauthorized");
+  let a;
+  try { a = JSON.parse(payload); } catch { return reject(401, "unauthorized"); }
+  if (a?.schema !== 2 || a.product !== registry.accessProductOf(channel) || !isVersion(a.version) || !(Number(a.size) > 0 && Number(a.size) <= 250 * 1024 * 1024)) return reject(422, "bad_attestation");
+  const builtAt = Date.parse(a.builtAt);
+  if (!Number.isFinite(builtAt) || Math.abs(Date.now() - builtAt) > 24 * 60 * 60 * 1000) return reject(422, "attestation_expired");
+  if (!pool) return reject(503, "database_not_configured");
+  const existing = await pool.query("SELECT version FROM loader_releases WHERE product_code = $1", [channel]);
+  if (existing.rows.some((r) => isVersion(r.version) && compareVersions(a.version, r.version) <= 0)) return reject(409, "version_not_newer");
+  req.viaCi = true;
+  next();
 }
 
 function requireAdmin(req, res, next) {
@@ -1692,7 +1720,7 @@ app.get("/api/admin/releases", requireAdmin, async (req, res) => {
 
 app.post(
   "/api/admin/releases/upload",
-  requireAdmin,
+  requireAdminOrCiRelease,
   express.raw({ type: "*/*", limit: "250mb" }),
   async (req, res) => {
     if (!pool) return res.status(503).json({ error: "database_not_configured" });
@@ -1772,7 +1800,7 @@ app.post(
       );
 
       await client.query("COMMIT");
-      await releaseEvent(product, result.rows[0].id, "publish", "v" + version + " " + digest + (attestation ? " signed" : named ? "" : " legacy-default-channel"));
+      await releaseEvent(product, result.rows[0].id, "publish", "v" + version + " " + digest + (attestation ? " signed" : named ? "" : " legacy-default-channel") + (req.viaCi ? " via-ci" : ""));
       res.status(201).json({ ok: true, signed: Boolean(attestation), release: result.rows[0] });
     } catch (error) {
       await client.query("ROLLBACK");

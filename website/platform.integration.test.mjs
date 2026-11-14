@@ -194,6 +194,34 @@ try {
   check((await call("GET", "/api/client/manifest", { headers: auth("combatarms") })).status === 403 && (await call("GET", "/api/client/payload", { headers: auth("combatarms") })).status === 403, "expired license: manifest and download refused");
   await sql.end();
 
+  const sql2 = () => ({ query: async (q) => { const c = new pg.Client({ connectionString: DB_URL }); await c.connect(); try { return await c.query(q); } finally { await c.end(); } } });
+  // --- CI publish without the admin password: the release signature is the credential ---
+  const upCi = (channel, bytes, version, { over, key, drop, name } = {}) => {
+    const a = attest(channel, bytes, version, over, key);
+    const headers = { "x-product": channel, "x-release-attestation": Buffer.from(a.payload).toString("base64"), "x-release-signature": a.signature, "content-type": "application/octet-stream" };
+    if (drop) delete headers[drop];
+    return fetch(`${BASE}/api/admin/releases/upload?fileName=${name || CONFIGS[channel].fileName}&notes=ci`, { method: "POST", headers, body: bytes })
+      .then(async (r) => ({ status: r.status, data: await r.json().catch(() => null) }));
+  };
+  const ci1 = pe("CABR-CI-1");
+  const okCi = await upCi("combatarms", ci1, "1.0.1");
+  check(okCi.status === 201 && okCi.data.signed === true, "CI publishes a signed release with no admin cookie", JSON.stringify(okCi));
+  check((await call("GET", "/api/admin/releases?product=combatarms", { cookie: admin })).data.releases.find((r) => r.version === "1.0.1")?.isActive === true, "the CI release is the active one");
+  check((await upCi("combatarms", pe("CABR-CI-2"), "1.0.2", { drop: "x-release-signature" })).status === 401, "no signature, no cookie -> 401");
+  check((await upCi("combatarms", pe("CABR-CI-3"), "1.0.2", { key: OTHER.priv })).status === 401, "signed by another key -> 401");
+  check((await upCi("combatarms", pe("CABR-CI-4"), "1.0.1")).data?.error === "version_not_newer", "same version again -> 409 version_not_newer");
+  check((await upCi("combatarms", pe("CABR-CI-5"), "0.9.0")).data?.error === "version_not_newer", "older version (replay/downgrade) -> 409 version_not_newer");
+  check((await upCi("combatarms", pe("CABR-CI-6"), "1.0.2", { over: { builtAt: new Date(Date.now() - 3 * 86400000).toISOString() } })).data?.error === "attestation_expired", "attestation older than 24 h refused");
+  check((await upCi("combatarms", pe("CABR-CI-7"), "1.0.2", { over: { product: "cs2" } })).data?.error === "bad_attestation", "attestation of another product refused");
+  check((await upCi("combatarms", pe("CABR-CI-8"), "1.0.2", { over: { sha256: sha(pe("other")) } })).data?.error === "attestation_file_mismatch", "attestation not matching the uploaded bytes refused");
+  const noOptIn = await fetch(`${BASE}/api/admin/releases/upload?fileName=CaBrLoader.exe`, { method: "POST", headers: { "x-product": "combatarms-loader", "x-release-attestation": Buffer.from(attest("combatarms", pe("L"), "9.9.9").payload).toString("base64"), "x-release-signature": attest("combatarms", pe("L"), "9.9.9").signature, "content-type": "application/octet-stream" }, body: pe("L") });
+  check(noOptIn.status === 401, "a channel that did not opt in (ciPublish) still needs the admin session");
+  check((await up("cs2", "x.exe", pe("NO-COOKIE-LOADER"))).status === 201, "admin upload to the loader channel still works as before");
+  const noCookieLoader = await fetch(`${BASE}/api/admin/releases/upload?fileName=evil.exe`, { method: "POST", headers: { "content-type": "application/octet-stream" }, body: pe("EVIL") });
+  check(noCookieLoader.status === 401, "unauthenticated upload to the loader channel -> 401");
+  const evCi = (await sql2().query("SELECT detail FROM release_events WHERE event = 'publish' AND detail LIKE '%via-ci%'")).rows.length;
+  check(evCi === 1, "CI publication is audited as via-ci", String(evCi));
+
   // --- persistence + missing trust anchor ---
   await stopWeb(); await startWeb({ RELEASE_PUBLIC_KEY: "" }) /* falls back to the built-in production public key */;
   const admin2 = cookieOf(await call("POST", "/api/admin/login", { json: { password: "admin-test-pass" } }), "lb_admin");
