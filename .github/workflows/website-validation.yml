@@ -35,6 +35,10 @@ jobs:
           node --check public/account.js
           node --check public/admin.js
           node --check public/support.js
+          node --check productRegistry.js
+          node --check releaseManifest.js
+          node --check releaseTrust.js
+          node --check tools/make-attestation.mjs
       - name: Test server-enforced IP pricing
         run: node --test geoMarket.test.js
       - name: Validate product prices without changing CS2
@@ -60,3 +64,11 @@ jobs:
           assert.equal(checkoutPlan("d30","cs2","INTL").priceCents, 1990);
           console.log("Checkout plans OK.");
           NODE
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm i --no-save @electric-sql/pglite-socket
+      - name: Platform tests (registry, signed releases, disable/rollback, licenses)
+        run: node platform.integration.test.mjs
+      - name: Regression tests (CS2, Combat Arms Brasil Server, checkout, admin)
+        run: node cabr.integration.test.mjs

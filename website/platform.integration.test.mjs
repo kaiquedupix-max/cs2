@@ -195,12 +195,12 @@ try {
   await sql.end();
 
   // --- persistence + missing trust anchor ---
-  await stopWeb(); await startWeb({ RELEASE_PUBLIC_KEY: "" });
+  await stopWeb(); await startWeb({ RELEASE_PUBLIC_KEY: "" }) /* falls back to the built-in production public key */;
   const admin2 = cookieOf(await call("POST", "/api/admin/login", { json: { password: "admin-test-pass" } }), "lb_admin");
   check((await call("GET", "/api/admin/products", { cookie: admin2 })).data.products.some((p) => p.code === "testgame"), "registered product survives a restart");
   const a2 = attest("combatarms", pe("CABR-2"), "1.1.0");
   const noTrust = await fetch(`${BASE}/api/admin/releases/upload?fileName=cbr.exe`, { method: "POST", headers: { cookie: admin2, "content-type": "application/octet-stream", "x-product": "combatarms", "x-release-attestation": Buffer.from(a2.payload).toString("base64"), "x-release-signature": a2.signature }, body: pe("CABR-2") });
-  check(noTrust.status === 503, "no public key configured -> signed uploads refused with 503 (never accepted unchecked)");
+  check(noTrust.status === 422 && (await noTrust.json()).error === "bad_signature", "without the test override the built-in production key applies: a release signed by another key is refused");
 
   exitCode = fails ? 1 : 0;
   console.log(fails ? `PLATFORM: ${fails} FAILED` : "PLATFORM: ALL PASSED");
