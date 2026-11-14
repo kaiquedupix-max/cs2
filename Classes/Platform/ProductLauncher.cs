@@ -22,15 +22,15 @@ namespace Mac1ota_Menu.Classes
         }
 
         public static async Task<(bool Success, string Message)> StartAsync(
-            string product, string displayName, Action<SessionStage, long, long>? progress = null)
+            string product, string displayName, Action<SessionStage, long, long>? progress = null, bool detach = false)
         {
             try
             {
                 SessionResult result = await ProductSession.RunAsync(
                     new PortalReleaseSource(), product, ReleaseTrust.PublicKeySpkiBase64, LoaderUpdater.InstalledVersion, BaseDirectory, progress,
-                    sessionEnvironment: SessionEnvironment);
+                    sessionEnvironment: SessionEnvironment, detach: detach);
 
-                if (result.Success) return (true, displayName + " encerrado (v" + result.Version + ").");
+                if (result.Success) return (true, displayName + (detach ? " iniciado" : " encerrado") + " (v" + result.Version + ").");
                 return (false, result.ErrorCode == "key_missing"
                     ? "Este loader não tem a chave de verificação de releases. Nada foi executado."
                     : result.ErrorCode == "loader_too_old"

@@ -84,6 +84,9 @@ namespace Mac1ota_Menu.Classes
             Text =
                 "legitbaratinho.xyz";
 
+            Icon =
+                AppIcon.Get();
+
             ClientSize =
                 new Size(
                     1300,
@@ -1216,6 +1219,8 @@ namespace Mac1ota_Menu.Classes
                     await ProductLauncher.StartAsync(
                         code,
                         name,
+                        detach: true,
+                        progress:
                         (stage, done, total) =>
                             _start.Text =
                                 stage switch
@@ -1233,7 +1238,18 @@ namespace Mac1ota_Menu.Classes
                 _start.Text =
                     idleText;
 
-                // The product ran until the user closed it; only failures need a dialog.
+                // Success: the product is running on its own, so the loader closes and only the product stays open.
+                if (success)
+                {
+                    DialogResult =
+                        DialogResult.Cancel;
+
+                    Close();
+
+                    return;
+                }
+
+                // Only failures need a dialog.
                 if (!success)
                 {
                     MessageBox.Show(

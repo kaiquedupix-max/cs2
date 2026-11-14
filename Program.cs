@@ -490,10 +490,10 @@ try
 
     LoaderForm.SetStartupProgress(
         100,
-        "Tudo pronto.");
+        "Injetado com sucesso!");
 
     await Task.Delay(
-        550);
+        1600);
 
     LoaderForm.CloseStartup();
 

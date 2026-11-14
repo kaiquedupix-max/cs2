@@ -51,7 +51,8 @@ namespace Mac1ota_Menu.Classes
         public static async Task<SessionResult> RunAsync(
             IReleaseSource source, string product, string publicKeySpkiBase64, string loaderVersion, string baseDirectory,
             Action<SessionStage, long, long>? progress = null, CancellationToken ct = default,
-            Func<ReleaseManifest, IReadOnlyDictionary<string, string>?>? sessionEnvironment = null)
+            Func<ReleaseManifest, IReadOnlyDictionary<string, string>?>? sessionEnvironment = null,
+            bool detach = false)
         {
             ReleaseWorkspace.SweepOrphans(baseDirectory, product);
             using ReleaseWorkspace workspace = ReleaseWorkspace.Create(baseDirectory, product);
@@ -98,6 +99,15 @@ namespace Mac1ota_Menu.Classes
                 if (process == null) return new SessionResult(false, "launch_failed", "Não foi possível iniciar o produto.");
 
                 progress?.Invoke(SessionStage.Running, 0, 0);
+
+                // Detached: the caller (the loader) is about to close, so it does not wait for the product. Its folder stays
+                // while the executable is in use; the next run's SweepOrphans removes it once the product has exited.
+                if (detach)
+                {
+                    process.Dispose();
+                    return new SessionResult(true, "", "Produto iniciado.", manifest.Version);
+                }
+
                 using (process)
                 {
                     await process.WaitForExitAsync(ct);
