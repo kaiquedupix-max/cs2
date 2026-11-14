@@ -54,6 +54,12 @@ internal static class UiRender
                 "INICIAR UM JOGO NOVO COM NOME BEM COMPRIDO", "UN • WINDOWS • V2.3.1"),
         };
 
+        // Old server (no /api/client/catalog): the screen must still work from the plain account snapshot.
+        scenarios = scenarios.Append(("6_old_server_no_catalog.png", "combatarms",
+            new List<ClientPortalApi.AccountProduct> { Owned("cs2", "Counter-Strike 2", true, 59), Owned("combatarms", "Combat Arms Brasil Server", true, 29) },
+            (List<ClientPortalApi.CatalogProduct>)null!,
+            "INICIAR COMBAT ARMS BRASIL SERVER", "CA • WINDOWS")).ToArray();
+
         foreach (var sc in scenarios)
         {
             using var form = new ProductSelectionForm();

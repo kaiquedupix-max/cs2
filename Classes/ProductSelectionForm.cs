@@ -906,6 +906,33 @@ namespace Mac1ota_Menu.Classes
             return cut.TrimEnd() + "…";
         }
 
+        // Only used when the server sent no catalog entry (older server): the two products that existed before the
+        // catalog keep their short marks, anything else uses the initials of the first two words.
+        private static string FallbackGlyph(
+            string code,
+            string name)
+        {
+            if (code == "cs2")
+            {
+                return "CS";
+            }
+
+            if (code == "combatarms")
+            {
+                return "CA";
+            }
+
+            string[] words =
+                name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            return (words.Length >= 2
+                    ? words[0][..1] + words[1][..1]
+                    : name.Length >= 2
+                        ? name[..2]
+                        : name)
+                .ToUpperInvariant();
+        }
+
         private static string LicenseSuffix(
             ClientPortalApi.AccountProduct item,
             ClientPortalApi.CatalogProduct? entry)
@@ -1050,9 +1077,7 @@ namespace Mac1ota_Menu.Classes
             string glyph =
                 !string.IsNullOrWhiteSpace(entry?.Glyph)
                     ? entry!.Glyph
-                    : name.Length >= 2
-                        ? name[..2].ToUpperInvariant()
-                        : name.ToUpperInvariant();
+                    : FallbackGlyph(current.Code, name);
 
             if (_icon != null)
             {
