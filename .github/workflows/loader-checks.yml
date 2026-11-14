@@ -1,0 +1,31 @@
+name: Loader checks
+
+on:
+  pull_request:
+    paths-ignore: ["website/**", "telegram-bot/**", "**/*.md"]
+  push:
+    branches-ignore: [main]
+    paths-ignore: ["website/**", "telegram-bot/**", "**/*.md"]
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build loader
+        run: dotnet build "Mac1ota Menu.csproj" -c Release -p:Platform=x64
+      - name: Loader core checks (signature, compatibility, integrity, cleanup)
+        run: dotnet run --project Tests/PlatformChecks/PlatformChecks.csproj -c Release
+      - name: Skin material checks
+        run: dotnet run --project Tests/SkinMaterialChecks.csproj -c Release
+      - name: Render the product screen with catalog data
+        run: dotnet run --project Tests/UiRender/UiRender.csproj -c Release -- ui-render
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-render
+          path: ui-render/*.png
