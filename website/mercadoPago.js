@@ -23,10 +23,17 @@ const COMBATARMS_PLANS = [
   { key: "d30", name: "1 mês", days: 30, priceCents: 2000 },
 ];
 
+const ROBRUN_PLANS = [
+  { key: "d7", name: "7 dias", days: 7, priceCents: 3000 },
+  { key: "d15", name: "15 dias", days: 15, priceCents: 5000 },
+  { key: "d30", name: "1 mês", days: 30, priceCents: 7000 },
+];
+
 function plansFor(product) {
   const p = normalizeProduct(product);
   if (p === "counterframe") return COUNTERFRAME_PLANS;
   if (p === "combatarms") return COMBATARMS_PLANS;
+  if (p === "robrun") return ROBRUN_PLANS;
   return PLANS;
 }
 
@@ -58,6 +65,7 @@ export function normalizeProduct(value) {
   const product = String(value || "cs2").trim().toLowerCase();
   if (product === "cf" || product === "counterframe") return "counterframe";
   if (product === "combatarms" || product === "cabr") return "combatarms";
+  if (product === "robrun" || product === "rob-run" || product === "rob run") return "robrun";
   return "cs2";
 }
 

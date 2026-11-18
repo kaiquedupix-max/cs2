@@ -39,10 +39,11 @@ const PRODUCT_CODE = "cs2";
 const PRODUCTS = {
   cs2: { name: "Counter-Strike 2" },
   combatarms: { name: "LegitBaratinho External — CA Brasil Server" },
+  robrun: { name: "Rob Run" },
   // Release channel for the CaBr loader executable itself; licensed through combatarms.
   "combatarms-loader": { name: "CaBr Loader", accessProduct: "combatarms" },
 };
-const SELLABLE_PRODUCTS = ["cs2", "combatarms"];
+const SELLABLE_PRODUCTS = ["cs2", "combatarms", "robrun"];
 const accessProductOf = (product) => PRODUCTS[product]?.accessProduct || product;
 function productOf(req) {
   const raw = String(
